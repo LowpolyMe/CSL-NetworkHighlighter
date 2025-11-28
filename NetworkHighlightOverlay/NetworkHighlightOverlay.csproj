@@ -71,7 +71,7 @@
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
         <Compile Include="Code\Patches\ToolRenderOverlayPatch.cs" />
         <Compile Include="Code\ModOptions\Config.cs" />
-        <Compile Include="Code\ModOptions\Options.cs" />
+        <Compile Include="Code\ModOptions\NetworkOverlayMod.cs" />
         <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />

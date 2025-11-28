@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.ModOptions
 {
-    public class Options : IUserMod
+    public class NetworkOverlayMod : IUserMod
     {
         public string Name => "Path / Network Highlight Overlay";
-        public string Description => "Highlights various networks (paths, roads, rails, etc.).";
+        public string Description => "Highlights various networks (paths, roads, rails, etc.) including hidden/invisible ones.";
 
         private Texture2D _hueTexture;
 
@@ -59,7 +59,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
                 CreateHueSlider(
                     colorsGroup,
-                    "Tram tracks",
+                    "Tram and Trolley tracks",
                     ModSettings.TramTracksHue,
                     v => ModSettings.TramTracksHue = v);
 

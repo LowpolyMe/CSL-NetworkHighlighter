@@ -252,11 +252,11 @@ namespace NetworkHighlightOverlay.Code.Core
                 return true;
             }
 
-            // 6) ROADS (including those with tram lanes)
+            // 6) ROADS (including tram/trolley lanes)
             if (ai is RoadAI || ai is RoadBridgeAI || ai is RoadTunnelAI)
             {
                 bool isHighway   = IsHighway(info);
-                bool hasTram     = HasTramLanes(info);
+                bool hasTramLike = HasTramOrTrolleyLanes(info);
                 bool hasCarLike  = HasCarLikeLanes(info);
 
                 bool isBridge = ai is RoadBridgeAI;
@@ -269,8 +269,24 @@ namespace NetworkHighlightOverlay.Code.Core
                 if (isTunnel && !ModSettings.HighlightTunnels)
                     return false;
 
-                // --- Pure tram track (no car lanes) ---
-                if (hasTram && !hasCarLike)
+                // --- Highways 
+                if (isHighway)
+                {
+                    if (!ModSettings.HighlightHighways)
+                        return false;
+
+                    color = ModSettings.HighwaysColor;
+                    return true;
+                }
+
+                //non-highway roads
+
+                // exclude roads that do not have car or tram or trolley lanes
+                if (!hasCarLike && !hasTramLike)
+                    return false;
+
+                // --- Pure tram/trolley (no car lanes) ---
+                if (hasTramLike && !hasCarLike)
                 {
                     if (!ModSettings.HighlightTramTracks)
                         return false;
@@ -279,25 +295,28 @@ namespace NetworkHighlightOverlay.Code.Core
                     return true;
                 }
 
-                // --- Mixed road + tram lanes ---
-                if (hasTram && hasCarLike && ModSettings.HighlightTramTracks)
+                // --- Mixed road + tram/trolley ---
+                if (hasTramLike && hasCarLike)
                 {
-                    // choose tram color when tram highlight is on
-                    color = ModSettings.TramTracksColor;
-                    return true;
+                    // 1) Both true → tram/trolley color 
+                    if (ModSettings.HighlightTramTracks)
+                    {
+                        color = ModSettings.TramTracksColor;
+                        return true;
+                    }
+
+                    // 2) Only roads true → treat as road
+                    if (ModSettings.HighlightRoads)
+                    {
+                        color = ModSettings.RoadsColor;
+                        return true;
+                    }
+
+                    // neither roads nor tram enabled → no highlight
+                    return false;
                 }
 
-                // --- Highways vs. normal roads ---
-                if (isHighway)
-                {
-                    if (!ModSettings.HighlightHighways)
-                        return false; // don't fall back to roads
-
-                    color = ModSettings.HighwaysColor;
-                    return true;
-                }
-
-                // Non-highway roads with car-like lanes
+                // --- Plain road (car-like lanes only) ---
                 if (hasCarLike && ModSettings.HighlightRoads)
                 {
                     color = ModSettings.RoadsColor;
@@ -318,14 +337,18 @@ namespace NetworkHighlightOverlay.Code.Core
             return ai.IsHighway();
         }
 
-        private static bool HasTramLanes(NetInfo info)
+        private static bool HasTramOrTrolleyLanes(NetInfo info)
         {
             if (info?.m_lanes == null)
                 return false;
 
+            const VehicleInfo.VehicleType tramLikeMask =
+                VehicleInfo.VehicleType.Tram |
+                VehicleInfo.VehicleType.Trolleybus;
+
             foreach (var lane in info.m_lanes)
             {
-                if ((lane.m_vehicleType & VehicleInfo.VehicleType.Tram) != 0)
+                if ((lane.m_vehicleType & tramLikeMask) != 0)
                     return true;
             }
 
@@ -336,12 +359,10 @@ namespace NetworkHighlightOverlay.Code.Core
         {
             if (info?.m_lanes == null)
                 return false;
-            
-            const VehicleInfo.VehicleType carLikeMask = VehicleInfo.VehicleType.Car;
 
             foreach (var lane in info.m_lanes)
             {
-                if ((lane.m_vehicleType & carLikeMask) != 0)
+                if ((lane.m_vehicleType & VehicleInfo.VehicleType.Car) != 0)
                     return true;
             }
 
