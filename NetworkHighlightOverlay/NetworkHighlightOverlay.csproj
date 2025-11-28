@@ -74,6 +74,7 @@
         <Compile Include="Code\ModOptions\Options.cs" />
         <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
+        <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>

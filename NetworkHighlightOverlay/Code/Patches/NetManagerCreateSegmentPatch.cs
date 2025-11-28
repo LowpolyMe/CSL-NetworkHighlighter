@@ -50,7 +50,7 @@ namespace NetworkHighlightOverlay.Code.Patches
                 return;
 
             var ai = info.m_netAI;
-            if (ai is PedestrianPathAI || ai is PedestrianWayAI)
+            if (ai != null)
             {
                 Manager.Instance?.OnSegmentCreated(segment);
             }
