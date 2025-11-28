@@ -1,38 +1,27 @@
-# PathHighlightOverlay
+# Network Highlight Overlay
 
-Network Highlight Overlay
-
-Network Highlight Overlay is a Cities: Skylines mod that highlights selected network types (roads, rails, pedestrian paths, transit infrastructure, bridges, tunnels, etc.) with customizable colors. 
+Network Highlight Overlay is a **Cities: Skylines 1** mod that highlights selected network types (roads, rails, pedestrian paths, transit infrastructure, bridges, tunnels, etc.) with customizable colors. 
 It is useful for debugging, visual clarity, screenshots, and inspecting hidden / underground / service networks. During my testing, it worked for insivible (workshop) paths, too.
 
-This mod depends on Harmony 2 and Unified UI (UUI).
+**This mod depends on Harmony 2 and Unified UI (UUI).**
 
-Features
+## Features
 
-Highlights:
+Highlights the following network types:
+- Pedestrian paths
+- Roads
+- Highways
+- Tram tracks / trolley lanes
+- Train
+- Metro 
+- Monorails
+- Cablecar paths
 
-Pedestrian paths 
+Fully **color-customizable** using hue sliders
 
-Roads
+## Overlay toggle:
 
-Highways
+F9 hotkey / UUI Button
 
-Tram tracks / trolley lanes
+Should be compatible with any other render-based mod (non-destructive)
 
-Train, Metro, Monorail rails
-
-Cablecar paths
-
-Bridges & tunnels (toggle separately)
-
-Fully color-customizable using hue sliders
-
-Overlay toggle:
-
-F9 hotkey
-
-Or UUI button
-
-Compatible with any other render-based mod (non-destructive)
-
-Settings persist between sessions (XML)
