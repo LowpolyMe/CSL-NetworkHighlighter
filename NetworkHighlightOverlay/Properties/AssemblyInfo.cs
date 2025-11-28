@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("PathHighlightOverlay")]
+[assembly: AssemblyTitle("NetworkHighlightOverlay")]
 [assembly: AssemblyDescription("Cities: Skylines mod that highlights pedestrian paths in the Traffic info view.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Lowpolyme")]
-[assembly: AssemblyProduct("PathHighlightOverlay")] 
+[assembly: AssemblyProduct("NetworkHighlightOverlay")] 
 [assembly: AssemblyCopyright("Copyright © Lowpolyme 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

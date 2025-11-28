@@ -3,10 +3,10 @@ using ColossalFramework.Math;
 using UnityEngine;
 using System.Reflection;
 using System;
-using PathHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code.Core;
 
 
-namespace PathHighlightOverlay.Code.Patches
+namespace NetworkHighlightOverlay.Code.Patches
 {
     [HarmonyPatch]
     public static class NetManagerCreateSegmentPatch
@@ -50,9 +50,9 @@ namespace PathHighlightOverlay.Code.Patches
                 return;
 
             var ai = info.m_netAI;
-            if (ai is PedestrianPathAI || ai is PedestrianWayAI)
+            if (ai != null)
             {
-                PathHighlightManager.Instance?.OnSegmentCreated(segment);
+                Manager.Instance?.OnSegmentCreated(segment);
             }
         }
     }
@@ -75,11 +75,11 @@ namespace PathHighlightOverlay.Code.Patches
             {
                 try
                 {
-                    PathHighlightManager.Instance?.OnSegmentReleased(segment);
+                    Manager.Instance?.OnSegmentReleased(segment);
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"[PathHighlightOverlay] Error in ReleaseSegment prefix: {e}");
+                    Debug.LogError($"[NetworkHighlightOverlay] Error in ReleaseSegment prefix: {e}");
                 }
             }
         }

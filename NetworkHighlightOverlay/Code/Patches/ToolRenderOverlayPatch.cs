@@ -1,16 +1,16 @@
 using HarmonyLib;
 using ColossalFramework;
-using PathHighlightOverlay.Code;
-using PathHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code;
 
-namespace PathHighlightOverlay.Code.Patches
+namespace NetworkHighlightOverlay.Code.Patches
 {
     [HarmonyPatch(typeof(ToolBase), "RenderOverlay")]
     public static class ToolRenderOverlayPatch
     {
         static void Postfix(RenderManager.CameraInfo cameraInfo)
         {
-            PathHighlightManager.Instance?.RenderIfActive(cameraInfo);
+            Manager.Instance?.RenderIfActive(cameraInfo);
         }
     }
 }

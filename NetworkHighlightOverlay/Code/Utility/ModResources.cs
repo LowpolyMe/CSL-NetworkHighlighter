@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-namespace PathHighlightOverlay.Code.Utility
+namespace NetworkHighlightOverlay.Code.Utility
 {
     public static class ModResources
     {
@@ -20,7 +20,7 @@ namespace PathHighlightOverlay.Code.Utility
         private static string GetModDirectory()
         {
             string basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            return Path.Combine(basePath, @"Colossal Order\Cities_Skylines\Addons\Mods\PathHighlightOverlay");
+            return Path.Combine(basePath, @"Colossal Order\Cities_Skylines\Addons\Mods\NetworkHighlightOverlay");
         }
 
         private static string ResourcesPath => Path.Combine(ModDirectory, "Resources");
@@ -30,7 +30,7 @@ namespace PathHighlightOverlay.Code.Utility
             string fullPath = Path.Combine(ResourcesPath, fileName);
             if (!File.Exists(fullPath))
             {
-                Debug.LogError($"[PathHighlightOverlay] Resource not found: {fullPath}");
+                Debug.LogError($"[NetworkHighlightOverlay] Resource not found: {fullPath}");
                 return null;
             }
 

@@ -1,14 +1,14 @@
 using UnityEngine;
 
-namespace PathHighlightOverlay.Code.Core
+namespace NetworkHighlightOverlay.Code.Core
 {
-    public class PathHighlightActivationHandler : MonoBehaviour
+    public class ActivationHandler : MonoBehaviour
     {
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F9))
             {
-                PathHighlightManager.Instance.IsEnabled = !PathHighlightManager.Instance.IsEnabled;
+                Manager.Instance.IsEnabled = !Manager.Instance.IsEnabled;
 
             }
         }

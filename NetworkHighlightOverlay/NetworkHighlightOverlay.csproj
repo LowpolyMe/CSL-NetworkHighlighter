@@ -8,8 +8,8 @@
         <ProjectGuid>{BF8F1D31-FB4D-4225-99E2-ECD10CE3A944}</ProjectGuid>
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>PathHighlightOverlay</RootNamespace>
-        <AssemblyName>PathHighlightOverlay</AssemblyName>
+        <RootNamespace>NetworkHighlightOverlay</RootNamespace>
+        <AssemblyName>NetworkHighlightOverlay</AssemblyName>
         <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
@@ -65,14 +65,16 @@
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Code\Core\PathHighlightActivationHandler.cs" />
-        <Compile Include="Code\Core\PathHighlightManager.cs" />
-        <Compile Include="Code\Lifecycle\PathHighlightLoading.cs" />
+        <Compile Include="Code\Core\ActivationHandler.cs" />
+        <Compile Include="Code\Core\Manager.cs" />
+        <Compile Include="Code\Lifecycle\Loading.cs" />
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
         <Compile Include="Code\Patches\ToolRenderOverlayPatch.cs" />
-        <Compile Include="Code\Settings\PathHighlightConfig.cs" />
-        <Compile Include="Code\Settings\PathHighlightOptions.cs" />
-        <Compile Include="Code\Settings\PathHighlightSettingsLoader.cs" />
+        <Compile Include="Code\ModOptions\Config.cs" />
+        <Compile Include="Code\ModOptions\NetworkOverlayMod.cs" />
+        <Compile Include="Code\ModOptions\ModSettings.cs" />
+        <Compile Include="Code\ModOptions\SettingsLoader.cs" />
+        <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>
@@ -87,7 +89,7 @@
     <Target Name="DeployToModDirectory" AfterTargets="Build">
         <!-- Mod output path -->
         <PropertyGroup>
-            <DeployDir>$(LOCALAPPDATA)\Colossal Order\Cities_Skylines\Addons\Mods\PathHighlightOverlay</DeployDir>
+            <DeployDir>$(LOCALAPPDATA)\Colossal Order\Cities_Skylines\Addons\Mods\NetworkHighlightOverlay</DeployDir>
         </PropertyGroup>
 
         <!-- Ensure destination exists -->
