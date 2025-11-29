@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
             Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
@@ -79,11 +79,12 @@
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
         <Compile Include="Code\Patches\ToolRenderOverlayPatch.cs" />
         <Compile Include="Code\ModOptions\Config.cs" />
-        <Compile Include="Code\ModOptions\NetworkOverlayMod.cs" />
+        <Compile Include="Code\ModOptions\NetworkHighlighterMod.cs" />
         <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
+        <Compile Include="Code\Utility\UIUtility.cs" />
         <Compile Include="Code\UUIImplementation\UUIButtonController.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
     </ItemGroup>
