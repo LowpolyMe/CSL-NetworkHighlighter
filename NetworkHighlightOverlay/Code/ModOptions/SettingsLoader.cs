@@ -11,8 +11,11 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             get
             {
                 string basePath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
-                string modDirectory = Path.Combine(basePath, @"Colossal Order\Cities_Skylines\Addons\Mods\NetworkHighlightOverlay\ModOptions");
-                return Path.Combine(modDirectory, "ModOptions.xml");
+                string modDirectory = Path.Combine(
+                    basePath,
+                    @"Colossal Order\Cities_Skylines");
+
+                return Path.Combine(modDirectory, "NetworkHighlighter-Options.xml");
             }
         }
 
@@ -52,8 +55,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 {
                     serializer.Serialize(writer, config);
                 }
-
-                Debug.Log("[NetworkHighlightOverlay] ModOptions saved.");
+                
             }
             catch (IOException ex)
             {
