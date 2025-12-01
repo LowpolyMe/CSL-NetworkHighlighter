@@ -41,7 +41,8 @@ namespace NetworkHighlightOverlay.Code.Patches
             }
         }
         
-        static void Postfix(RenderManager.CameraInfo cameraInfo)
+        //using pre- instead of postfix so moveit highlights are still displayed on top
+        static void Prefix(RenderManager.CameraInfo cameraInfo)
         {
             try
             {
