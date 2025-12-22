@@ -235,9 +235,15 @@ namespace NetworkHighlightOverlay.Code.Core
             }
 
             // 3) METRO
-            if (ai is MetroTrackAI)
+            if (ai is MetroTrackAI || ai is MetroTrackBridgeAI || ai is MetroTrackTunnelAI)
             {
                 if (!ModSettings.HighlightMetroTracks)
+                    return false;
+                
+                if (ai is MetroTrackBridgeAI && !ModSettings.HighlightBridges)
+                    return false;
+
+                if (ai is MetroTrackTunnelAI && !ModSettings.HighlightTunnels)
                     return false;
 
                 color = ModSettings.MetroTracksColor;
