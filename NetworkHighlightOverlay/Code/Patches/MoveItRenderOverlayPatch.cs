@@ -16,30 +16,42 @@ namespace NetworkHighlightOverlay.Code.Patches
     [HarmonyPatch]
     public static class MoveItRenderOverlayPatch
     {
-        static MethodBase TargetMethod()
-        {
-            try
-            {
-                var toolType = AccessTools.TypeByName("MoveIt.MoveItTool");
-                if (toolType == null)
-                {
-                    return null;
-                }
+        private static MethodBase _target;
 
-                return AccessTools.Method(
-                    toolType,
-                    "RenderOverlay",
-                    new[] { typeof(RenderManager.CameraInfo) }
-                );
-            }
-            catch (Exception e)
+        static bool Prepare()
+        {
+            var toolType = AccessTools.TypeByName("MoveIt.MoveItTool");
+            if (toolType == null)
             {
-                Debug.LogError(
-                    $"[NetworkHighlightOverlay] Failed to locate MoveIt.MoveItTool.RenderOverlay: {e}"
+                Debug.Log(
+                    "[NetworkHighlightOverlay] No MoveIt detected."
                 );
-                return null;
+                return false;
             }
+            
+            _target = AccessTools.Method(
+                toolType, 
+                "RenderOverlay",
+                new[] { typeof(RenderManager.CameraInfo) }
+                );
+            
+            if (_target == null)
+            {
+                Debug.LogWarning(
+                    "[NetworkHighlightOverlay] MoveIt.MoveItTool.RenderOverlay not found – " +
+                    "signature may have changed."
+                );
+                return false;
+            }
+            
+            Debug.Log(
+                "[NetworkHighlightOverlay] MoveIt detected – patching MoveIt.MoveItTool.RenderOverlay."
+            );
+            return true;
         }
+
+        static MethodBase TargetMethod() => _target;
+        
         
         //using pre- instead of postfix so moveit highlights are still displayed on top
         static void Prefix(RenderManager.CameraInfo cameraInfo)
@@ -51,7 +63,7 @@ namespace NetworkHighlightOverlay.Code.Patches
             catch (Exception e)
             {
                 Debug.LogError(
-                    $"[NetworkHighlightOverlay] Error in Move It RenderOverlay postfix: {e}"
+                    $"[NetworkHighlightOverlay] Error in Move It RenderOverlay pretfix: {e}"
                 );
             }
         }
