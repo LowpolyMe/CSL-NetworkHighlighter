@@ -67,6 +67,25 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             set => PedestrianPathsHue = ColorConversion.ToHue(value);
         }
 
+        public static float PinkPathsHue
+        {
+            get => _config.PinkPathsHue;
+            set
+            {
+                if (Mathf.Approximately(_config.PinkPathsHue, value))
+                    return;
+
+                _config.PinkPathsHue = value;
+                SaveAndRaise();
+            }
+        }
+
+        public static Color PinkPathColor
+        {
+            get => ColorConversion.FromHue(PinkPathsHue, HighlightStrength);
+            set => PinkPathsHue = ColorConversion.ToHue(value);
+        }
+
         public static float RoadsHue
         {
             get => _config.RoadsHue;
@@ -217,6 +236,19 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
+        public static bool HighlightPinkPaths
+        {
+            get => _config.HighlightPinkPaths;
+            set
+            {
+                if (_config.HighlightPinkPaths == value)
+                    return;
+
+                _config.HighlightPinkPaths = value;
+                SaveAndRaise();
+            }
+        }
+
         public static bool HighlightRoads
         {
             get => _config.HighlightRoads;
@@ -340,32 +372,37 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         public static void ResetToDefaults()
         {
-            _config.HighlightStrength  = 1.0f;
-            _config.HighlightWidth     = 1.0f;
-            
-            // Hues
-            _config.PedestrianPathsHue = 0.25f;
-            _config.RoadsHue           = 0.5f;
-            _config.HighwaysHue        = 0.65f;
-            _config.TrainTracksHue     = 0.1f;
-            _config.MetroTracksHue     = 0.01f;
-            _config.TramTracksHue      = 0.85f;
-            _config.MonorailHue        = 0.85f;
-            _config.CableCarsHue       = 0.85f;
-            
-            // Toggles
-            _config.HighlightPedestrianPaths = true;
-            _config.HighlightRoads           = true;
-            _config.HighlightHighways        = true;
-            _config.HighlightTrainTracks     = true;
-            _config.HighlightMetroTracks     = true;
-            _config.HighlightTramTracks      = true;
-            _config.HighlightMonorailTracks  = true;
-            _config.HighlightCableCars       = true;
-            _config.HighlightBridges         = true;
-            _config.HighlightTunnels         = true;
+            ApplyConfig(new Config());
 
             SaveAndRaise();
+        }
+
+        private static void ApplyConfig(Config source)
+        {
+            _config.HighlightStrength = source.HighlightStrength;
+            _config.HighlightWidth = source.HighlightWidth;
+
+            _config.PedestrianPathsHue = source.PedestrianPathsHue;
+            _config.PinkPathsHue = source.PinkPathsHue;
+            _config.RoadsHue = source.RoadsHue;
+            _config.HighwaysHue = source.HighwaysHue;
+            _config.TrainTracksHue = source.TrainTracksHue;
+            _config.MetroTracksHue = source.MetroTracksHue;
+            _config.TramTracksHue = source.TramTracksHue;
+            _config.MonorailHue = source.MonorailHue;
+            _config.CableCarsHue = source.CableCarsHue;
+
+            _config.HighlightPedestrianPaths = source.HighlightPedestrianPaths;
+            _config.HighlightPinkPaths = source.HighlightPinkPaths;
+            _config.HighlightRoads = source.HighlightRoads;
+            _config.HighlightHighways = source.HighlightHighways;
+            _config.HighlightTrainTracks = source.HighlightTrainTracks;
+            _config.HighlightMetroTracks = source.HighlightMetroTracks;
+            _config.HighlightTramTracks = source.HighlightTramTracks;
+            _config.HighlightMonorailTracks = source.HighlightMonorailTracks;
+            _config.HighlightCableCars = source.HighlightCableCars;
+            _config.HighlightBridges = source.HighlightBridges;
+            _config.HighlightTunnels = source.HighlightTunnels;
         }
 
         #endregion

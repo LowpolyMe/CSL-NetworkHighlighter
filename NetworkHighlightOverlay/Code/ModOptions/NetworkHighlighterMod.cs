@@ -94,6 +94,13 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
                 UIUtility.CreateHueSlider(
                     colorsHelper,
+                    "Pink paths",
+                    ModSettings.PinkPathsHue,
+                    v => ModSettings.PinkPathsHue = v,
+                    _hueTexture);
+
+                UIUtility.CreateHueSlider(
+                    colorsHelper,
                     "Roads",
                     ModSettings.RoadsHue,
                     v => ModSettings.RoadsHue = v,
@@ -151,6 +158,11 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     "Highlight pedestrian paths",
                     ModSettings.HighlightPedestrianPaths,
                     v => ModSettings.HighlightPedestrianPaths = v);
+
+                filtersHelper.AddCheckbox(
+                    "Highlight pink paths",
+                    ModSettings.HighlightPinkPaths,
+                    v => ModSettings.HighlightPinkPaths = v);
 
                 filtersHelper.AddCheckbox(
                     "Highlight roads",

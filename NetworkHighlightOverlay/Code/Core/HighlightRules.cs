@@ -1,3 +1,4 @@
+using System;
 using NetworkHighlightOverlay.Code.ModOptions;
 using UnityEngine;
 
@@ -19,6 +20,15 @@ namespace NetworkHighlightOverlay.Code.Core
             if (ai == null)
             {
                 return false;
+            }
+
+            if (IsPinkPath(info, ai))
+            {
+                if (!ModSettings.HighlightPedestrianPaths || !ModSettings.HighlightPinkPaths)
+                    return false;
+
+                color = ModSettings.PinkPathColor;
+                return true;
             }
 
             if (ai is PedestrianPathAI || ai is PedestrianWayAI || ai is PedestrianZoneRoadAI)
@@ -161,6 +171,17 @@ namespace NetworkHighlightOverlay.Code.Core
             }
 
             return false;
+        }
+
+        private static bool IsPinkPath(NetInfo info, NetAI ai)
+        {
+            if (info == null || ai == null)
+                return false;
+
+            if (!(ai is PedestrianPathAI))
+                return false;
+
+            return string.Equals(info.name, "Pedestrian Connection", StringComparison.Ordinal);
         }
 
         private static bool IsHighway(NetInfo info)
