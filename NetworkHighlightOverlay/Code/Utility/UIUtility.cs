@@ -94,7 +94,15 @@ namespace NetworkHighlightOverlay.Code.Utility
             return new UIHelper(page);
         }
 
-        public static UIHelper CreateScrollableTab(UITabContainer tabContainer, UITabstrip tabStrip, string title, Color tintColor)
+        public static UIHelper CreateScrollableTab(UITabContainer tabContainer, UITabstrip tabStrip, string title,
+            Color tintColor)
+        {
+            UIScrollablePanel scrollPanel;
+            return CreateScrollableTab(tabContainer, tabStrip, title, tintColor, out scrollPanel);
+        }
+
+        public static UIHelper CreateScrollableTab(UITabContainer tabContainer, UITabstrip tabStrip, string title,
+            Color tintColor, out UIScrollablePanel scrollPanel)
         {
             const float scrollbarWidth = 12f;
 
@@ -103,14 +111,12 @@ namespace NetworkHighlightOverlay.Code.Utility
             page.autoLayout = false;
             page.clipChildren = true;
 
-            var scrollPanel = page.AddUIComponent<UIScrollablePanel>();
+            scrollPanel = page.AddUIComponent<UIScrollablePanel>();
             scrollPanel.name = $"NHO_{title}_Scroll";
             scrollPanel.autoLayout = true;
             scrollPanel.autoLayoutDirection = LayoutDirection.Vertical;
             scrollPanel.autoLayoutPadding = new RectOffset(5, 5, 5, 5);
             scrollPanel.clipChildren = true;
-            scrollPanel.width = Mathf.Max(0f, page.width - scrollbarWidth);
-            scrollPanel.height = page.height;
             scrollPanel.relativePosition = Vector3.zero;
             scrollPanel.scrollWheelDirection = UIOrientation.Vertical;
 
@@ -118,8 +124,6 @@ namespace NetworkHighlightOverlay.Code.Utility
             scrollbar.name = $"NHO_{title}_Scrollbar";
             scrollbar.orientation = UIOrientation.Vertical;
             scrollbar.width = scrollbarWidth;
-            scrollbar.height = page.height;
-            scrollbar.relativePosition = new Vector3(page.width - scrollbarWidth, 0f);
             scrollbar.incrementAmount = 50f;
 
             var track = scrollbar.AddUIComponent<UISlicedSprite>();
@@ -149,8 +153,39 @@ namespace NetworkHighlightOverlay.Code.Utility
             tabButton.disabledBgSprite = "ButtonMenuDisabled";
 
             tabStrip.AddTab(title, tabButton.gameObject, page.gameObject);
+            var scrollPanelInstance = scrollPanel;
+            page.eventSizeChanged += (component, size) =>
+                UpdateScrollableTabLayout(page, scrollPanelInstance, scrollbar, scrollbarWidth);
+            UpdateScrollableTabLayout(page, scrollPanelInstance, scrollbar, scrollbarWidth);
 
             return new UIHelper(scrollPanel);
+        }
+
+        private static void UpdateScrollableTabLayout(UIPanel page, UIScrollablePanel scrollPanel, UIScrollbar scrollbar,
+            float scrollbarWidth)
+        {
+            if (page == null || scrollPanel == null || scrollbar == null)
+            {
+                return;
+            }
+
+            float availableWidth = Mathf.Max(0f, page.width - scrollbarWidth);
+            scrollPanel.size = new Vector2(availableWidth, page.height);
+            scrollbar.size = new Vector2(scrollbarWidth, page.height);
+            scrollbar.relativePosition = new Vector3(page.width - scrollbarWidth, 0f);
+
+            var track = scrollbar.trackObject as UISlicedSprite;
+            if (track != null)
+            {
+                track.size = scrollbar.size;
+            }
+
+            var thumb = scrollbar.thumbObject as UISlicedSprite;
+            if (thumb != null)
+            {
+                float thumbHeight = thumb.height > 0f ? thumb.height : 30f;
+                thumb.size = new Vector2(Mathf.Max(0f, scrollbar.width - 4f), thumbHeight);
+            }
         }
         public static void CreateHueSlider(UIHelper group, string label, float initialHue, OnValueChanged onChanged,
             Texture2D backgroundTexture)
