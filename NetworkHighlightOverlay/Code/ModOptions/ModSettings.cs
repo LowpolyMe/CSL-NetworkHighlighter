@@ -86,6 +86,25 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             set => PinkPathsHue = ColorConversion.ToHue(value);
         }
 
+        public static float TerraformingNetworksHue
+        {
+            get => _config.TerraformingNetworksHue;
+            set
+            {
+                if (Mathf.Approximately(_config.TerraformingNetworksHue, value))
+                    return;
+
+                _config.TerraformingNetworksHue = value;
+                SaveAndRaise();
+            }
+        }
+
+        public static Color TerraformingNetworksColor
+        {
+            get => ColorConversion.FromHue(TerraformingNetworksHue, HighlightStrength);
+            set => TerraformingNetworksHue = ColorConversion.ToHue(value);
+        }
+
         public static float RoadsHue
         {
             get => _config.RoadsHue;
@@ -249,6 +268,19 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
+        public static bool HighlightTerraformingNetworks
+        {
+            get => _config.HighlightTerraformingNetworks;
+            set
+            {
+                if (_config.HighlightTerraformingNetworks == value)
+                    return;
+
+                _config.HighlightTerraformingNetworks = value;
+                SaveAndRaise();
+            }
+        }
+
         public static bool HighlightRoads
         {
             get => _config.HighlightRoads;
@@ -384,6 +416,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
             _config.PedestrianPathsHue = source.PedestrianPathsHue;
             _config.PinkPathsHue = source.PinkPathsHue;
+            _config.TerraformingNetworksHue = source.TerraformingNetworksHue;
             _config.RoadsHue = source.RoadsHue;
             _config.HighwaysHue = source.HighwaysHue;
             _config.TrainTracksHue = source.TrainTracksHue;
@@ -394,6 +427,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
             _config.HighlightPedestrianPaths = source.HighlightPedestrianPaths;
             _config.HighlightPinkPaths = source.HighlightPinkPaths;
+            _config.HighlightTerraformingNetworks = source.HighlightTerraformingNetworks;
             _config.HighlightRoads = source.HighlightRoads;
             _config.HighlightHighways = source.HighlightHighways;
             _config.HighlightTrainTracks = source.HighlightTrainTracks;

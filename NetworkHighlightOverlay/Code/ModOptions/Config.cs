@@ -9,6 +9,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public float HighlightWidth  { get; set; }     = 1.0f;
         public float PedestrianPathsHue { get; set; }  = 0.25f; 
         public float PinkPathsHue { get; set; }        = 0.95f;
+        public float TerraformingNetworksHue { get; set; } = 0.3f;
         public float RoadsHue { get; set; }            = 0.5f; 
         public float HighwaysHue { get; set; } = 0.65f; 
         public float TrainTracksHue  { get; set; } = 0.1f;
@@ -20,6 +21,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         
         public bool HighlightPedestrianPaths { get; set; } = true; 
         public bool HighlightPinkPaths { get; set; } = true; 
+        public bool HighlightTerraformingNetworks { get; set; } = true;
         public bool HighlightRoads { get; set; } = true; 
         public bool HighlightHighways { get; set; } = true; 
         public bool HighlightTrainTracks { get; set; } = true;

@@ -31,6 +31,15 @@ namespace NetworkHighlightOverlay.Code.Core
                 return true;
             }
 
+            if (IsTerraformingNetwork(info, ai))
+            {
+                if (!ModSettings.HighlightTerraformingNetworks)
+                    return false;
+
+                color = ModSettings.TerraformingNetworksColor;
+                return true;
+            }
+
             if (ai is PedestrianPathAI || ai is PedestrianWayAI || ai is PedestrianZoneRoadAI)
             {
                 if (!ModSettings.HighlightPedestrianPaths)
@@ -182,6 +191,27 @@ namespace NetworkHighlightOverlay.Code.Core
                 return false;
 
             return string.Equals(info.name, "Pedestrian Connection", StringComparison.Ordinal);
+        }
+
+        private static bool IsTerraformingNetwork(NetInfo info, NetAI ai)
+        {
+            if (info == null || ai == null)
+                return false;
+
+            if (string.IsNullOrEmpty(info.name))
+                return false;
+
+            if (info.name.IndexOf("terraforming", StringComparison.OrdinalIgnoreCase) < 0)
+                return false;
+
+            return IsFlattenTerrainEnabled(info);
+        }
+
+        private static bool IsFlattenTerrainEnabled(NetInfo info)
+        {
+            if (info == null)
+                return false;
+            return info.m_flattenTerrain;
         }
 
         private static bool IsHighway(NetInfo info)

@@ -68,7 +68,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             tabStrip.selectedIndex = -1; 
 
             #region TAB COLORS
-            UIHelper colorsHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Colors", Color.white);
+            UIHelper colorsHelper = UIUtility.CreateScrollableTab(tabContainer, tabStrip, "Colors", Color.white);
             if (colorsHelper != null)
             {
                 UIUtility.CreateHueSlider(
@@ -97,6 +97,13 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     "Pink paths",
                     ModSettings.PinkPathsHue,
                     v => ModSettings.PinkPathsHue = v,
+                    _hueTexture);
+
+                UIUtility.CreateHueSlider(
+                    colorsHelper,
+                    "Terraforming networks",
+                    ModSettings.TerraformingNetworksHue,
+                    v => ModSettings.TerraformingNetworksHue = v,
                     _hueTexture);
 
                 UIUtility.CreateHueSlider(
@@ -163,6 +170,11 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     "Highlight pink paths",
                     ModSettings.HighlightPinkPaths,
                     v => ModSettings.HighlightPinkPaths = v);
+
+                filtersHelper.AddCheckbox(
+                    "Highlight terraforming networks",
+                    ModSettings.HighlightTerraformingNetworks,
+                    v => ModSettings.HighlightTerraformingNetworks = v);
 
                 filtersHelper.AddCheckbox(
                     "Highlight roads",
