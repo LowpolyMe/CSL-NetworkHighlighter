@@ -122,6 +122,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 bool isHighway = IsHighway(info);
                 bool hasTramLike = HasTramOrTrolleyLanes(info);
                 bool hasCarLike = HasCarLikeLanes(info);
+                bool isPedestrianStreet = IsPedestrianStreet(info);
 
                 bool isBridge = ai is RoadBridgeAI;
                 bool isTunnel = ai is RoadTunnelAI;
@@ -131,6 +132,21 @@ namespace NetworkHighlightOverlay.Code.Core
 
                 if (isTunnel && !ModSettings.HighlightTunnels)
                     return false;
+
+                if (isPedestrianStreet)
+                {
+                    if (hasTramLike && ModSettings.HighlightTramTracks)
+                    {
+                        color = ModSettings.TramTracksColor;
+                        return true;
+                    }
+
+                    if (!ModSettings.HighlightPedestrianPaths)
+                        return false;
+
+                    color = ModSettings.PedestrianPathColor;
+                    return true;
+                }
 
                 if (isHighway)
                 {
@@ -252,6 +268,16 @@ namespace NetworkHighlightOverlay.Code.Core
             }
 
             return false;
+        }
+
+        private static bool IsPedestrianStreet(NetInfo info)
+        {
+            var itemClass = info == null ? null : info.m_class;
+            var name = itemClass == null ? null : itemClass.name;
+            if (string.IsNullOrEmpty(name))
+                return false;
+
+            return string.Equals(name, "Pedestrian Street", StringComparison.Ordinal);
         }
     }
 }
