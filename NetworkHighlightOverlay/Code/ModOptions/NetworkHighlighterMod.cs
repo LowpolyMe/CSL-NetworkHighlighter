@@ -68,19 +68,19 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             tabStrip.selectedIndex = -1; 
 
             #region TAB COLORS
-            UIScrollablePanel colorsScrollPanel;
-            UIHelper colorsHelper = UIUtility.CreateScrollableTab(
+            UIPanel colorsPanel;
+            UIHelper colorsHelper = UIUtility.CreateTab(
                 tabContainer,
                 tabStrip,
                 "Colors",
                 Color.white,
-                out colorsScrollPanel);
-            if (colorsHelper != null && colorsScrollPanel != null)
+                out colorsPanel);
+            if (colorsHelper != null && colorsPanel != null)
             {
                 UIPanel columnsRoot;
                 UIPanel leftColumn;
                 UIPanel rightColumn;
-                CreateColorColumns(colorsScrollPanel, out columnsRoot, out leftColumn, out rightColumn);
+                CreateColorColumns(colorsPanel, out columnsRoot, out leftColumn, out rightColumn);
 
                 var leftHelper = new UIHelper(leftColumn);
                 var rightHelper = new UIHelper(rightColumn);
@@ -167,14 +167,15 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     colorRows[i](targetHelper);
                 }
 
-                UpdateColorColumnsLayout(colorsScrollPanel, columnsRoot, leftColumn, rightColumn);
-                colorsScrollPanel.eventSizeChanged += (component, size) =>
-                    UpdateColorColumnsLayout(colorsScrollPanel, columnsRoot, leftColumn, rightColumn);
+                UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
+                colorsPanel.eventSizeChanged += (component, size) =>
+                    UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
             }
             #endregion
             
             #region TAB FILTERS
-            var filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white);
+            UIPanel filtersPanel;
+            var filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white, out filtersPanel);
             if (filtersHelper != null)
             {
                 filtersHelper.AddCheckbox(
@@ -240,7 +241,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             #endregion
             
             #region TAB DANGERZONE
-            UIHelper dangerHelper = UIUtility.CreateTab(tabContainer, tabStrip, "DANGER ZONE", Color.red);
+            UIPanel dangerPanel;
+            UIHelper dangerHelper = UIUtility.CreateTab(tabContainer, tabStrip, "DANGER ZONE", Color.red, out dangerPanel);
             if (dangerHelper != null)
             {
                 dangerHelper.AddSpace(20);
@@ -297,10 +299,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             return tabStrip;
         }
 
-        private static void CreateColorColumns(UIScrollablePanel scrollPanel, out UIPanel columnsRoot,
+        private static void CreateColorColumns(UIPanel colorsPanel, out UIPanel columnsRoot,
             out UIPanel leftColumn, out UIPanel rightColumn)
         {
-            columnsRoot = scrollPanel.AddUIComponent<UIPanel>();
+            columnsRoot = colorsPanel.AddUIComponent<UIPanel>();
             columnsRoot.name = "NHO_Colors_Columns";
             columnsRoot.autoLayout = false;
             columnsRoot.clipChildren = false;
@@ -321,23 +323,26 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             rightColumn.autoSize = true;
         }
 
-        private static void UpdateColorColumnsLayout(UIScrollablePanel scrollPanel, UIPanel columnsRoot,
+        private static void UpdateColorColumnsLayout(UIPanel colorsPanel, UIPanel columnsRoot,
             UIPanel leftColumn, UIPanel rightColumn)
         {
-            if (scrollPanel == null || columnsRoot == null || leftColumn == null || rightColumn == null)
+            if (colorsPanel == null || columnsRoot == null || leftColumn == null || rightColumn == null)
             {
                 return;
             }
 
-            const float columnGap = 10f;
-            float availableWidth = Mathf.Max(0f, scrollPanel.width);
-            float columnWidth = Mathf.Max(0f, (availableWidth - columnGap) * 0.5f);
+            float availableWidth = Mathf.Max(0f, colorsPanel.width);
+            float horizontalPadding = colorsPanel.autoLayoutPadding != null
+                ? colorsPanel.autoLayoutPadding.left
+                : 0f;
+            float columnGap = horizontalPadding;
+            float columnWidth = Mathf.Max(0f, (availableWidth - (horizontalPadding * 2f) - columnGap) * 0.5f);
 
             columnsRoot.width = availableWidth;
             leftColumn.width = columnWidth;
             rightColumn.width = columnWidth;
-            leftColumn.relativePosition = Vector3.zero;
-            rightColumn.relativePosition = new Vector3(columnWidth + columnGap, 0f);
+            leftColumn.relativePosition = new Vector3(horizontalPadding, 0f);
+            rightColumn.relativePosition = new Vector3(horizontalPadding + columnWidth + columnGap, 0f);
 
             float columnsHeight = Mathf.Max(leftColumn.height, rightColumn.height);
             columnsRoot.height = columnsHeight;

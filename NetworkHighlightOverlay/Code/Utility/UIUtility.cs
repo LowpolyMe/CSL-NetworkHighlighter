@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Utility
 {
-    public class UIUtility
+    public static class UIUtility
     {
         public static UIComponent TryGetRootComponent(UIHelperBase helper)
         {
@@ -65,128 +65,19 @@ namespace NetworkHighlightOverlay.Code.Utility
                              helperType.FullName);
             return null;
         }
-        public static UIHelper CreateTab(UITabContainer tabContainer, UITabstrip tabStrip, string title, Color tintColor)
+
+        public static UIHelper CreateTab(UITabContainer tabContainer, UITabstrip tabStrip, string title, Color tintColor,
+            out UIPanel page)
         {
-
-            // Page
-            var page = tabContainer.AddUIComponent<UIPanel>();
-            page.name = $"NHO_{title}_Page";
-            page.autoLayout = true;
-            page.autoLayoutDirection = LayoutDirection.Vertical;
-            page.autoLayoutPadding = new RectOffset(5, 5, 5, 5);
-            page.clipChildren = true;
-
-            // Tab button
-            var tabButton = tabStrip.AddUIComponent<UIButton>();
-            tabButton.text = title;
-            tabButton.textColor = tintColor;
-            tabButton.autoSize = false;
-            tabButton.width = 150f;
-            tabButton.height = 30f;
-            tabButton.textScale = 0.9f;
-            tabButton.normalBgSprite = "ButtonMenu";
-            tabButton.hoveredBgSprite = "ButtonMenuHovered";
-            tabButton.pressedBgSprite = "ButtonMenuPressed";
-            tabButton.disabledBgSprite = "ButtonMenuDisabled";
+            
+            page = Page(tabContainer, title);
+            UIButton tabButton = UIButton(tabStrip, title, tintColor);
 
             tabStrip.AddTab(title, tabButton.gameObject, page.gameObject);
             
             return new UIHelper(page);
         }
 
-        public static UIHelper CreateScrollableTab(UITabContainer tabContainer, UITabstrip tabStrip, string title,
-            Color tintColor)
-        {
-            UIScrollablePanel scrollPanel;
-            return CreateScrollableTab(tabContainer, tabStrip, title, tintColor, out scrollPanel);
-        }
-
-        public static UIHelper CreateScrollableTab(UITabContainer tabContainer, UITabstrip tabStrip, string title,
-            Color tintColor, out UIScrollablePanel scrollPanel)
-        {
-            const float scrollbarWidth = 12f;
-
-            var page = tabContainer.AddUIComponent<UIPanel>();
-            page.name = $"NHO_{title}_Page";
-            page.autoLayout = false;
-            page.clipChildren = true;
-
-            scrollPanel = page.AddUIComponent<UIScrollablePanel>();
-            scrollPanel.name = $"NHO_{title}_Scroll";
-            scrollPanel.autoLayout = true;
-            scrollPanel.autoLayoutDirection = LayoutDirection.Vertical;
-            scrollPanel.autoLayoutPadding = new RectOffset(5, 5, 5, 5);
-            scrollPanel.clipChildren = true;
-            scrollPanel.relativePosition = Vector3.zero;
-            scrollPanel.scrollWheelDirection = UIOrientation.Vertical;
-
-            var scrollbar = page.AddUIComponent<UIScrollbar>();
-            scrollbar.name = $"NHO_{title}_Scrollbar";
-            scrollbar.orientation = UIOrientation.Vertical;
-            scrollbar.width = scrollbarWidth;
-            scrollbar.incrementAmount = 50f;
-
-            var track = scrollbar.AddUIComponent<UISlicedSprite>();
-            track.spriteName = "ScrollbarTrack";
-            track.relativePosition = Vector3.zero;
-            track.size = scrollbar.size;
-            scrollbar.trackObject = track;
-
-            var thumb = track.AddUIComponent<UISlicedSprite>();
-            thumb.spriteName = "ScrollbarThumb";
-            thumb.relativePosition = Vector3.zero;
-            thumb.size = new Vector2(scrollbar.width - 4f, 30f);
-            scrollbar.thumbObject = thumb;
-
-            scrollPanel.verticalScrollbar = scrollbar;
-
-            var tabButton = tabStrip.AddUIComponent<UIButton>();
-            tabButton.text = title;
-            tabButton.textColor = tintColor;
-            tabButton.autoSize = false;
-            tabButton.width = 150f;
-            tabButton.height = 30f;
-            tabButton.textScale = 0.9f;
-            tabButton.normalBgSprite = "ButtonMenu";
-            tabButton.hoveredBgSprite = "ButtonMenuHovered";
-            tabButton.pressedBgSprite = "ButtonMenuPressed";
-            tabButton.disabledBgSprite = "ButtonMenuDisabled";
-
-            tabStrip.AddTab(title, tabButton.gameObject, page.gameObject);
-            var scrollPanelInstance = scrollPanel;
-            page.eventSizeChanged += (component, size) =>
-                UpdateScrollableTabLayout(page, scrollPanelInstance, scrollbar, scrollbarWidth);
-            UpdateScrollableTabLayout(page, scrollPanelInstance, scrollbar, scrollbarWidth);
-
-            return new UIHelper(scrollPanel);
-        }
-
-        private static void UpdateScrollableTabLayout(UIPanel page, UIScrollablePanel scrollPanel, UIScrollbar scrollbar,
-            float scrollbarWidth)
-        {
-            if (page == null || scrollPanel == null || scrollbar == null)
-            {
-                return;
-            }
-
-            float availableWidth = Mathf.Max(0f, page.width - scrollbarWidth);
-            scrollPanel.size = new Vector2(availableWidth, page.height);
-            scrollbar.size = new Vector2(scrollbarWidth, page.height);
-            scrollbar.relativePosition = new Vector3(page.width - scrollbarWidth, 0f);
-
-            var track = scrollbar.trackObject as UISlicedSprite;
-            if (track != null)
-            {
-                track.size = scrollbar.size;
-            }
-
-            var thumb = scrollbar.thumbObject as UISlicedSprite;
-            if (thumb != null)
-            {
-                float thumbHeight = thumb.height > 0f ? thumb.height : 30f;
-                thumb.size = new Vector2(Mathf.Max(0f, scrollbar.width - 4f), thumbHeight);
-            }
-        }
         public static void CreateHueSlider(UIHelper group, string label, float initialHue, OnValueChanged onChanged,
             Texture2D backgroundTexture)
         {
@@ -217,6 +108,33 @@ namespace NetworkHighlightOverlay.Code.Utility
                     slider.thumbObject.zOrder = hueBar.zOrder + 1;
                 }
             }
+        }
+
+        private static UIButton UIButton(UITabstrip tabStrip, string title, Color tintColor)
+        {
+            var tabButton = tabStrip.AddUIComponent<UIButton>();
+            tabButton.text = title;
+            tabButton.textColor = tintColor;
+            tabButton.autoSize = false;
+            tabButton.width = 150f;
+            tabButton.height = 30f;
+            tabButton.textScale = 0.9f;
+            tabButton.normalBgSprite = "ButtonMenu";
+            tabButton.hoveredBgSprite = "ButtonMenuHovered";
+            tabButton.pressedBgSprite = "ButtonMenuPressed";
+            tabButton.disabledBgSprite = "ButtonMenuDisabled";
+            return tabButton;
+        }
+
+        private static UIPanel Page(UITabContainer tabContainer, string title)
+        {
+            var page = tabContainer.AddUIComponent<UIPanel>();
+            page.name = $"NHO_{title}_Page";
+            page.autoLayout = true;
+            page.autoLayoutDirection = LayoutDirection.Vertical;
+            page.autoLayoutPadding = new RectOffset(5, 5, 5, 5);
+            page.clipChildren = true;
+            return page;
         }
     }
 }
