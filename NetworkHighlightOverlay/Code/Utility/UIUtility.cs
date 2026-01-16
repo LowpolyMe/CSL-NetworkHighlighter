@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Utility
 {
-    public class UIUtility
+    public static class UIUtility
     {
         public static UIComponent TryGetRootComponent(UIHelperBase helper)
         {
@@ -65,34 +65,19 @@ namespace NetworkHighlightOverlay.Code.Utility
                              helperType.FullName);
             return null;
         }
-        public static UIHelper CreateTab(UITabContainer tabContainer, UITabstrip tabStrip, string title, Color tintColor)
+
+        public static UIHelper CreateTab(UITabContainer tabContainer, UITabstrip tabStrip, string title, Color tintColor,
+            out UIPanel page)
         {
-
-            // Page
-            var page = tabContainer.AddUIComponent<UIPanel>();
-            page.name = $"NHO_{title}_Page";
-            page.autoLayout = true;
-            page.autoLayoutDirection = LayoutDirection.Vertical;
-            page.autoLayoutPadding = new RectOffset(5, 5, 5, 5);
-            page.clipChildren = true;
-
-            // Tab button
-            var tabButton = tabStrip.AddUIComponent<UIButton>();
-            tabButton.text = title;
-            tabButton.textColor = tintColor;
-            tabButton.autoSize = false;
-            tabButton.width = 150f;
-            tabButton.height = 30f;
-            tabButton.textScale = 0.9f;
-            tabButton.normalBgSprite = "ButtonMenu";
-            tabButton.hoveredBgSprite = "ButtonMenuHovered";
-            tabButton.pressedBgSprite = "ButtonMenuPressed";
-            tabButton.disabledBgSprite = "ButtonMenuDisabled";
+            
+            page = Page(tabContainer, title);
+            UIButton tabButton = UIButton(tabStrip, title, tintColor);
 
             tabStrip.AddTab(title, tabButton.gameObject, page.gameObject);
             
             return new UIHelper(page);
         }
+
         public static void CreateHueSlider(UIHelper group, string label, float initialHue, OnValueChanged onChanged,
             Texture2D backgroundTexture)
         {
@@ -123,6 +108,33 @@ namespace NetworkHighlightOverlay.Code.Utility
                     slider.thumbObject.zOrder = hueBar.zOrder + 1;
                 }
             }
+        }
+
+        private static UIButton UIButton(UITabstrip tabStrip, string title, Color tintColor)
+        {
+            var tabButton = tabStrip.AddUIComponent<UIButton>();
+            tabButton.text = title;
+            tabButton.textColor = tintColor;
+            tabButton.autoSize = false;
+            tabButton.width = 150f;
+            tabButton.height = 30f;
+            tabButton.textScale = 0.9f;
+            tabButton.normalBgSprite = "ButtonMenu";
+            tabButton.hoveredBgSprite = "ButtonMenuHovered";
+            tabButton.pressedBgSprite = "ButtonMenuPressed";
+            tabButton.disabledBgSprite = "ButtonMenuDisabled";
+            return tabButton;
+        }
+
+        private static UIPanel Page(UITabContainer tabContainer, string title)
+        {
+            var page = tabContainer.AddUIComponent<UIPanel>();
+            page.name = $"NHO_{title}_Page";
+            page.autoLayout = true;
+            page.autoLayoutDirection = LayoutDirection.Vertical;
+            page.autoLayoutPadding = new RectOffset(5, 5, 5, 5);
+            page.clipChildren = true;
+            return page;
         }
     }
 }

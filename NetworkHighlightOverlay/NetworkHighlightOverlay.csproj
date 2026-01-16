@@ -55,7 +55,6 @@
         </Reference>
         <Reference Include="UnifiedUILib, Version=2.2.12.31246, Culture=neutral, processorArchitecture=MSIL">
           <HintPath>packages\UnifiedUILib.2.2.12\lib\net35\UnifiedUILib.dll</HintPath>
-          <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine">
             <HintPath>S:\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.dll</HintPath>
@@ -74,7 +73,10 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Code\Core\ActivationHandler.cs" />
+        <Compile Include="Code\Core\HighlightCache.cs" />
+        <Compile Include="Code\Core\HighlightRules.cs" />
         <Compile Include="Code\Core\Manager.cs" />
+        <Compile Include="Code\Core\OverlayRenderer.cs" />
         <Compile Include="Code\Lifecycle\Loading.cs" />
         <Compile Include="Code\Patches\MoveItRenderOverlayPatch.cs" />
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
@@ -108,7 +110,16 @@
 
         <!-- Copy the compiled DLL -->
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
+        
+        <ItemGroup>
+            <_DeployDeps Include="@(ReferenceCopyLocalPaths)"
+                         Exclude="$(TargetPath)" />
+        </ItemGroup>
 
+        <Copy SourceFiles="@(_DeployDeps)"
+              DestinationFolder="$(DeployDir)"
+              SkipUnchangedFiles="true" />
+        
         <!-- Copy resources (PNG, etc.) -->
         <ItemGroup>
             <ResourceFiles Include="Resources\**\*" />

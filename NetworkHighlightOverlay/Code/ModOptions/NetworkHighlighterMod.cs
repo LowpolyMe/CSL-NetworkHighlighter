@@ -68,89 +68,130 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             tabStrip.selectedIndex = -1; 
 
             #region TAB COLORS
-            UIHelper colorsHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Colors", Color.white);
-            if (colorsHelper != null)
+            UIPanel colorsPanel;
+            UIHelper colorsHelper = UIUtility.CreateTab(
+                tabContainer,
+                tabStrip,
+                "Colors",
+                Color.white,
+                out colorsPanel);
+            if (colorsHelper != null && colorsPanel != null)
             {
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Highlight Strength",
-                    ModSettings.HighlightStrength,
-                    v => ModSettings.HighlightStrength = v,
-                    _valueTexture);
-                
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Highlight Thickness",
-                    ModSettings.HighlightWidth,
-                    v => ModSettings.HighlightWidth = v,
-                    _widthTexture);
-                
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Pedestrian paths",
-                    ModSettings.PedestrianPathsHue,
-                    v => ModSettings.PedestrianPathsHue = v,
-                    _hueTexture);
+                UIPanel columnsRoot;
+                UIPanel leftColumn;
+                UIPanel rightColumn;
+                CreateColorColumns(colorsPanel, out columnsRoot, out leftColumn, out rightColumn);
 
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Roads",
-                    ModSettings.RoadsHue,
-                    v => ModSettings.RoadsHue = v,
-                    _hueTexture);
+                var leftHelper = new UIHelper(leftColumn);
+                var rightHelper = new UIHelper(rightColumn);
 
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Highways",
-                    ModSettings.HighwaysHue,
-                    v => ModSettings.HighwaysHue = v,
-                    _hueTexture);
+                var colorRows = new System.Collections.Generic.List<System.Action<UIHelper>>
+                {
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Highlight Strength",
+                        ModSettings.HighlightStrength,
+                        v => ModSettings.HighlightStrength = v,
+                        _valueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Highlight Thickness",
+                        ModSettings.HighlightWidth,
+                        v => ModSettings.HighlightWidth = v,
+                        _widthTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Pedestrian paths",
+                        ModSettings.PedestrianPathsHue,
+                        v => ModSettings.PedestrianPathsHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Pink paths",
+                        ModSettings.PinkPathsHue,
+                        v => ModSettings.PinkPathsHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Terraforming networks",
+                        ModSettings.TerraformingNetworksHue,
+                        v => ModSettings.TerraformingNetworksHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Roads",
+                        ModSettings.RoadsHue,
+                        v => ModSettings.RoadsHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Highways",
+                        ModSettings.HighwaysHue,
+                        v => ModSettings.HighwaysHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Train tracks",
+                        ModSettings.TrainTracksHue,
+                        v => ModSettings.TrainTracksHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Metro tracks",
+                        ModSettings.MetroTracksHue,
+                        v => ModSettings.MetroTracksHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Tram and Trolley tracks",
+                        ModSettings.TramTracksHue,
+                        v => ModSettings.TramTracksHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Monorail tracks",
+                        ModSettings.MonorailTracksHue,
+                        v => ModSettings.MonorailTracksHue = v,
+                        _hueTexture),
+                    helper => UIUtility.CreateHueSlider(
+                        helper,
+                        "Cable car paths",
+                        ModSettings.CableCarsHue,
+                        v => ModSettings.CableCarsHue = v,
+                        _hueTexture)
+                };
 
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Train tracks",
-                    ModSettings.TrainTracksHue,
-                    v => ModSettings.TrainTracksHue = v,
-                    _hueTexture);
+                for (int i = 0; i < colorRows.Count; i++)
+                {
+                    var targetHelper = (i % 2 == 0) ? leftHelper : rightHelper;
+                    colorRows[i](targetHelper);
+                }
 
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Metro tracks",
-                    ModSettings.MetroTracksHue,
-                    v => ModSettings.MetroTracksHue = v,
-                    _hueTexture);
-
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Tram and Trolley tracks",
-                    ModSettings.TramTracksHue,
-                    v => ModSettings.TramTracksHue = v,
-                    _hueTexture);
-
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Monorail tracks",
-                    ModSettings.MonorailTracksHue,
-                    v => ModSettings.MonorailTracksHue = v,
-                    _hueTexture);
-
-                UIUtility.CreateHueSlider(
-                    colorsHelper,
-                    "Cable car paths",
-                    ModSettings.CableCarsHue,
-                    v => ModSettings.CableCarsHue = v,
-                    _hueTexture);
+                UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
+                colorsPanel.eventSizeChanged += (component, size) =>
+                    UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
             }
             #endregion
             
             #region TAB FILTERS
-            var filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white);
+            UIPanel filtersPanel;
+            var filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white, out filtersPanel);
             if (filtersHelper != null)
             {
                 filtersHelper.AddCheckbox(
                     "Highlight pedestrian paths",
                     ModSettings.HighlightPedestrianPaths,
                     v => ModSettings.HighlightPedestrianPaths = v);
+
+                filtersHelper.AddCheckbox(
+                    "Highlight pink paths",
+                    ModSettings.HighlightPinkPaths,
+                    v => ModSettings.HighlightPinkPaths = v);
+
+                filtersHelper.AddCheckbox(
+                    "Highlight terraforming networks",
+                    ModSettings.HighlightTerraformingNetworks,
+                    v => ModSettings.HighlightTerraformingNetworks = v);
 
                 filtersHelper.AddCheckbox(
                     "Highlight roads",
@@ -200,7 +241,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             #endregion
             
             #region TAB DANGERZONE
-            UIHelper dangerHelper = UIUtility.CreateTab(tabContainer, tabStrip, "DANGER ZONE", Color.red);
+            UIPanel dangerPanel;
+            UIHelper dangerHelper = UIUtility.CreateTab(tabContainer, tabStrip, "DANGER ZONE", Color.red, out dangerPanel);
             if (dangerHelper != null)
             {
                 dangerHelper.AddSpace(20);
@@ -255,6 +297,55 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             tabStrip.relativePosition = new Vector3(0f, 0f);
             tabStrip.padding = new RectOffset(5, 5, 0, 0); 
             return tabStrip;
+        }
+
+        private static void CreateColorColumns(UIPanel colorsPanel, out UIPanel columnsRoot,
+            out UIPanel leftColumn, out UIPanel rightColumn)
+        {
+            columnsRoot = colorsPanel.AddUIComponent<UIPanel>();
+            columnsRoot.name = "NHO_Colors_Columns";
+            columnsRoot.autoLayout = false;
+            columnsRoot.clipChildren = false;
+            columnsRoot.relativePosition = Vector3.zero;
+
+            leftColumn = columnsRoot.AddUIComponent<UIPanel>();
+            leftColumn.name = "NHO_Colors_ColumnLeft";
+            leftColumn.autoLayout = true;
+            leftColumn.autoLayoutDirection = LayoutDirection.Vertical;
+            leftColumn.autoLayoutPadding = new RectOffset(0, 0, 0, 0);
+            leftColumn.autoSize = true;
+
+            rightColumn = columnsRoot.AddUIComponent<UIPanel>();
+            rightColumn.name = "NHO_Colors_ColumnRight";
+            rightColumn.autoLayout = true;
+            rightColumn.autoLayoutDirection = LayoutDirection.Vertical;
+            rightColumn.autoLayoutPadding = new RectOffset(0, 0, 0, 0);
+            rightColumn.autoSize = true;
+        }
+
+        private static void UpdateColorColumnsLayout(UIPanel colorsPanel, UIPanel columnsRoot,
+            UIPanel leftColumn, UIPanel rightColumn)
+        {
+            if (colorsPanel == null || columnsRoot == null || leftColumn == null || rightColumn == null)
+            {
+                return;
+            }
+
+            float availableWidth = Mathf.Max(0f, colorsPanel.width);
+            float horizontalPadding = colorsPanel.autoLayoutPadding != null
+                ? colorsPanel.autoLayoutPadding.left
+                : 0f;
+            float columnGap = horizontalPadding;
+            float columnWidth = Mathf.Max(0f, (availableWidth - (horizontalPadding * 2f) - columnGap) * 0.5f);
+
+            columnsRoot.width = availableWidth;
+            leftColumn.width = columnWidth;
+            rightColumn.width = columnWidth;
+            leftColumn.relativePosition = new Vector3(horizontalPadding, 0f);
+            rightColumn.relativePosition = new Vector3(horizontalPadding + columnWidth + columnGap, 0f);
+
+            float columnsHeight = Mathf.Max(leftColumn.height, rightColumn.height);
+            columnsRoot.height = columnsHeight;
         }
 
     }
