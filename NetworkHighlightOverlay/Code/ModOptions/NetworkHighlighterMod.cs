@@ -7,7 +7,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 {
     public class NetworkHighlighterMod : IUserMod
     {
-        public string Name => "Network Highlighter 1.1.2";
+        public string Name => "Network Highlighter 1.1.3";
         public string Description =>
             "Highlights various networks (paths, roads, rails, etc.) including hidden/invisible ones.";
 
