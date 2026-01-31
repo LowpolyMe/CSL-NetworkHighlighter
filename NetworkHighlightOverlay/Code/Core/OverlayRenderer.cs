@@ -8,12 +8,14 @@ namespace NetworkHighlightOverlay.Code.Core
 {
     public sealed class OverlayRenderer
     {
-        public void Render(RenderManager.CameraInfo cameraInfo, IDictionary<ushort, Color> highlightedSegments)
+        public void Render(RenderManager.CameraInfo cameraInfo, List<KeyValuePair<ushort, Color>> highlightedSegments)
         {
             NetManager netManager = NetManager.instance;
 
-            foreach (var kvp in highlightedSegments)
+            int count = highlightedSegments.Count;
+            for (int i = 0; i < count; i++)
             {
+                KeyValuePair<ushort, Color> kvp = highlightedSegments[i];
                 ushort id = kvp.Key;
                 Color color = kvp.Value;
 
@@ -26,10 +28,7 @@ namespace NetworkHighlightOverlay.Code.Core
             }
         }
 
-        private static void RenderSegmentOverlay(
-            RenderManager.CameraInfo cameraInfo,
-            ref NetSegment segment,
-            Color color)
+        private static void RenderSegmentOverlay(RenderManager.CameraInfo cameraInfo, ref NetSegment segment, Color color)
         {
             NetInfo info = segment.Info;
             if (info == null)

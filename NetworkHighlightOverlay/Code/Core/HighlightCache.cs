@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ColossalFramework;
 using UnityEngine;
@@ -8,31 +9,52 @@ namespace NetworkHighlightOverlay.Code.Core
     {
         private readonly Dictionary<ushort, Color> _highlightedSegments = new Dictionary<ushort, Color>();
 
-        public IDictionary<ushort, Color> GetSegments()
+        public void CopySegmentsTo(List<KeyValuePair<ushort, Color>> destination)
         {
-            return _highlightedSegments;
+            if (destination == null)
+                throw new ArgumentNullException("destination");
+
+            destination.Clear();
+
+            lock (_highlightedSegments)
+            {
+                int count = _highlightedSegments.Count;
+                if (destination.Capacity < count)
+                    destination.Capacity = count;
+
+                foreach (KeyValuePair<ushort, Color> entry in _highlightedSegments)
+                {
+                    destination.Add(entry);
+                }
+            }
         }
 
         public void Clear()
         {
-            _highlightedSegments.Clear();
+            lock (_highlightedSegments)
+            {
+                _highlightedSegments.Clear();
+            }
         }
 
         public void RebuildCache()
         {
-            _highlightedSegments.Clear();
-
-            NetManager netManager = NetManager.instance;
-            var segments = netManager.m_segments;
-
-            for (ushort i = 1; i < segments.m_size; i++)
+            lock (_highlightedSegments)
             {
-                ref NetSegment segment = ref segments.m_buffer[i];
+                _highlightedSegments.Clear();
 
-                if ((segment.m_flags & NetSegment.Flags.Created) == 0)
-                    continue;
+                NetManager netManager = NetManager.instance;
+                var segments = netManager.m_segments;
 
-                TryAddSegmentInternal(i, ref segment);
+                for (ushort i = 1; i < segments.m_size; i++)
+                {
+                    ref NetSegment segment = ref segments.m_buffer[i];
+
+                    if ((segment.m_flags & NetSegment.Flags.Created) == 0)
+                        continue;
+
+                    TryAddSegmentInternal(i, ref segment);
+                }
             }
         }
 
@@ -45,7 +67,10 @@ namespace NetworkHighlightOverlay.Code.Core
             if ((segment.m_flags & NetSegment.Flags.Created) == 0)
                 return;
 
-            TryAddSegmentInternal(segmentId, ref segment);
+            lock (_highlightedSegments)
+            {
+                TryAddSegmentInternal(segmentId, ref segment);
+            }
         }
 
         public void OnSegmentReleased(ushort segmentId)
@@ -53,7 +78,10 @@ namespace NetworkHighlightOverlay.Code.Core
             if (segmentId == 0)
                 return;
 
-            _highlightedSegments.Remove(segmentId);
+            lock (_highlightedSegments)
+            {
+                _highlightedSegments.Remove(segmentId);
+            }
         }
 
         private void TryAddSegmentInternal(ushort id, ref NetSegment segment)

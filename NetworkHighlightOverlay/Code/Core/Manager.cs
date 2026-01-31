@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using ColossalFramework;
 using NetworkHighlightOverlay.Code.ModOptions;
+using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
 {
@@ -8,6 +10,8 @@ namespace NetworkHighlightOverlay.Code.Core
         private bool _isEnabled;
         private readonly HighlightCache _cache = new HighlightCache();
         private readonly OverlayRenderer _renderer = new OverlayRenderer();
+        private readonly List<KeyValuePair<ushort, Color>> _segmentSnapshot =
+            new List<KeyValuePair<ushort, Color>>(1024);
 
         public bool IsEnabled
         {
@@ -71,7 +75,8 @@ namespace NetworkHighlightOverlay.Code.Core
             if (!_isEnabled)
                 return;
 
-            _renderer.Render(cameraInfo, _cache.GetSegments());
+            _cache.CopySegmentsTo(_segmentSnapshot);
+            _renderer.Render(cameraInfo, _segmentSnapshot);
         }
     }
 }
