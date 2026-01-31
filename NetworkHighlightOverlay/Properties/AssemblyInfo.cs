@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Lowpolyme")]
 [assembly: AssemblyProduct("NetworkHighlightOverlay")] 
-[assembly: AssemblyCopyright("Copyright © Lowpolyme 2025")]
+[assembly: AssemblyCopyright("Copyright © Lowpolyme 2025-2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -16,5 +16,5 @@ using System.Runtime.InteropServices;
 [assembly: Guid("BF8F1D31-FB4D-4225-99E2-ECD10CE3A944")]
 
 
-[assembly: AssemblyVersion("1.1.3")]
-[assembly: AssemblyFileVersion("1.1.3")]
+[assembly: AssemblyVersion("1.1.4.*")]
+[assembly: AssemblyFileVersion("1.1.4")]
