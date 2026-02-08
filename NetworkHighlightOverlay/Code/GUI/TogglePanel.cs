@@ -7,7 +7,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 {
     public class TogglePanel : UIPanel
     {
-        private const int Columns = 6;
+        private const int Columns = 5;
         private const int Rows = 2;
         private const float ButtonSize = 40f;
         private const float Spacing = 4f;
@@ -85,21 +85,7 @@ namespace NetworkHighlightOverlay.Code.GUI
                 new ToggleBinding(
                     () => ModSettings.HighlightCableCars,
                     v => ModSettings.HighlightCableCars = v),
-                () => ModSettings.CableCarColor),
-            new ToggleDefinition(
-                "Bridges",
-                "SubBarRoadsSmall",
-                new ToggleBinding(
-                    () => ModSettings.HighlightBridges,
-                    v => ModSettings.HighlightBridges = v),
-                null),
-            new ToggleDefinition(
-                "Tunnels",
-                "SubBarBeautificationPaths",
-                new ToggleBinding(
-                    () => ModSettings.HighlightTunnels,
-                    v => ModSettings.HighlightTunnels = v),
-                null)
+                () => ModSettings.CableCarColor)
         };
 
         private readonly ToggleButton[] _buttons = new ToggleButton[Columns * Rows];
