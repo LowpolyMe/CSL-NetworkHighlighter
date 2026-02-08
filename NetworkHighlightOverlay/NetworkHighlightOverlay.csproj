@@ -98,11 +98,12 @@
       <Content Include="Resources\HueGradient.png" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
-   
+    <Import Project="Local.props" Condition="Exists('Local.props')" />
     <Target Name="DeployToModDirectory" AfterTargets="Build">
         <!-- Mod output path -->
         <PropertyGroup>
-            <DeployDir>$(LOCALAPPDATA)\Colossal Order\Cities_Skylines\Addons\Mods\NetworkHighlightOverlay</DeployDir>
+            <DeployDir>$(SteamRoot)\steamapps\workshop\content\255710\3614208002</DeployDir>
+            <AllowedReferenceRelatedFileExtensions>.nope</AllowedReferenceRelatedFileExtensions>
         </PropertyGroup>
 
         <!-- Ensure destination exists -->
