@@ -22,7 +22,35 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             SettingsChanged?.Invoke(_config);
         }
         
-  #region Hues (float) + Colors
+        #region GUI Settings
+        public static float PanelX
+        {
+            get => _config.PanelX;
+            set
+            {
+                if (Mathf.Approximately(_config.PanelX, value))
+                    return;
+
+                _config.PanelX = value;
+                SaveAndRaise();
+            }
+        }
+
+        public static float PanelY
+        {
+            get => _config.PanelY;
+            set
+            {
+                if (Mathf.Approximately(_config.PanelY, value))
+                    return;
+
+                _config.PanelY = value;
+                SaveAndRaise();
+            }
+        }
+        
+        #endregion
+        #region Hues (float) + Colors
 
         public static float HighlightStrength
         {
@@ -437,6 +465,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             _config.HighlightCableCars = source.HighlightCableCars;
             _config.HighlightBridges = source.HighlightBridges;
             _config.HighlightTunnels = source.HighlightTunnels;
+            _config.PanelX = source.PanelX;
+            _config.PanelY = source.PanelY;
         }
 
         #endregion

@@ -77,6 +77,11 @@
         <Compile Include="Code\Core\HighlightRules.cs" />
         <Compile Include="Code\Core\Manager.cs" />
         <Compile Include="Code\Core\OverlayRenderer.cs" />
+        <Compile Include="Code\GUI\Bindings.cs" />
+        <Compile Include="Code\GUI\DragHandle.cs" />
+        <Compile Include="Code\GUI\ToggleButton.cs" />
+        <Compile Include="Code\GUI\TogglePanel.cs" />
+        <Compile Include="Code\GUI\TogglePanelManager.cs" />
         <Compile Include="Code\Lifecycle\Loading.cs" />
         <Compile Include="Code\Patches\MoveItRenderOverlayPatch.cs" />
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />

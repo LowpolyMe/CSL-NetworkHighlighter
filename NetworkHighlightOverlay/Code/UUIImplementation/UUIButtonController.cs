@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnifiedUI.Helpers;
 using NetworkHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code.GUI;
 using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
@@ -44,6 +45,7 @@ namespace NetworkHighlightOverlay.Code.UI
                 return;
             }
             Manager.Instance.IsEnabled = isPressed;
+            TogglePanelManager.SyncVisibility();
         }
         
         public static void SyncFromManager()

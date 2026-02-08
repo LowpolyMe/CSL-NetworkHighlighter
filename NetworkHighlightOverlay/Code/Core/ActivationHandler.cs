@@ -1,3 +1,4 @@
+using NetworkHighlightOverlay.Code.GUI;
 using NetworkHighlightOverlay.Code.UI;
 using UnityEngine;
 
@@ -11,11 +12,11 @@ namespace NetworkHighlightOverlay.Code.Core
             {
                 Manager.Instance.IsEnabled = !Manager.Instance.IsEnabled;
                 UuiButtonController.SyncFromManager();
+                TogglePanelManager.SyncVisibility();
             }
         }
         //todo: also activate when current tool is road draw tool IF enabled in options menu
         //todo: also activate when current tool is pedestrian path draw tool IF enabled in options menu
         //todo: also activate when current tool is ANY network draw tool IF enabled in options menu
-
     }
 }
