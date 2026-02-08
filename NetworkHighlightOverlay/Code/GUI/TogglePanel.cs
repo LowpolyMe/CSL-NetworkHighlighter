@@ -1,5 +1,6 @@
 using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.ModOptions;
+using System;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
@@ -20,73 +21,85 @@ namespace NetworkHighlightOverlay.Code.GUI
                 "SubBarBeautificationPedestrianZoneEssentials",
                 new ToggleBinding(
                     () => ModSettings.HighlightPedestrianPaths,
-                    v => ModSettings.HighlightPedestrianPaths = v)),
+                    v => ModSettings.HighlightPedestrianPaths = v),
+                () => ModSettings.PedestrianPathColor),
             new ToggleDefinition(
                 "Pink paths",
                 "SubBarRoadsMaintenance",
                 new ToggleBinding(
                     () => ModSettings.HighlightPinkPaths,
-                    v => ModSettings.HighlightPinkPaths = v)),
+                    v => ModSettings.HighlightPinkPaths = v),
+                () => ModSettings.PinkPathColor),
             new ToggleDefinition(
                 "Terraforming networks",
                 "ToolbarIconLandscaping",
                 new ToggleBinding(
                     () => ModSettings.HighlightTerraformingNetworks,
-                    v => ModSettings.HighlightTerraformingNetworks = v)),
+                    v => ModSettings.HighlightTerraformingNetworks = v),
+                () => ModSettings.TerraformingNetworksColor),
             new ToggleDefinition(
                 "Roads",
                 "SubBarRoadsSmall",
                 new ToggleBinding(
                     () => ModSettings.HighlightRoads,
-                    v => ModSettings.HighlightRoads = v)),
+                    v => ModSettings.HighlightRoads = v),
+                () => ModSettings.RoadsColor),
             new ToggleDefinition(
                 "Highways",
                 "SubBarRoadsHighway",
                 new ToggleBinding(
                     () => ModSettings.HighlightHighways,
-                    v => ModSettings.HighlightHighways = v)),
+                    v => ModSettings.HighlightHighways = v),
+                () => ModSettings.HighwaysColor),
             new ToggleDefinition(
                 "Train tracks",
                 "SubBarPublicTransportTrain",
                 new ToggleBinding(
                     () => ModSettings.HighlightTrainTracks,
-                    v => ModSettings.HighlightTrainTracks = v)),
+                    v => ModSettings.HighlightTrainTracks = v),
+                () => ModSettings.TrainTracksColor),
             new ToggleDefinition(
                 "Metro tracks",
                 "SubBarPublicTransportMetro",
                 new ToggleBinding(
                     () => ModSettings.HighlightMetroTracks,
-                    v => ModSettings.HighlightMetroTracks = v)),
+                    v => ModSettings.HighlightMetroTracks = v),
+                () => ModSettings.MetroTracksColor),
             new ToggleDefinition(
                 "Tram tracks",
                 "SubBarPublicTransportTram",
                 new ToggleBinding(
                     () => ModSettings.HighlightTramTracks,
-                    v => ModSettings.HighlightTramTracks = v)),
+                    v => ModSettings.HighlightTramTracks = v),
+                () => ModSettings.TramTracksColor),
             new ToggleDefinition(
                 "Monorail tracks",
                 "SubBarPublicTransportMonorail",
                 new ToggleBinding(
                     () => ModSettings.HighlightMonorailTracks,
-                    v => ModSettings.HighlightMonorailTracks = v)),
+                    v => ModSettings.HighlightMonorailTracks = v),
+                () => ModSettings.MonorailTracksColor),
             new ToggleDefinition(
                 "Cable cars",
                 "SubBarPublicTransportCableCar",
                 new ToggleBinding(
                     () => ModSettings.HighlightCableCars,
-                    v => ModSettings.HighlightCableCars = v)),
+                    v => ModSettings.HighlightCableCars = v),
+                () => ModSettings.CableCarColor),
             new ToggleDefinition(
                 "Bridges",
                 "SubBarRoadsSmall",
                 new ToggleBinding(
                     () => ModSettings.HighlightBridges,
-                    v => ModSettings.HighlightBridges = v)),
+                    v => ModSettings.HighlightBridges = v),
+                null),
             new ToggleDefinition(
                 "Tunnels",
                 "SubBarBeautificationPaths",
                 new ToggleBinding(
                     () => ModSettings.HighlightTunnels,
-                    v => ModSettings.HighlightTunnels = v))
+                    v => ModSettings.HighlightTunnels = v),
+                null)
         };
 
         private readonly ToggleButton[] _buttons = new ToggleButton[Columns * Rows];
@@ -157,7 +170,7 @@ namespace NetworkHighlightOverlay.Code.GUI
                     button.relativePosition = new Vector3(
                         Padding + column * (ButtonSize + Spacing),
                         DragHandleHeight + Padding + row * (ButtonSize + Spacing));
-                    button.Initialize(definition.SpriteName, definition.Binding, definition.Label);
+                    button.Initialize(definition.SpriteName, definition.Binding, definition.Label, definition.ColorProvider);
                     _buttons[index] = button;
                 }
             }
@@ -244,12 +257,14 @@ namespace NetworkHighlightOverlay.Code.GUI
             public readonly string Label;
             public readonly string SpriteName;
             public readonly ToggleBinding Binding;
+            public readonly Func<Color> ColorProvider;
 
-            public ToggleDefinition(string label, string spriteName, ToggleBinding binding)
+            public ToggleDefinition(string label, string spriteName, ToggleBinding binding, Func<Color> colorProvider)
             {
                 Label = label;
                 SpriteName = spriteName;
                 Binding = binding;
+                ColorProvider = colorProvider;
             }
         }
     }

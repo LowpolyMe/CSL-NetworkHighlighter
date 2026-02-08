@@ -1,30 +1,31 @@
 using ColossalFramework.UI;
 using UnityEngine;
+using System;
 
 namespace NetworkHighlightOverlay.Code.GUI
 {
     public class ToggleButton : UIButton
     {
         private const string BackgroundSpriteName = "OptionBasePressed";
-        private static readonly Color OnBackgroundColor = new Color(0.20f, 0.62f, 0.98f);
-        private static readonly Color OffBackgroundColor = new Color(0.42f, 0.42f, 0.42f);
-        private static readonly Color OnHoverBackgroundColor = new Color(0.28f, 0.70f, 1.00f);
-        private static readonly Color OffHoverBackgroundColor = new Color(0.42f, 0.42f, 0.42f);
+        private static readonly Color MutedBlendColor = new Color(0.26f, 0.26f, 0.26f);
         private static readonly Color IconTintColor = Color.white;
         private static readonly Vector2 IconSize = new Vector2(22f, 22f);
+        private static readonly Color FallbackOnBackgroundColor = new Color(0.20f, 0.62f, 0.98f);
 
         private ToggleBinding _binding;
         private string _spriteName;
         private UITextureAtlas _atlas;
         private UISprite _icon;
+        private Func<Color> _activeColorProvider;
 
-        public void Initialize(string spriteName, ToggleBinding binding, string tooltip)
+        public void Initialize(string spriteName, ToggleBinding binding, string tooltip, Func<Color> activeColorProvider)
         {
             name = "NHO_ToggleButton_" + tooltip.Replace(' ', '_');
             text = string.Empty;
             this.tooltip = tooltip;
             _binding = binding;
             _spriteName = spriteName;
+            _activeColorProvider = activeColorProvider;
             playAudioEvents = true;
             eventSizeChanged -= OnButtonSizeChanged;
             eventSizeChanged += OnButtonSizeChanged;
@@ -122,11 +123,16 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             bool isOn = _binding.Value;
-            color = isOn ? OnBackgroundColor : OffBackgroundColor;
-            hoveredColor = isOn ? OnHoverBackgroundColor : OffHoverBackgroundColor;
+            Color activeColor = ResolveActiveColor();
+            Color activeHoverColor = Color.Lerp(activeColor, Color.white, 0.2f);
+            Color mutedColor = GetMutedColor(activeColor);
+            Color mutedHoverColor = Color.Lerp(mutedColor, activeColor, 0.15f);
+
+            color = isOn ? activeColor : mutedColor;
+            hoveredColor = isOn ? activeHoverColor : mutedHoverColor;
             pressedColor = hoveredColor;
             focusedColor = hoveredColor;
-            disabledColor = OffBackgroundColor;
+            disabledColor = mutedColor;
 
             if (_icon != null)
             {
@@ -135,6 +141,23 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             opacity = 1f;
             isInteractive = true;
+        }
+
+        private Color ResolveActiveColor()
+        {
+            if (_activeColorProvider == null)
+                return FallbackOnBackgroundColor;
+
+            Color colorFromConfig = _activeColorProvider();
+            colorFromConfig.a = 1f;
+            return colorFromConfig;
+        }
+
+        private static Color GetMutedColor(Color source)
+        {
+            Color muted = Color.Lerp(source, MutedBlendColor, 0.6f);
+            muted.a = 1f;
+            return muted;
         }
     }
 }
