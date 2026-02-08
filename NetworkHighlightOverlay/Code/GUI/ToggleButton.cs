@@ -1,3 +1,4 @@
+using System;
 using ColossalFramework.UI;
 using UnityEngine;
 
@@ -8,15 +9,14 @@ namespace NetworkHighlightOverlay.Code.GUI
         private ToggleBinding _binding;
         private string _spriteName;
         private UITextureAtlas _atlas;
-        private static readonly Color OnColor = new Color(0.1f, 0.6f, 0.95f);
-        private static readonly Color OffColor = new Color(0.55f, 0.55f, 0.55f);
+        private static readonly Color OnColor = Color.white;
+        private static readonly Color OffColor = Color.gray;
         private static readonly Color OnHoverColor = new Color(0.26f, 0.7f, 1f);
         private static readonly Color OffHoverColor = new Color(0.7f, 0.7f, 0.7f);
 
         public void Initialize(string spriteName, ToggleBinding binding, string tooltip)
         {
             name = "NHO_ToggleButton_" + tooltip.Replace(' ', '_');
-            text = string.Empty;
             this.tooltip = tooltip;
             _binding = binding;
             _spriteName = spriteName;

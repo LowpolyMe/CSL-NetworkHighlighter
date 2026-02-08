@@ -17,19 +17,19 @@ namespace NetworkHighlightOverlay.Code.GUI
         {
             new ToggleDefinition(
                 "Pedestrian paths",
-                "SubBarBeautificationPaths",
+                "SubBarBeautificationPedestrianZoneEssentials",
                 new ToggleBinding(
                     () => ModSettings.HighlightPedestrianPaths,
                     v => ModSettings.HighlightPedestrianPaths = v)),
             new ToggleDefinition(
                 "Pink paths",
-                "SubBarBeautificationPaths",
+                "SubBarRoadsMaintenance",
                 new ToggleBinding(
                     () => ModSettings.HighlightPinkPaths,
                     v => ModSettings.HighlightPinkPaths = v)),
             new ToggleDefinition(
                 "Terraforming networks",
-                "SubBarBeautificationPaths",
+                "ToolbarIconLandscaping",
                 new ToggleBinding(
                     () => ModSettings.HighlightTerraformingNetworks,
                     v => ModSettings.HighlightTerraformingNetworks = v)),
@@ -65,13 +65,13 @@ namespace NetworkHighlightOverlay.Code.GUI
                     v => ModSettings.HighlightTramTracks = v)),
             new ToggleDefinition(
                 "Monorail tracks",
-                "SubBarPublicTransportMetro",
+                "SubBarPublicTransportMonorail",
                 new ToggleBinding(
                     () => ModSettings.HighlightMonorailTracks,
                     v => ModSettings.HighlightMonorailTracks = v)),
             new ToggleDefinition(
                 "Cable cars",
-                "SubBarPublicTransportTrain",
+                "SubBarPublicTransportCableCar",
                 new ToggleBinding(
                     () => ModSettings.HighlightCableCars,
                     v => ModSettings.HighlightCableCars = v)),
