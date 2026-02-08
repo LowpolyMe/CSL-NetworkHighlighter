@@ -11,6 +11,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         private const float ButtonSize = 40f;
         private const float Spacing = 4f;
         private const float Padding = 2f;
+        private const float DragHandleHeight = 18f;
 
         private static readonly ToggleDefinition[] ToggleDefinitions = new[]
         {
@@ -89,6 +90,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         };
 
         private readonly ToggleButton[] _buttons = new ToggleButton[Columns * Rows];
+        private DragHandle _dragHandle;
 
         public override void Awake()
         {
@@ -100,13 +102,14 @@ namespace NetworkHighlightOverlay.Code.GUI
             isVisible = false;
             Vector2 panelSize = new Vector2(
                 Padding * 2f + Columns * ButtonSize + (Columns - 1) * Spacing,
-                Padding * 2f + Rows * ButtonSize + (Rows - 1) * Spacing);
+                DragHandleHeight + Padding * 2f + Rows * ButtonSize + (Rows - 1) * Spacing);
             size = panelSize;
         }
 
         public override void Start()
         {
             base.Start();
+            CreateDragHandle();
             CreateButtons();
             ApplySavedPosition();
             ModSettings.SettingsChanged += OnSettingsChanged;
@@ -115,8 +118,26 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         public override void OnDestroy()
         {
+            if (_dragHandle != null)
+            {
+                _dragHandle.eventMouseUp -= OnDragHandleMouseUp;
+                _dragHandle = null;
+            }
             ModSettings.SettingsChanged -= OnSettingsChanged;
             base.OnDestroy();
+        }
+
+        private void CreateDragHandle()
+        {
+            _dragHandle = AddUIComponent<DragHandle>();
+            _dragHandle.name = "NHO_TogglePanelDragHandle";
+            _dragHandle.target = this;
+            _dragHandle.relativePosition = Vector3.zero;
+            _dragHandle.width = width;
+            _dragHandle.height = DragHandleHeight;
+            _dragHandle.isInteractive = true;
+            _dragHandle.isVisible = true;
+            _dragHandle.eventMouseUp += OnDragHandleMouseUp;
         }
 
         private void CreateButtons()
@@ -135,7 +156,7 @@ namespace NetworkHighlightOverlay.Code.GUI
                     button.height = ButtonSize;
                     button.relativePosition = new Vector3(
                         Padding + column * (ButtonSize + Spacing),
-                        Padding + row * (ButtonSize + Spacing));
+                        DragHandleHeight + Padding + row * (ButtonSize + Spacing));
                     button.Initialize(definition.SpriteName, definition.Binding, definition.Label);
                     _buttons[index] = button;
                 }
@@ -161,6 +182,30 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             Vector2 clamped = ClampToScreen(view, target, panelSize);
             absolutePosition = new Vector3(clamped.x, clamped.y);
+            ModSettings.PanelX = clamped.x;
+            ModSettings.PanelY = clamped.y;
+        }
+
+        private void OnDragHandleMouseUp(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            SaveCurrentPosition();
+        }
+
+        private void SaveCurrentPosition()
+        {
+            UIView view = UIView.GetAView();
+            if (view == null)
+                return;
+
+            Vector2 currentPosition = new Vector2(absolutePosition.x, absolutePosition.y);
+            Vector2 clamped = ClampToScreen(view, currentPosition, size);
+
+            if (!Mathf.Approximately(currentPosition.x, clamped.x) ||
+                !Mathf.Approximately(currentPosition.y, clamped.y))
+            {
+                absolutePosition = new Vector3(clamped.x, clamped.y);
+            }
+
             ModSettings.PanelX = clamped.x;
             ModSettings.PanelY = clamped.y;
         }
