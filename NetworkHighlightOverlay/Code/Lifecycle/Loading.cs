@@ -42,6 +42,7 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
         {
             base.OnLevelUnloading();
             TogglePanelManager.Destroy();
+            ToggleButtonAtlas.Clear();
             DestroyRendererObject();
             Manager.Instance.Clear();
         }

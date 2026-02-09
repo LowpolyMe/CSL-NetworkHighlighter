@@ -1,6 +1,5 @@
 using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.ModOptions;
-using System;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
@@ -21,74 +20,63 @@ namespace NetworkHighlightOverlay.Code.GUI
                 "SubBarBeautificationPedestrianZoneEssentials",
                 new ToggleBinding(
                     () => ModSettings.HighlightPedestrianPaths,
-                    v => ModSettings.HighlightPedestrianPaths = v),
-                () => ModSettings.PedestrianPathColor),
+                    v => ModSettings.HighlightPedestrianPaths = v)),
             new ToggleDefinition(
                 "Pink paths",
                 "SubBarRoadsMaintenance",
                 new ToggleBinding(
                     () => ModSettings.HighlightPinkPaths,
-                    v => ModSettings.HighlightPinkPaths = v),
-                () => ModSettings.PinkPathColor),
+                    v => ModSettings.HighlightPinkPaths = v)),
             new ToggleDefinition(
                 "Terraforming networks",
                 "ToolbarIconLandscaping",
                 new ToggleBinding(
                     () => ModSettings.HighlightTerraformingNetworks,
-                    v => ModSettings.HighlightTerraformingNetworks = v),
-                () => ModSettings.TerraformingNetworksColor),
+                    v => ModSettings.HighlightTerraformingNetworks = v)),
             new ToggleDefinition(
                 "Roads",
                 "SubBarRoadsSmall",
                 new ToggleBinding(
                     () => ModSettings.HighlightRoads,
-                    v => ModSettings.HighlightRoads = v),
-                () => ModSettings.RoadsColor),
+                    v => ModSettings.HighlightRoads = v)),
             new ToggleDefinition(
                 "Highways",
                 "SubBarRoadsHighway",
                 new ToggleBinding(
                     () => ModSettings.HighlightHighways,
-                    v => ModSettings.HighlightHighways = v),
-                () => ModSettings.HighwaysColor),
+                    v => ModSettings.HighlightHighways = v)),
             new ToggleDefinition(
                 "Train tracks",
                 "SubBarPublicTransportTrain",
                 new ToggleBinding(
                     () => ModSettings.HighlightTrainTracks,
-                    v => ModSettings.HighlightTrainTracks = v),
-                () => ModSettings.TrainTracksColor),
+                    v => ModSettings.HighlightTrainTracks = v)),
             new ToggleDefinition(
                 "Metro tracks",
                 "SubBarPublicTransportMetro",
                 new ToggleBinding(
                     () => ModSettings.HighlightMetroTracks,
-                    v => ModSettings.HighlightMetroTracks = v),
-                () => ModSettings.MetroTracksColor),
+                    v => ModSettings.HighlightMetroTracks = v)),
             new ToggleDefinition(
                 "Tram tracks",
                 "SubBarPublicTransportTram",
                 new ToggleBinding(
                     () => ModSettings.HighlightTramTracks,
-                    v => ModSettings.HighlightTramTracks = v),
-                () => ModSettings.TramTracksColor),
+                    v => ModSettings.HighlightTramTracks = v)),
             new ToggleDefinition(
                 "Monorail tracks",
                 "SubBarPublicTransportMonorail",
                 new ToggleBinding(
                     () => ModSettings.HighlightMonorailTracks,
-                    v => ModSettings.HighlightMonorailTracks = v),
-                () => ModSettings.MonorailTracksColor),
+                    v => ModSettings.HighlightMonorailTracks = v)),
             new ToggleDefinition(
                 "Cable cars",
                 "SubBarPublicTransportCableCar",
                 new ToggleBinding(
                     () => ModSettings.HighlightCableCars,
-                    v => ModSettings.HighlightCableCars = v),
-                () => ModSettings.CableCarColor)
+                    v => ModSettings.HighlightCableCars = v))
         };
 
-        private readonly ToggleButton[] _buttons = new ToggleButton[Columns * Rows];
         private DragHandle _dragHandle;
 
         public override void Awake()
@@ -111,8 +99,6 @@ namespace NetworkHighlightOverlay.Code.GUI
             CreateDragHandle();
             CreateButtons();
             ApplySavedPosition();
-            ModSettings.SettingsChanged += OnSettingsChanged;
-            UpdateButtonStates();
         }
 
         public override void OnDestroy()
@@ -122,7 +108,6 @@ namespace NetworkHighlightOverlay.Code.GUI
                 _dragHandle.eventMouseUp -= OnDragHandleMouseUp;
                 _dragHandle = null;
             }
-            ModSettings.SettingsChanged -= OnSettingsChanged;
             base.OnDestroy();
         }
 
@@ -156,8 +141,7 @@ namespace NetworkHighlightOverlay.Code.GUI
                     button.relativePosition = new Vector3(
                         Padding + column * (ButtonSize + Spacing),
                         DragHandleHeight + Padding + row * (ButtonSize + Spacing));
-                    button.Initialize(definition.SpriteName, definition.Binding, definition.Label, definition.ColorProvider);
-                    _buttons[index] = button;
+                    button.Initialize(definition.SpriteName, definition.Binding, definition.Label);
                 }
             }
         }
@@ -225,32 +209,17 @@ namespace NetworkHighlightOverlay.Code.GUI
             return new Vector2(x, y);
         }
 
-        private void OnSettingsChanged(Config config)
-        {
-            UpdateButtonStates();
-        }
-
-        private void UpdateButtonStates()
-        {
-            for (int i = 0; i < _buttons.Length; i++)
-            {
-                _buttons[i]?.Refresh();
-            }
-        }
-
         private readonly struct ToggleDefinition
         {
             public readonly string Label;
             public readonly string SpriteName;
             public readonly ToggleBinding Binding;
-            public readonly Func<Color> ColorProvider;
 
-            public ToggleDefinition(string label, string spriteName, ToggleBinding binding, Func<Color> colorProvider)
+            public ToggleDefinition(string label, string spriteName, ToggleBinding binding)
             {
                 Label = label;
                 SpriteName = spriteName;
                 Binding = binding;
-                ColorProvider = colorProvider;
             }
         }
     }

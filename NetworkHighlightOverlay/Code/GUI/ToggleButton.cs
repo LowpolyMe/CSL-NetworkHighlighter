@@ -1,40 +1,33 @@
 using ColossalFramework.UI;
+using NetworkHighlightOverlay.Code.ModOptions;
 using UnityEngine;
-using System;
 
 namespace NetworkHighlightOverlay.Code.GUI
 {
     public class ToggleButton : UIButton
     {
-        private const string BackgroundSpriteName = "OptionBasePressed";
-        private static readonly Color MutedBlendColor = new Color(0.26f, 0.26f, 0.26f);
+        private static readonly Color ButtonTintColor = Color.white;
         private static readonly Color IconTintColor = Color.white;
         private static readonly Vector2 IconSize = new Vector2(22f, 22f);
-        private static readonly Color FallbackOnBackgroundColor = new Color(0.20f, 0.62f, 0.98f);
 
         private ToggleBinding _binding;
         private string _spriteName;
-        private UITextureAtlas _atlas;
+        private UITextureAtlas _iconAtlas;
+        private bool _isSubscribedToSettings;
         private UISprite _icon;
-        private Func<Color> _activeColorProvider;
 
-        public void Initialize(string spriteName, ToggleBinding binding, string tooltip, Func<Color> activeColorProvider)
+        public void Initialize(string spriteName, ToggleBinding binding, string tooltip)
         {
             name = "NHO_ToggleButton_" + tooltip.Replace(' ', '_');
             text = string.Empty;
             this.tooltip = tooltip;
             _binding = binding;
             _spriteName = spriteName;
-            _activeColorProvider = activeColorProvider;
             playAudioEvents = true;
             eventSizeChanged -= OnButtonSizeChanged;
             eventSizeChanged += OnButtonSizeChanged;
+            SubscribeToSettingsChanges();
             SetupVisuals();
-            UpdateVisual();
-        }
-
-        public void Refresh()
-        {
             UpdateVisual();
         }
 
@@ -45,37 +38,27 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             _binding.Value = !_binding.Value;
-            UpdateVisual();
+        }
+
+        public override void OnDestroy()
+        {
+            UnsubscribeFromSettingsChanges();
+            base.OnDestroy();
         }
 
         private void SetupVisuals()
         {
-            if (_atlas == null)
+            UIView view = UIView.GetAView();
+            if (view != null)
             {
-                UIView view = UIView.GetAView();
-                if (view != null)
-                {
-                    _atlas = view.defaultAtlas;
-                }
+                _iconAtlas = view.defaultAtlas;
             }
 
-            if (_atlas == null)
-                return;
+            atlas = ToggleButtonAtlas.GetOrCreate();
 
-            atlas = _atlas;
-
-            normalBgSprite = BackgroundSpriteName;
-            hoveredBgSprite = BackgroundSpriteName;
-            pressedBgSprite = BackgroundSpriteName;
-            focusedBgSprite = BackgroundSpriteName;
-            disabledBgSprite = BackgroundSpriteName;
-
-            normalFgSprite = string.Empty;
-            hoveredFgSprite = string.Empty;
-            pressedFgSprite = string.Empty;
-            focusedFgSprite = string.Empty;
-            disabledFgSprite = string.Empty;
-
+            ConfigureBackgroundSprites();
+            UpdateNormalBackgroundSprite(_binding != null && _binding.Value);
+            
             EnsureIcon();
             UpdateIconSprite();
             UpdateIconLayout();
@@ -86,9 +69,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (_icon != null)
                 return;
 
+            if (_iconAtlas == null)
+                return;
+
             _icon = AddUIComponent<UISprite>();
             _icon.name = name + "_Icon";
-            _icon.atlas = _atlas;
+            _icon.atlas = _iconAtlas;
             _icon.color = IconTintColor;
             _icon.isInteractive = false;
         }
@@ -123,16 +109,12 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             bool isOn = _binding.Value;
-            Color activeColor = ResolveActiveColor();
-            Color activeHoverColor = Color.Lerp(activeColor, Color.white, 0.2f);
-            Color mutedColor = GetMutedColor(activeColor);
-            Color mutedHoverColor = Color.Lerp(mutedColor, activeColor, 0.15f);
-
-            color = isOn ? activeColor : mutedColor;
-            hoveredColor = isOn ? activeHoverColor : mutedHoverColor;
-            pressedColor = hoveredColor;
-            focusedColor = hoveredColor;
-            disabledColor = mutedColor;
+            UpdateNormalBackgroundSprite(isOn);
+            color = ButtonTintColor;
+            hoveredColor = ButtonTintColor;
+            pressedColor = ButtonTintColor;
+            focusedColor = ButtonTintColor;
+            disabledColor = ButtonTintColor;
 
             if (_icon != null)
             {
@@ -143,21 +125,42 @@ namespace NetworkHighlightOverlay.Code.GUI
             isInteractive = true;
         }
 
-        private Color ResolveActiveColor()
+        private void ConfigureBackgroundSprites()
         {
-            if (_activeColorProvider == null)
-                return FallbackOnBackgroundColor;
-
-            Color colorFromConfig = _activeColorProvider();
-            colorFromConfig.a = 1f;
-            return colorFromConfig;
+            hoveredBgSprite = ToggleButtonAtlas.HoveredSpriteName;
+            pressedBgSprite = ToggleButtonAtlas.PressedSpriteName;
+            focusedBgSprite = hoveredBgSprite;
+            disabledBgSprite = ToggleButtonAtlas.InactiveSpriteName;
         }
 
-        private static Color GetMutedColor(Color source)
+        private void UpdateNormalBackgroundSprite(bool isOn)
         {
-            Color muted = Color.Lerp(source, MutedBlendColor, 0.6f);
-            muted.a = 1f;
-            return muted;
+            normalBgSprite = isOn
+                ? ToggleButtonAtlas.ActiveSpriteName
+                : ToggleButtonAtlas.InactiveSpriteName;
+        }
+
+        private void SubscribeToSettingsChanges()
+        {
+            if (_isSubscribedToSettings)
+                return;
+
+            ModSettings.SettingsChanged += OnSettingsChanged;
+            _isSubscribedToSettings = true;
+        }
+
+        private void UnsubscribeFromSettingsChanges()
+        {
+            if (!_isSubscribedToSettings)
+                return;
+
+            ModSettings.SettingsChanged -= OnSettingsChanged;
+            _isSubscribedToSettings = false;
+        }
+
+        private void OnSettingsChanged(Config config)
+        {
+            UpdateVisual();
         }
     }
 }
