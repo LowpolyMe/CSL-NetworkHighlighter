@@ -121,6 +121,7 @@ namespace NetworkHighlightOverlay.Code.Core
             {
                 bool isHighway = IsHighway(info);
                 bool hasTramLike = HasTramOrTrolleyLanes(info);
+                bool hasMonorailLike = HasMonorailLanes(info);
                 bool hasCarLike = HasCarLikeLanes(info);
                 bool isPedestrianStreet = IsPedestrianStreet(info);
 
@@ -141,6 +142,12 @@ namespace NetworkHighlightOverlay.Code.Core
                         return true;
                     }
 
+                    if (hasMonorailLike && ModSettings.HighlightMonorailTracks)
+                    {
+                        color = ModSettings.MonorailTracksColor;
+                        return true;
+                    }
+
                     if (!ModSettings.HighlightPedestrianPaths)
                         return false;
 
@@ -157,33 +164,19 @@ namespace NetworkHighlightOverlay.Code.Core
                     return true;
                 }
 
-                if (!hasCarLike && !hasTramLike)
+                if (!hasCarLike && !hasTramLike && !hasMonorailLike)
                     return false;
 
-                if (hasTramLike && !hasCarLike)
+                if (hasTramLike && ModSettings.HighlightTramTracks)
                 {
-                    if (!ModSettings.HighlightTramTracks)
-                        return false;
-
                     color = ModSettings.TramTracksColor;
                     return true;
                 }
 
-                if (hasTramLike && hasCarLike)
+                if (hasMonorailLike && ModSettings.HighlightMonorailTracks)
                 {
-                    if (ModSettings.HighlightTramTracks)
-                    {
-                        color = ModSettings.TramTracksColor;
-                        return true;
-                    }
-
-                    if (ModSettings.HighlightRoads)
-                    {
-                        color = ModSettings.RoadsColor;
-                        return true;
-                    }
-
-                    return false;
+                    color = ModSettings.MonorailTracksColor;
+                    return true;
                 }
 
                 if (hasCarLike && ModSettings.HighlightRoads)
@@ -264,6 +257,20 @@ namespace NetworkHighlightOverlay.Code.Core
             foreach (var lane in info.m_lanes)
             {
                 if ((lane.m_vehicleType & VehicleInfo.VehicleType.Car) != 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool HasMonorailLanes(NetInfo info)
+        {
+            if (info == null || info.m_lanes == null)
+                return false;
+
+            foreach (NetInfo.Lane lane in info.m_lanes)
+            {
+                if ((lane.m_vehicleType & VehicleInfo.VehicleType.Monorail) != 0)
                     return true;
             }
 
