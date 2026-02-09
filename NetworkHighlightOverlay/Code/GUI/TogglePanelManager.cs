@@ -1,6 +1,5 @@
 using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.Core;
-using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
 {

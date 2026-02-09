@@ -1,12 +1,12 @@
 using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.ModOptions;
+using System;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
 {
     public class ToggleButton : UIButton
     {
-        private static readonly Color ButtonTintColor = Color.white;
         private static readonly Color IconTintColor = Color.white;
         private static readonly Vector2 IconSize = new Vector2(22f, 22f);
 
@@ -14,15 +14,17 @@ namespace NetworkHighlightOverlay.Code.GUI
         private string _spriteName;
         private UITextureAtlas _iconAtlas;
         private bool _isSubscribedToSettings;
+        private Func<Color> _activeColorProvider;
         private UISprite _icon;
 
-        public void Initialize(string spriteName, ToggleBinding binding, string tooltip)
+        public void Initialize(string spriteName, ToggleBinding binding, string tooltip, Func<Color> activeColorProvider)
         {
             name = "NHO_ToggleButton_" + tooltip.Replace(' ', '_');
             text = string.Empty;
             this.tooltip = tooltip;
             _binding = binding;
             _spriteName = spriteName;
+            _activeColorProvider = activeColorProvider;
             playAudioEvents = true;
             eventSizeChanged -= OnButtonSizeChanged;
             eventSizeChanged += OnButtonSizeChanged;
@@ -109,12 +111,13 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             bool isOn = _binding.Value;
+            Color activeColor = ResolveActiveColor();
             UpdateNormalBackgroundSprite(isOn);
-            color = ButtonTintColor;
-            hoveredColor = ButtonTintColor;
-            pressedColor = ButtonTintColor;
-            focusedColor = ButtonTintColor;
-            disabledColor = ButtonTintColor;
+            color = activeColor;
+            hoveredColor = activeColor;
+            pressedColor = activeColor;
+            focusedColor = activeColor;
+            disabledColor = activeColor;
 
             if (_icon != null)
             {
@@ -129,7 +132,6 @@ namespace NetworkHighlightOverlay.Code.GUI
         {
             hoveredBgSprite = ToggleButtonAtlas.HoveredSpriteName;
             pressedBgSprite = ToggleButtonAtlas.PressedSpriteName;
-            focusedBgSprite = hoveredBgSprite;
             disabledBgSprite = ToggleButtonAtlas.InactiveSpriteName;
         }
 
@@ -138,6 +140,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             normalBgSprite = isOn
                 ? ToggleButtonAtlas.ActiveSpriteName
                 : ToggleButtonAtlas.InactiveSpriteName;
+            focusedBgSprite = normalBgSprite;
         }
 
         private void SubscribeToSettingsChanges()
@@ -161,6 +164,16 @@ namespace NetworkHighlightOverlay.Code.GUI
         private void OnSettingsChanged(Config config)
         {
             UpdateVisual();
+        }
+
+        private Color ResolveActiveColor()
+        {
+            if (_activeColorProvider == null)
+                return Color.white;
+
+            Color colorFromConfig = _activeColorProvider();
+            colorFromConfig.a = 1f;
+            return colorFromConfig;
         }
     }
 }
