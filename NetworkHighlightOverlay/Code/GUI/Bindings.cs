@@ -6,7 +6,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         {
             private readonly Func<bool> _get;
             private readonly Action<bool> _set;
-
+            
             public ToggleBinding(Func<bool> get, Action<bool> set)
             {
                 _get = get ?? throw new ArgumentNullException(nameof(get));
