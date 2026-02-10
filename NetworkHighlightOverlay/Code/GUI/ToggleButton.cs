@@ -7,8 +7,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 {
     public class ToggleButton : UIButton
     {
-        private static readonly Color IconTintColor = Color.white;
-        private static readonly Vector2 IconSize = new Vector2(22f, 22f);
+        private static readonly Vector2 IconSize = new Vector2(30f, 30f);
 
         private ToggleBinding _binding;
         private string _spriteName;
@@ -51,22 +50,20 @@ namespace NetworkHighlightOverlay.Code.GUI
         private void SetupVisuals()
         {
             UIView view = UIView.GetAView();
-            if (view != null)
-            {
-                _iconAtlas = view.defaultAtlas;
-            }
 
+            if (view == null) return;
+            
+            _iconAtlas = view.defaultAtlas;
             atlas = ToggleButtonAtlas.GetOrCreate();
 
-            ConfigureBackgroundSprites();
-            UpdateNormalBackgroundSprite(_binding != null && _binding.Value);
+            AddToggleBackground();
+            AddToggleIcon();
             
-            EnsureIcon();
-            UpdateIconSprite();
-            UpdateIconLayout();
+            UpdateToggleState(_binding != null && _binding.Value);
         }
+        
 
-        private void EnsureIcon()
+        private void AddToggleIcon()
         {
             if (_icon != null)
                 return;
@@ -77,27 +74,49 @@ namespace NetworkHighlightOverlay.Code.GUI
             _icon = AddUIComponent<UISprite>();
             _icon.name = name + "_Icon";
             _icon.atlas = _iconAtlas;
-            _icon.color = IconTintColor;
             _icon.isInteractive = false;
-        }
-
-        private void UpdateIconSprite()
-        {
+            
             if (_icon == null || string.IsNullOrEmpty(_spriteName))
                 return;
 
             _icon.spriteName = _spriteName;
+            UpdateIconLayout();
         }
 
         private void UpdateIconLayout()
         {
             if (_icon == null)
                 return;
+            
+            UITextureAtlas.SpriteInfo spriteInfo = _icon.spriteInfo;
+            if (spriteInfo != null)
+            {
+                Vector2 targetSize = ComputeTargetSizeWithAspectRatioIntact(spriteInfo.pixelSize);
+                _icon.size = new Vector2(targetSize.x, targetSize.y);
+                _icon.relativePosition = new Vector3((width - targetSize.x) * 0.5f, (height - targetSize.y) * 0.5f);
+            }
+        }
 
-            _icon.size = IconSize;
-            _icon.relativePosition = new Vector3(
-                (width - IconSize.x) * 0.5f,
-                (height - IconSize.y) * 0.5f);
+        private Vector2 ComputeTargetSizeWithAspectRatioIntact(Vector2 pixelSize)
+        {
+            float targetWidth = IconSize.x;
+            float targetHeight = IconSize.y;
+
+            if (!(pixelSize.x > 0f) || !(pixelSize.y > 0f)) 
+                return new Vector2(targetWidth, targetHeight);
+            
+            if (pixelSize.x >= pixelSize.y)
+            {
+                targetWidth = IconSize.x;
+                targetHeight = IconSize.x * (pixelSize.y / pixelSize.x);
+            }
+            else
+            {
+                targetHeight = IconSize.y;
+                targetWidth = IconSize.y * (pixelSize.x / pixelSize.y);
+            }
+
+            return new Vector2(targetWidth, targetHeight);
         }
 
         private void OnButtonSizeChanged(UIComponent component, Vector2 value)
@@ -111,31 +130,28 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             bool isOn = _binding.Value;
-            Color activeColor = ResolveActiveColor();
-            UpdateNormalBackgroundSprite(isOn);
+
+            opacity = 1f;
+            isInteractive = true;
+            
+            UpdateToggleState(isOn);
+        }
+
+        private void AddToggleBackground()
+        {
+            hoveredBgSprite = ToggleButtonAtlas.HoveredSpriteName;
+            pressedBgSprite = ToggleButtonAtlas.PressedSpriteName;
+            disabledBgSprite = ToggleButtonAtlas.InactiveSpriteName;
+            
+            Color activeColor = GetColorFromConfig();
             color = activeColor;
             hoveredColor = activeColor;
             pressedColor = activeColor;
             focusedColor = activeColor;
             disabledColor = activeColor;
-
-            if (_icon != null)
-            {
-                _icon.color = IconTintColor;
-            }
-
-            opacity = 1f;
-            isInteractive = true;
         }
 
-        private void ConfigureBackgroundSprites()
-        {
-            hoveredBgSprite = ToggleButtonAtlas.HoveredSpriteName;
-            pressedBgSprite = ToggleButtonAtlas.PressedSpriteName;
-            disabledBgSprite = ToggleButtonAtlas.InactiveSpriteName;
-        }
-
-        private void UpdateNormalBackgroundSprite(bool isOn)
+        private void UpdateToggleState(bool isOn)
         {
             normalBgSprite = isOn
                 ? ToggleButtonAtlas.ActiveSpriteName
@@ -166,7 +182,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             UpdateVisual();
         }
 
-        private Color ResolveActiveColor()
+        private Color GetColorFromConfig()
         {
             if (_activeColorProvider == null)
                 return Color.white;
