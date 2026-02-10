@@ -34,7 +34,13 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (_panel == null)
                 return;
 
-            _panel.isVisible = Manager.Instance.IsEnabled;
+            bool isVisible = Manager.Instance.IsEnabled;
+            if (!isVisible)
+            {
+                ToggleButton.CloseOpenHuePopup();
+            }
+
+            _panel.isVisible = isVisible;
         }
     }
 }
