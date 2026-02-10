@@ -1,5 +1,6 @@
 using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.ModOptions;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
@@ -108,6 +109,8 @@ namespace NetworkHighlightOverlay.Code.GUI
         };
 
         private DragHandle _dragHandle;
+        private HuePopover _huePopover;
+        private readonly List<ToggleButton> _buttons = new List<ToggleButton>(Columns * Rows);
 
         public override void Awake()
         {
@@ -127,8 +130,32 @@ namespace NetworkHighlightOverlay.Code.GUI
         {
             base.Start();
             CreateDragHandle();
+            CreateHuePopover();
             CreateButtons();
             ApplySavedPosition();
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (_huePopover == null || !_huePopover.IsOpen)
+                return;
+
+            if (Time.frameCount == _huePopover.OpenedFrame)
+                return;
+
+            if (!Input.GetMouseButtonDown(0) &&
+                !Input.GetMouseButtonDown(1) &&
+                !Input.GetMouseButtonDown(2))
+            {
+                return;
+            }
+
+            if (_huePopover.containsMouse)
+                return;
+
+            _huePopover.Close();
         }
 
         public override void OnDestroy()
@@ -139,8 +166,17 @@ namespace NetworkHighlightOverlay.Code.GUI
                 _dragHandle = null;
             }
 
-            ToggleButton.CloseOpenHuePopup();
+            UnsubscribeFromButtonEvents();
+            DestroyHuePopover();
             base.OnDestroy();
+        }
+
+        public void CloseHuePopover()
+        {
+            if (_huePopover != null)
+            {
+                _huePopover.Close();
+            }
         }
 
         private void CreateDragHandle()
@@ -156,10 +192,31 @@ namespace NetworkHighlightOverlay.Code.GUI
             _dragHandle.eventMouseUp += OnDragHandleMouseUp;
         }
 
+        private void CreateHuePopover()
+        {
+            UIView view = UIView.GetAView();
+            if (view == null)
+                return;
+
+            _huePopover = view.AddUIComponent(typeof(HuePopover)) as HuePopover;
+        }
+
+        private void DestroyHuePopover()
+        {
+            if (_huePopover == null)
+                return;
+
+            _huePopover.Close();
+            UnityEngine.Object.Destroy(_huePopover.gameObject);
+            _huePopover = null;
+        }
+
         private void CreateButtons()
         {
             if (ToggleDefinitions.Length != Columns * Rows)
                 return;
+
+            _buttons.Clear();
 
             for (int row = 0; row < Rows; row++)
             {
@@ -174,8 +231,38 @@ namespace NetworkHighlightOverlay.Code.GUI
                         Padding + column * (ButtonSize + Spacing),
                         DragHandleHeight + Padding + row * (ButtonSize + Spacing));
                     button.Initialize(definition.SpriteName, definition.Binding, definition.Label);
+                    button.HueEditRequested += OnButtonHueEditRequested;
+                    _buttons.Add(button);
                 }
             }
+        }
+
+        private void UnsubscribeFromButtonEvents()
+        {
+            int count = _buttons.Count;
+            for (int i = 0; i < count; i++)
+            {
+                ToggleButton button = _buttons[i];
+                if (button != null)
+                {
+                    button.HueEditRequested -= OnButtonHueEditRequested;
+                }
+            }
+            _buttons.Clear();
+        }
+
+        private void OnButtonHueEditRequested(ToggleButton button, ToggleBinding binding)
+        {
+            if (_huePopover == null || button == null || binding == null)
+                return;
+
+            if (_huePopover.IsOpen && _huePopover.Anchor == button)
+            {
+                _huePopover.Close();
+                return;
+            }
+
+            _huePopover.Open(button, binding);
         }
 
         private void ApplySavedPosition()

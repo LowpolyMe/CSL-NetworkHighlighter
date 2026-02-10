@@ -37,7 +37,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             bool isVisible = Manager.Instance.IsEnabled;
             if (!isVisible)
             {
-                ToggleButton.CloseOpenHuePopup();
+                _panel.CloseHuePopover();
             }
 
             _panel.isVisible = isVisible;
