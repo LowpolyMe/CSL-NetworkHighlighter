@@ -198,3 +198,5 @@ FakesAssemblies/
 .idea/
 
 *.psd
+
+NetworkHighlightOverlay/Local.props
