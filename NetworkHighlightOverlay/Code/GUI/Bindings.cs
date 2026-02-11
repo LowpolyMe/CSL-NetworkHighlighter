@@ -1,5 +1,6 @@
 using System;
 using NetworkHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.Utility;
 using UnityEngine;
 
@@ -7,37 +8,47 @@ namespace NetworkHighlightOverlay.Code.GUI
 {
     public sealed class ToggleBinding
     {
-        private readonly Observable<bool> _enabledState;
-        private readonly Observable<float> _hueState;
+        private readonly Observable<HighlightCategorySetting> _categoryState;
         private readonly Observable<float> _strengthState;
 
         public ToggleBinding(
-            Observable<bool> enabledState,
-            Observable<float> hueState,
+            Observable<HighlightCategorySetting> categoryState,
             Observable<float> strengthState)
         {
-            _enabledState = enabledState ?? throw new ArgumentNullException(nameof(enabledState));
-            _hueState = hueState ?? throw new ArgumentNullException(nameof(hueState));
+            _categoryState = categoryState ?? throw new ArgumentNullException(nameof(categoryState));
             _strengthState = strengthState ?? throw new ArgumentNullException(nameof(strengthState));
         }
 
-        public Observable<bool> EnabledState => _enabledState;
-        public Observable<float> HueState => _hueState;
+        public Observable<HighlightCategorySetting> CategoryState => _categoryState;
         public Observable<float> StrengthState => _strengthState;
 
         public bool Value
         {
-            get => _enabledState.Value;
-            set => _enabledState.Value = value;
+            get => _categoryState.Value.IsEnabled;
+            set
+            {
+                HighlightCategorySetting currentValue = _categoryState.Value;
+                if (currentValue.IsEnabled == value)
+                    return;
+
+                _categoryState.Value = currentValue.WithEnabled(value);
+            }
         }
 
         public float HueValue
         {
-            get => _hueState.Value;
-            set => _hueState.Value = value;
+            get => _categoryState.Value.Hue;
+            set
+            {
+                HighlightCategorySetting currentValue = _categoryState.Value;
+                if (Mathf.Approximately(currentValue.Hue, value))
+                    return;
+
+                _categoryState.Value = currentValue.WithHue(value);
+            }
         }
 
-        public Color ColorValue => ColorConversion.FromHue(_hueState.Value, _strengthState.Value);
+        public Color ColorValue => ColorConversion.FromHue(_categoryState.Value.Hue, _strengthState.Value);
 
         public IDisposable Subscribe(Action callback)
         {
@@ -49,12 +60,11 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (callback == null)
                 throw new ArgumentNullException(nameof(callback));
 
-            Action<bool, bool> onEnabledChanged = (previousValue, currentValue) => callback();
-            Action<float, float> onHueChanged = (previousValue, currentValue) => callback();
+            Action<HighlightCategorySetting, HighlightCategorySetting> onCategoryChanged =
+                (previousValue, currentValue) => callback();
             Action<float, float> onStrengthChanged = (previousValue, currentValue) => callback();
 
-            IDisposable enabledSubscription = _enabledState.Subscribe(onEnabledChanged);
-            IDisposable hueSubscription = _hueState.Subscribe(onHueChanged);
+            IDisposable categorySubscription = _categoryState.Subscribe(onCategoryChanged);
             IDisposable strengthSubscription = _strengthState.Subscribe(onStrengthChanged);
 
             if (notifyImmediately)
@@ -62,37 +72,28 @@ namespace NetworkHighlightOverlay.Code.GUI
                 callback();
             }
 
-            return new ToggleBindingSubscription(enabledSubscription, hueSubscription, strengthSubscription);
+            return new ToggleBindingSubscription(categorySubscription, strengthSubscription);
         }
 
         private sealed class ToggleBindingSubscription : IDisposable
         {
-            private IDisposable _enabledSubscription;
-            private IDisposable _hueSubscription;
+            private IDisposable _categorySubscription;
             private IDisposable _strengthSubscription;
 
             public ToggleBindingSubscription(
-                IDisposable enabledSubscription,
-                IDisposable hueSubscription,
+                IDisposable categorySubscription,
                 IDisposable strengthSubscription)
             {
-                _enabledSubscription = enabledSubscription;
-                _hueSubscription = hueSubscription;
+                _categorySubscription = categorySubscription;
                 _strengthSubscription = strengthSubscription;
             }
 
             public void Dispose()
             {
-                if (_enabledSubscription != null)
+                if (_categorySubscription != null)
                 {
-                    _enabledSubscription.Dispose();
-                    _enabledSubscription = null;
-                }
-
-                if (_hueSubscription != null)
-                {
-                    _hueSubscription.Dispose();
-                    _hueSubscription = null;
+                    _categorySubscription.Dispose();
+                    _categorySubscription = null;
                 }
 
                 if (_strengthSubscription != null)

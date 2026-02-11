@@ -22,71 +22,61 @@ namespace NetworkHighlightOverlay.Code.GUI
                 "Pedestrian paths",
                 "SubBarBeautificationPedestrianZoneEssentials",
                 new ToggleBinding(
-                    ModSettings.HighlightPedestrianPathsState,
-                    ModSettings.PedestrianPathsHueState,
+                    ModSettings.PedestrianPathsState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Pink paths",
                 "SubBarRoadsMaintenance",
                 new ToggleBinding(
-                    ModSettings.HighlightPinkPathsState,
-                    ModSettings.PinkPathsHueState,
+                    ModSettings.PinkPathsState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Terraforming networks",
                 "ToolbarIconLandscaping",
                 new ToggleBinding(
-                    ModSettings.HighlightTerraformingNetworksState,
-                    ModSettings.TerraformingNetworksHueState,
+                    ModSettings.TerraformingNetworksState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Roads",
                 "SubBarRoadsSmall",
                 new ToggleBinding(
-                    ModSettings.HighlightRoadsState,
-                    ModSettings.RoadsHueState,
+                    ModSettings.RoadsState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Highways",
                 "SubBarRoadsHighway",
                 new ToggleBinding(
-                    ModSettings.HighlightHighwaysState,
-                    ModSettings.HighwaysHueState,
+                    ModSettings.HighwaysState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Train tracks",
                 "SubBarPublicTransportTrain",
                 new ToggleBinding(
-                    ModSettings.HighlightTrainTracksState,
-                    ModSettings.TrainTracksHueState,
+                    ModSettings.TrainTracksState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Metro tracks",
                 "SubBarPublicTransportMetro",
                 new ToggleBinding(
-                    ModSettings.HighlightMetroTracksState,
-                    ModSettings.MetroTracksHueState,
+                    ModSettings.MetroTracksState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Tram tracks",
                 "SubBarPublicTransportTram",
                 new ToggleBinding(
-                    ModSettings.HighlightTramTracksState,
-                    ModSettings.TramTracksHueState,
+                    ModSettings.TramTracksState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Monorail tracks",
                 "SubBarPublicTransportMonorail",
                 new ToggleBinding(
-                    ModSettings.HighlightMonorailTracksState,
-                    ModSettings.MonorailTracksHueState,
+                    ModSettings.MonorailTracksState,
                     ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Cable cars",
                 "SubBarPublicTransportCableCar",
                 new ToggleBinding(
-                    ModSettings.HighlightCableCarsState,
-                    ModSettings.CableCarsHueState,
+                    ModSettings.CableCarsState,
                     ModSettings.HighlightStrengthState))
         };
         #endregion
