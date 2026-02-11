@@ -76,7 +76,14 @@
         <Compile Include="Code\Core\HighlightCache.cs" />
         <Compile Include="Code\Core\HighlightRules.cs" />
         <Compile Include="Code\Core\Manager.cs" />
+        <Compile Include="Code\Core\Observable.cs" />
         <Compile Include="Code\Core\OverlayRenderer.cs" />
+        <Compile Include="Code\GUI\Bindings.cs" />
+        <Compile Include="Code\GUI\DragHandle.cs" />
+        <Compile Include="Code\GUI\HuePopover.cs" />
+        <Compile Include="Code\GUI\ToggleButton.cs" />
+        <Compile Include="Code\GUI\ToggleButtonAtlas.cs" />
+        <Compile Include="Code\GUI\TogglePanel.cs" />
         <Compile Include="Code\Lifecycle\Loading.cs" />
         <Compile Include="Code\Patches\MoveItRenderOverlayPatch.cs" />
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
@@ -87,6 +94,7 @@
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
+        <Compile Include="Code\Utility\SpriteAtlasExtractor.cs" />
         <Compile Include="Code\Utility\UIUtility.cs" />
         <Compile Include="Code\UUIImplementation\UUIButtonController.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
@@ -97,12 +105,13 @@
     <ItemGroup>
       <Content Include="Resources\HueGradient.png" />
     </ItemGroup>
+    <Import Project="Local.props" Condition="Exists('Local.props')" />
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
-   
     <Target Name="DeployToModDirectory" AfterTargets="Build">
         <!-- Mod output path -->
         <PropertyGroup>
-            <DeployDir>$(LOCALAPPDATA)\Colossal Order\Cities_Skylines\Addons\Mods\NetworkHighlightOverlay</DeployDir>
+            <DeployDir>$(SteamRoot)\steamapps\workshop\content\255710\3614208002</DeployDir>
+            <AllowedReferenceRelatedFileExtensions>.nope</AllowedReferenceRelatedFileExtensions>
         </PropertyGroup>
 
         <!-- Ensure destination exists -->
@@ -119,7 +128,7 @@
         <Copy SourceFiles="@(_DeployDeps)"
               DestinationFolder="$(DeployDir)"
               SkipUnchangedFiles="true" />
-        
+
         <!-- Copy resources (PNG, etc.) -->
         <ItemGroup>
             <ResourceFiles Include="Resources\**\*" />

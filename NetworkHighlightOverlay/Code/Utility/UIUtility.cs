@@ -78,15 +78,15 @@ namespace NetworkHighlightOverlay.Code.Utility
             return new UIHelper(page);
         }
 
-        public static void CreateHueSlider(UIHelper group, string label, float initialHue, OnValueChanged onChanged,
+        public static UISlider CreateHueSlider(UIHelper group, string label, float initialHue, OnValueChanged onChanged,
             Texture2D backgroundTexture)
         {
 
-            var sliderObj = group.AddSlider(label, 0f, 1f, 0.01f, initialHue, onChanged);
-            var slider = sliderObj as UISlider;
+            object sliderObj = group.AddSlider(label, 0f, 1f, 0.01f, initialHue, onChanged);
+            UISlider slider = sliderObj as UISlider;
             if (slider == null)
             {
-                return;
+                return null;
             }
 
             // Remove the default grey background
@@ -108,6 +108,8 @@ namespace NetworkHighlightOverlay.Code.Utility
                     slider.thumbObject.zOrder = hueBar.zOrder + 1;
                 }
             }
+
+            return slider;
         }
 
         private static UIButton UIButton(UITabstrip tabStrip, string title, Color tintColor)

@@ -3,6 +3,7 @@ using ICities;
 using NetworkHighlightOverlay.Code.Core;
 using UnityEngine;
 using NetworkHighlightOverlay.Code.UI;
+using NetworkHighlightOverlay.Code.GUI;
 
 namespace NetworkHighlightOverlay.Code.Lifecycle
 {
@@ -33,11 +34,15 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
             Manager.Instance.RebuildCache();
             
             UuiButtonController.RegisterUui();
+            TogglePanel.Create();
         }
 
         public override void OnLevelUnloading()
         {
             base.OnLevelUnloading();
+            UuiButtonController.UnregisterUui();
+            TogglePanel.Destroy();
+            ToggleButtonAtlas.Clear();
             DestroyRendererObject();
             Manager.Instance.Clear();
         }

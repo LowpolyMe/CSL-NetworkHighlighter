@@ -32,5 +32,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         
         public bool HighlightBridges { get; set; } = true;
         public bool HighlightTunnels { get; set; } = true;
+
+        public float PanelX { get; set; } = -1f;
+        public float PanelY { get; set; } = -1f;
     }
 }
