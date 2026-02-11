@@ -85,12 +85,12 @@
         <Compile Include="Code\GUI\ToggleButtonAtlas.cs" />
         <Compile Include="Code\GUI\TogglePanel.cs" />
         <Compile Include="Code\Lifecycle\Loading.cs" />
+        <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\Patches\MoveItRenderOverlayPatch.cs" />
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
         <Compile Include="Code\Patches\ToolRenderOverlayPatch.cs" />
         <Compile Include="Code\ModOptions\Config.cs" />
         <Compile Include="Code\ModOptions\NetworkHighlighterMod.cs" />
-        <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />

@@ -1,5 +1,6 @@
 using ColossalFramework.UI;
 using ICities;
+using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.Utility;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private readonly List<HueSliderBinding> _hueSliderBindings = new List<HueSliderBinding>();
         private readonly List<CheckboxBinding> _checkboxBindings = new List<CheckboxBinding>();
         private bool _isApplyingSettingsToUi;
-        private bool _isSubscribedToSettings;
+        private IDisposable _settingsSubscription;
 
         private struct HueSliderBinding
         {
@@ -306,14 +307,13 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private void EnsureSettingsSubscription()
         {
-            if (_isSubscribedToSettings)
+            if (_settingsSubscription != null)
                 return;
 
-            ModSettings.SettingsChanged += OnModSettingsChanged;
-            _isSubscribedToSettings = true;
+            _settingsSubscription = ModSettings.ChangeVersion.Subscribe(OnModSettingsChanged);
         }
 
-        private void OnModSettingsChanged(Config config)
+        private void OnModSettingsChanged(long previousVersion, long currentVersion)
         {
             ApplySettingsToUi();
         }

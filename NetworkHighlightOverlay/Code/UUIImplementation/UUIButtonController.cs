@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnifiedUI.Helpers;
 using NetworkHighlightOverlay.Code.Core;
+using System;
 using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
@@ -11,11 +12,11 @@ namespace NetworkHighlightOverlay.Code.UI
 
         private static UUICustomButton _button;
         private static bool _syncing;
-        private static bool _isSubscribedToManager;
+        private static IDisposable _enabledStateSubscription;
 
         public static void RegisterUui()
         {
-            SubscribeToManagerIsEnabledChanged();
+            SubscribeToEnabledState();
 
             if (_button != null && _button.Button != null)
             {
@@ -40,7 +41,7 @@ namespace NetworkHighlightOverlay.Code.UI
 
         public static void UnregisterUui()
         {
-            UnsubscribeFromManagerIsEnabledChanged();
+            DisposeEnabledStateSubscription();
         }
 
         private static void OnButtonToggled(bool isPressed)
@@ -53,7 +54,7 @@ namespace NetworkHighlightOverlay.Code.UI
             Manager.Instance.IsEnabled = isPressed;
         }
 
-        private static void OnManagerIsEnabledChanged(bool isEnabled)
+        private static void OnEnabledStateChanged(bool previousState, bool isEnabled)
         {
             ApplyPressedState(isEnabled);
         }
@@ -75,22 +76,21 @@ namespace NetworkHighlightOverlay.Code.UI
             _syncing = false;
         }
 
-        private static void SubscribeToManagerIsEnabledChanged()
+        private static void SubscribeToEnabledState()
         {
-            if (_isSubscribedToManager)
+            if (_enabledStateSubscription != null)
                 return;
 
-            Manager.Instance.IsEnabledChanged += OnManagerIsEnabledChanged;
-            _isSubscribedToManager = true;
+            _enabledStateSubscription = Manager.Instance.EnabledState.Subscribe(OnEnabledStateChanged, true);
         }
 
-        private static void UnsubscribeFromManagerIsEnabledChanged()
+        private static void DisposeEnabledStateSubscription()
         {
-            if (!_isSubscribedToManager)
+            if (_enabledStateSubscription == null)
                 return;
 
-            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
-            _isSubscribedToManager = false;
+            _enabledStateSubscription.Dispose();
+            _enabledStateSubscription = null;
         }
     }
 }

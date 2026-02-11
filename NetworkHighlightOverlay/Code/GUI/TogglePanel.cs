@@ -1,6 +1,7 @@
 using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.ModOptions;
+using System;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
@@ -21,97 +22,78 @@ namespace NetworkHighlightOverlay.Code.GUI
                 "Pedestrian paths",
                 "SubBarBeautificationPedestrianZoneEssentials",
                 new ToggleBinding(
-                    () => ModSettings.HighlightPedestrianPaths,
-                    v => ModSettings.HighlightPedestrianPaths = v,
-                    () => ModSettings.PedestrianPathColor,
-                    () => ModSettings.PedestrianPathsHue,
-                    v => ModSettings.PedestrianPathsHue = v)),
+                    ModSettings.HighlightPedestrianPathsState,
+                    ModSettings.PedestrianPathsHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Pink paths",
                 "SubBarRoadsMaintenance",
                 new ToggleBinding(
-                    () => ModSettings.HighlightPinkPaths,
-                    v => ModSettings.HighlightPinkPaths = v,
-                    () => ModSettings.PinkPathColor,
-                    () => ModSettings.PinkPathsHue,
-                    v => ModSettings.PinkPathsHue = v)),
+                    ModSettings.HighlightPinkPathsState,
+                    ModSettings.PinkPathsHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Terraforming networks",
                 "ToolbarIconLandscaping",
                 new ToggleBinding(
-                    () => ModSettings.HighlightTerraformingNetworks,
-                    v => ModSettings.HighlightTerraformingNetworks = v,
-                    () => ModSettings.TerraformingNetworksColor,
-                    () => ModSettings.TerraformingNetworksHue,
-                    v => ModSettings.TerraformingNetworksHue = v)),
+                    ModSettings.HighlightTerraformingNetworksState,
+                    ModSettings.TerraformingNetworksHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Roads",
                 "SubBarRoadsSmall",
                 new ToggleBinding(
-                    () => ModSettings.HighlightRoads,
-                    v => ModSettings.HighlightRoads = v,
-                    () => ModSettings.RoadsColor,
-                    () => ModSettings.RoadsHue,
-                    v => ModSettings.RoadsHue = v)),
+                    ModSettings.HighlightRoadsState,
+                    ModSettings.RoadsHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Highways",
                 "SubBarRoadsHighway",
                 new ToggleBinding(
-                    () => ModSettings.HighlightHighways,
-                    v => ModSettings.HighlightHighways = v,
-                    () => ModSettings.HighwaysColor,
-                    () => ModSettings.HighwaysHue,
-                    v => ModSettings.HighwaysHue = v)),
+                    ModSettings.HighlightHighwaysState,
+                    ModSettings.HighwaysHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Train tracks",
                 "SubBarPublicTransportTrain",
                 new ToggleBinding(
-                    () => ModSettings.HighlightTrainTracks,
-                    v => ModSettings.HighlightTrainTracks = v,
-                    () => ModSettings.TrainTracksColor,
-                    () => ModSettings.TrainTracksHue,
-                    v => ModSettings.TrainTracksHue = v)),
+                    ModSettings.HighlightTrainTracksState,
+                    ModSettings.TrainTracksHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Metro tracks",
                 "SubBarPublicTransportMetro",
                 new ToggleBinding(
-                    () => ModSettings.HighlightMetroTracks,
-                    v => ModSettings.HighlightMetroTracks = v,
-                    () => ModSettings.MetroTracksColor,
-                    () => ModSettings.MetroTracksHue,
-                    v => ModSettings.MetroTracksHue = v)),
+                    ModSettings.HighlightMetroTracksState,
+                    ModSettings.MetroTracksHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Tram tracks",
                 "SubBarPublicTransportTram",
                 new ToggleBinding(
-                    () => ModSettings.HighlightTramTracks,
-                    v => ModSettings.HighlightTramTracks = v,
-                    () => ModSettings.TramTracksColor,
-                    () => ModSettings.TramTracksHue,
-                    v => ModSettings.TramTracksHue = v)),
+                    ModSettings.HighlightTramTracksState,
+                    ModSettings.TramTracksHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Monorail tracks",
                 "SubBarPublicTransportMonorail",
                 new ToggleBinding(
-                    () => ModSettings.HighlightMonorailTracks,
-                    v => ModSettings.HighlightMonorailTracks = v,
-                    () => ModSettings.MonorailTracksColor,
-                    () => ModSettings.MonorailTracksHue,
-                    v => ModSettings.MonorailTracksHue = v)),
+                    ModSettings.HighlightMonorailTracksState,
+                    ModSettings.MonorailTracksHueState,
+                    ModSettings.HighlightStrengthState)),
             new ToggleDefinition(
                 "Cable cars",
                 "SubBarPublicTransportCableCar",
                 new ToggleBinding(
-                    () => ModSettings.HighlightCableCars,
-                    v => ModSettings.HighlightCableCars = v,
-                    () => ModSettings.CableCarColor,
-                    () => ModSettings.CableCarsHue,
-                    v => ModSettings.CableCarsHue = v))
+                    ModSettings.HighlightCableCarsState,
+                    ModSettings.CableCarsHueState,
+                    ModSettings.HighlightStrengthState))
         };
         #endregion
 
         #region Fields
         private static TogglePanel _instance;
+        private static IDisposable _enabledStateSubscription;
 
         private UIView _view;
         private DragHandle _dragHandle;
@@ -132,17 +114,16 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (panel == null)
                 return;
 
-            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
-            Manager.Instance.IsEnabledChanged += OnManagerIsEnabledChanged;
-
             panel.isVisible = false;
             _instance = panel;
-            OnManagerIsEnabledChanged(Manager.Instance.IsEnabled);
+
+            DisposeEnabledStateSubscription();
+            _enabledStateSubscription = Manager.Instance.EnabledState.Subscribe(OnEnabledStateChanged, true);
         }
 
         public static void Destroy()
         {
-            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
+            DisposeEnabledStateSubscription();
 
             if (_instance == null)
                 return;
@@ -189,10 +170,9 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         public override void OnDestroy()
         {
-            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
-
             if (_instance == this)
             {
+                DisposeEnabledStateSubscription();
                 _instance = null;
             }
 
@@ -212,7 +192,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             }
         }
 
-        private static void OnManagerIsEnabledChanged(bool isEnabled)
+        private static void OnEnabledStateChanged(bool previousState, bool isEnabled)
         {
             if (_instance == null)
                 return;
@@ -223,6 +203,15 @@ namespace NetworkHighlightOverlay.Code.GUI
             }
 
             _instance.isVisible = isEnabled;
+        }
+
+        private static void DisposeEnabledStateSubscription()
+        {
+            if (_enabledStateSubscription == null)
+                return;
+
+            _enabledStateSubscription.Dispose();
+            _enabledStateSubscription = null;
         }
 
         private void CreateDragHandle()

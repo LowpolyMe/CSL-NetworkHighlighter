@@ -1,42 +1,106 @@
 using System;
+using NetworkHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code.Utility;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
 {
     public sealed class ToggleBinding
     {
-        private readonly Func<bool> _get;
-        private readonly Action<bool> _set;
-        private readonly Func<Color> _getColor;
-        private readonly Func<float> _getHue;
-        private readonly Action<float> _setHue;
+        private readonly Observable<bool> _enabledState;
+        private readonly Observable<float> _hueState;
+        private readonly Observable<float> _strengthState;
 
         public ToggleBinding(
-            Func<bool> get,
-            Action<bool> set,
-            Func<Color> getColor,
-            Func<float> getHue,
-            Action<float> setHue)
+            Observable<bool> enabledState,
+            Observable<float> hueState,
+            Observable<float> strengthState)
         {
-            _get = get ?? throw new ArgumentNullException(nameof(get));
-            _set = set ?? throw new ArgumentNullException(nameof(set));
-            _getColor = getColor ?? throw new ArgumentNullException(nameof(getColor));
-            _getHue = getHue ?? throw new ArgumentNullException(nameof(getHue));
-            _setHue = setHue ?? throw new ArgumentNullException(nameof(setHue));
+            _enabledState = enabledState ?? throw new ArgumentNullException(nameof(enabledState));
+            _hueState = hueState ?? throw new ArgumentNullException(nameof(hueState));
+            _strengthState = strengthState ?? throw new ArgumentNullException(nameof(strengthState));
         }
+
+        public Observable<bool> EnabledState => _enabledState;
+        public Observable<float> HueState => _hueState;
+        public Observable<float> StrengthState => _strengthState;
 
         public bool Value
         {
-            get => _get();
-            set => _set(value);
+            get => _enabledState.Value;
+            set => _enabledState.Value = value;
         }
-
-        public Color ColorValue => _getColor();
 
         public float HueValue
         {
-            get => _getHue();
-            set => _setHue(value);
+            get => _hueState.Value;
+            set => _hueState.Value = value;
+        }
+
+        public Color ColorValue => ColorConversion.FromHue(_hueState.Value, _strengthState.Value);
+
+        public IDisposable Subscribe(Action callback)
+        {
+            return Subscribe(callback, false);
+        }
+
+        public IDisposable Subscribe(Action callback, bool notifyImmediately)
+        {
+            if (callback == null)
+                throw new ArgumentNullException(nameof(callback));
+
+            Action<bool, bool> onEnabledChanged = (previousValue, currentValue) => callback();
+            Action<float, float> onHueChanged = (previousValue, currentValue) => callback();
+            Action<float, float> onStrengthChanged = (previousValue, currentValue) => callback();
+
+            IDisposable enabledSubscription = _enabledState.Subscribe(onEnabledChanged);
+            IDisposable hueSubscription = _hueState.Subscribe(onHueChanged);
+            IDisposable strengthSubscription = _strengthState.Subscribe(onStrengthChanged);
+
+            if (notifyImmediately)
+            {
+                callback();
+            }
+
+            return new ToggleBindingSubscription(enabledSubscription, hueSubscription, strengthSubscription);
+        }
+
+        private sealed class ToggleBindingSubscription : IDisposable
+        {
+            private IDisposable _enabledSubscription;
+            private IDisposable _hueSubscription;
+            private IDisposable _strengthSubscription;
+
+            public ToggleBindingSubscription(
+                IDisposable enabledSubscription,
+                IDisposable hueSubscription,
+                IDisposable strengthSubscription)
+            {
+                _enabledSubscription = enabledSubscription;
+                _hueSubscription = hueSubscription;
+                _strengthSubscription = strengthSubscription;
+            }
+
+            public void Dispose()
+            {
+                if (_enabledSubscription != null)
+                {
+                    _enabledSubscription.Dispose();
+                    _enabledSubscription = null;
+                }
+
+                if (_hueSubscription != null)
+                {
+                    _hueSubscription.Dispose();
+                    _hueSubscription = null;
+                }
+
+                if (_strengthSubscription != null)
+                {
+                    _strengthSubscription.Dispose();
+                    _strengthSubscription = null;
+                }
+            }
         }
     }
 }

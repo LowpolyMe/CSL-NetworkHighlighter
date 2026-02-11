@@ -8,38 +8,20 @@ namespace NetworkHighlightOverlay.Code.Core
 {
     public class Manager
     {
-        public event Action<bool> IsEnabledChanged;
-
-        private bool _isEnabled;
+        private readonly Observable<bool> _isEnabled = new Observable<bool>(false);
+        private readonly IDisposable _enabledSubscription;
+        private readonly IDisposable _settingsSubscription;
         private readonly HighlightCache _cache = new HighlightCache();
         private readonly OverlayRenderer _renderer = new OverlayRenderer();
         private readonly List<KeyValuePair<ushort, Color>> _segmentSnapshot =
             new List<KeyValuePair<ushort, Color>>(1024);
 
+        public Observable<bool> EnabledState => _isEnabled;
+
         public bool IsEnabled
         {
-            get => _isEnabled;
-            set
-            {
-                if (_isEnabled == value)
-                    return;
-
-                _isEnabled = value;
-
-                if (_isEnabled)
-                {
-                    _cache.RebuildCache();
-                }
-                else
-                {
-                    _cache.Clear();
-                }
-
-                if (IsEnabledChanged != null)
-                {
-                    IsEnabledChanged(_isEnabled);
-                }
-            }
+            get => _isEnabled.Value;
+            set => _isEnabled.Value = value;
         }
 
         private static readonly Manager _instance = new Manager();
@@ -47,12 +29,25 @@ namespace NetworkHighlightOverlay.Code.Core
 
         private Manager()
         {
-            ModSettings.SettingsChanged += _ => OnSettingsChanged();
+            _enabledSubscription = _isEnabled.Subscribe(OnEnabledStateChanged);
+            _settingsSubscription = ModSettings.ChangeVersion.Subscribe(OnSettingsChanged);
         }
 
-        private void OnSettingsChanged()
+        private void OnEnabledStateChanged(bool previousState, bool isEnabled)
         {
-            if (_isEnabled)
+            if (isEnabled)
+            {
+                _cache.RebuildCache();
+            }
+            else
+            {
+                _cache.Clear();
+            }
+        }
+
+        private void OnSettingsChanged(long previousVersion, long currentVersion)
+        {
+            if (_isEnabled.Value)
                 _cache.RebuildCache();
             else
                 _cache.Clear();
@@ -80,7 +75,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public void RenderIfActive(RenderManager.CameraInfo cameraInfo)
         {
-            if (!_isEnabled)
+            if (!_isEnabled.Value)
                 return;
 
             _cache.CopySegmentsTo(_segmentSnapshot);

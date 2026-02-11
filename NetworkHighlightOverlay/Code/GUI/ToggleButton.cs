@@ -1,5 +1,4 @@
 using ColossalFramework.UI;
-using NetworkHighlightOverlay.Code.ModOptions;
 using System;
 using UnityEngine;
 
@@ -11,7 +10,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         private UIView _view;
         private ToggleBinding _binding;
         private string _spriteName;
-        private bool _isSubscribedToSettings;
+        private IDisposable _bindingSubscription;
         private Action<ToggleButton, ToggleBinding> _onHueEditRequested;
         private UISprite _icon;
         #endregion
@@ -35,7 +34,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             eventSizeChanged -= OnButtonSizeChanged;
             eventSizeChanged += OnButtonSizeChanged;
 
-            SubscribeToSettingsChanges();
+            SubscribeToBindingChanges();
             SetupVisuals();
             UpdateVisual();
         }
@@ -65,7 +64,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         public override void OnDestroy()
         {
             _onHueEditRequested = null;
-            UnsubscribeFromSettingsChanges();
+            UnsubscribeFromBindingChanges();
             eventSizeChanged -= OnButtonSizeChanged;
             base.OnDestroy();
         }
@@ -108,25 +107,24 @@ namespace NetworkHighlightOverlay.Code.GUI
             focusedBgSprite = normalBgSprite;
         }
 
-        private void SubscribeToSettingsChanges()
+        private void SubscribeToBindingChanges()
         {
-            if (_isSubscribedToSettings)
+            if (_bindingSubscription != null || _binding == null)
                 return;
 
-            ModSettings.SettingsChanged += OnSettingsChanged;
-            _isSubscribedToSettings = true;
+            _bindingSubscription = _binding.Subscribe(OnBindingChanged, false);
         }
 
-        private void UnsubscribeFromSettingsChanges()
+        private void UnsubscribeFromBindingChanges()
         {
-            if (!_isSubscribedToSettings)
+            if (_bindingSubscription == null)
                 return;
 
-            ModSettings.SettingsChanged -= OnSettingsChanged;
-            _isSubscribedToSettings = false;
+            _bindingSubscription.Dispose();
+            _bindingSubscription = null;
         }
 
-        private void OnSettingsChanged(Config config)
+        private void OnBindingChanged()
         {
             UpdateVisual();
         }
