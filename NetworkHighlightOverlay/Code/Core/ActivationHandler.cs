@@ -1,5 +1,3 @@
-using NetworkHighlightOverlay.Code.GUI;
-using NetworkHighlightOverlay.Code.UI;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
@@ -11,8 +9,6 @@ namespace NetworkHighlightOverlay.Code.Core
             if (Input.GetKeyDown(KeyCode.F9))
             {
                 Manager.Instance.IsEnabled = !Manager.Instance.IsEnabled;
-                UuiButtonController.SyncFromManager();
-                TogglePanelManager.SyncVisibility();
             }
         }
         //todo: also activate when current tool is road draw tool IF enabled in options menu

@@ -34,14 +34,14 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
             Manager.Instance.RebuildCache();
             
             UuiButtonController.RegisterUui();
-            TogglePanelManager.Create();
-            TogglePanelManager.SyncVisibility();
+            TogglePanel.Create();
         }
 
         public override void OnLevelUnloading()
         {
             base.OnLevelUnloading();
-            TogglePanelManager.Destroy();
+            UuiButtonController.UnregisterUui();
+            TogglePanel.Destroy();
             ToggleButtonAtlas.Clear();
             DestroyRendererObject();
             Manager.Instance.Clear();

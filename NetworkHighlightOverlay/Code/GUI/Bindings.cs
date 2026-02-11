@@ -11,11 +11,6 @@ namespace NetworkHighlightOverlay.Code.GUI
         private readonly Func<float> _getHue;
         private readonly Action<float> _setHue;
 
-        public ToggleBinding(Func<bool> get, Action<bool> set)
-            : this(get, set, null, null, null)
-        {
-        }
-
         public ToggleBinding(
             Func<bool> get,
             Action<bool> set,
@@ -25,14 +20,9 @@ namespace NetworkHighlightOverlay.Code.GUI
         {
             _get = get ?? throw new ArgumentNullException(nameof(get));
             _set = set ?? throw new ArgumentNullException(nameof(set));
-            _getColor = getColor;
-            _getHue = getHue;
-            _setHue = setHue;
-
-            if ((_getHue == null) != (_setHue == null))
-            {
-                throw new ArgumentException("Hue get/set delegates must both be provided or both be null.");
-            }
+            _getColor = getColor ?? throw new ArgumentNullException(nameof(getColor));
+            _getHue = getHue ?? throw new ArgumentNullException(nameof(getHue));
+            _setHue = setHue ?? throw new ArgumentNullException(nameof(setHue));
         }
 
         public bool Value
@@ -41,26 +31,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             set => _set(value);
         }
 
-        public Color ColorValue => _getColor != null ? _getColor() : Color.white;
-
-        public bool CanAdjustHue => _getHue != null && _setHue != null;
+        public Color ColorValue => _getColor();
 
         public float HueValue
         {
-            get
-            {
-                if (!CanAdjustHue)
-                    throw new InvalidOperationException("Hue binding is not configured.");
-
-                return _getHue();
-            }
-            set
-            {
-                if (!CanAdjustHue)
-                    throw new InvalidOperationException("Hue binding is not configured.");
-
-                _setHue(value);
-            }
+            get => _getHue();
+            set => _setHue(value);
         }
     }
 }

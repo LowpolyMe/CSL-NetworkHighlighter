@@ -1,14 +1,14 @@
 using ColossalFramework.UI;
+using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.ModOptions;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
 {
     public class TogglePanel : UIPanel
     {
+        #region Constants
         private const int Columns = 5;
-        private const int Rows = 2;
         private const float ButtonSize = 40f;
         private const float Spacing = 4f;
         private const float Padding = 2f;
@@ -107,10 +107,47 @@ namespace NetworkHighlightOverlay.Code.GUI
                     () => ModSettings.CableCarsHue,
                     v => ModSettings.CableCarsHue = v))
         };
+        #endregion
 
+        #region Fields
+        private static TogglePanel _instance;
+
+        private UIView _view;
         private DragHandle _dragHandle;
         private HuePopover _huePopover;
-        private readonly List<ToggleButton> _buttons = new List<ToggleButton>(Columns * Rows);
+        #endregion
+
+        public static void Create()
+        {
+            if (_instance != null)
+                return;
+
+            UIView view = UIView.GetAView();
+            if (view == null)
+                return;
+
+            TogglePanel panel = view.AddUIComponent(typeof(TogglePanel)) as TogglePanel;
+            if (panel == null)
+                return;
+
+            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
+            Manager.Instance.IsEnabledChanged += OnManagerIsEnabledChanged;
+
+            panel.isVisible = false;
+            _instance = panel;
+            OnManagerIsEnabledChanged(Manager.Instance.IsEnabled);
+        }
+
+        public static void Destroy()
+        {
+            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
+
+            if (_instance == null)
+                return;
+
+            UnityEngine.Object.Destroy(_instance.gameObject);
+            _instance = null;
+        }
 
         public override void Awake()
         {
@@ -120,15 +157,18 @@ namespace NetworkHighlightOverlay.Code.GUI
             color = new Color32(35, 35, 35, 230);
             clipChildren = true;
             isVisible = false;
+
+            int rowCount = GetRowCount(ToggleDefinitions.Length);
             Vector2 panelSize = new Vector2(
                 Padding * 2f + Columns * ButtonSize + (Columns - 1) * Spacing,
-                DragHandleHeight + Padding * 2f + Rows * ButtonSize + (Rows - 1) * Spacing);
+                DragHandleHeight + Padding * 2f + rowCount * ButtonSize + Mathf.Max(0, rowCount - 1) * Spacing);
             size = panelSize;
         }
 
         public override void Start()
         {
             base.Start();
+            _view = UIView.GetAView();
             CreateDragHandle();
             CreateHuePopover();
             CreateButtons();
@@ -139,34 +179,24 @@ namespace NetworkHighlightOverlay.Code.GUI
         {
             base.Update();
 
-            if (_huePopover == null || !_huePopover.IsOpen)
-                return;
-
-            if (Time.frameCount == _huePopover.OpenedFrame)
-                return;
-
-            if (!Input.GetMouseButtonDown(0) &&
-                !Input.GetMouseButtonDown(1) &&
-                !Input.GetMouseButtonDown(2))
+            if (_huePopover != null && _huePopover.ShouldCloseForCurrentMouseClick())
             {
-                return;
+                _huePopover.Close();
             }
-
-            if (_huePopover.containsMouse)
-                return;
-
-            _huePopover.Close();
         }
 
         public override void OnDestroy()
         {
-            if (_dragHandle != null)
+            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
+
+            if (_instance == this)
             {
-                _dragHandle.eventMouseUp -= OnDragHandleMouseUp;
-                _dragHandle = null;
+                _instance = null;
             }
 
-            UnsubscribeFromButtonEvents();
+            UnsubscribeFromDragHandleEvents();
+            _dragHandle = null;
+
             DestroyHuePopover();
             base.OnDestroy();
         }
@@ -179,6 +209,19 @@ namespace NetworkHighlightOverlay.Code.GUI
             }
         }
 
+        private static void OnManagerIsEnabledChanged(bool isEnabled)
+        {
+            if (_instance == null)
+                return;
+
+            if (!isEnabled)
+            {
+                _instance.CloseHuePopover();
+            }
+
+            _instance.isVisible = isEnabled;
+        }
+
         private void CreateDragHandle()
         {
             _dragHandle = AddUIComponent<DragHandle>();
@@ -189,16 +232,36 @@ namespace NetworkHighlightOverlay.Code.GUI
             _dragHandle.height = DragHandleHeight;
             _dragHandle.isInteractive = true;
             _dragHandle.isVisible = true;
+
+            SubscribeToDragHandleEvents();
+        }
+
+        private void SubscribeToDragHandleEvents()
+        {
+            if (_dragHandle == null)
+                return;
+
+            _dragHandle.eventMouseDown -= OnDragHandleMouseDown;
+            _dragHandle.eventMouseDown += OnDragHandleMouseDown;
+            _dragHandle.eventMouseUp -= OnDragHandleMouseUp;
             _dragHandle.eventMouseUp += OnDragHandleMouseUp;
+        }
+
+        private void UnsubscribeFromDragHandleEvents()
+        {
+            if (_dragHandle == null)
+                return;
+
+            _dragHandle.eventMouseDown -= OnDragHandleMouseDown;
+            _dragHandle.eventMouseUp -= OnDragHandleMouseUp;
         }
 
         private void CreateHuePopover()
         {
-            UIView view = UIView.GetAView();
-            if (view == null)
+            if (_view == null)
                 return;
 
-            _huePopover = view.AddUIComponent(typeof(HuePopover)) as HuePopover;
+            _huePopover = _view.AddUIComponent(typeof(HuePopover)) as HuePopover;
         }
 
         private void DestroyHuePopover()
@@ -213,42 +276,20 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void CreateButtons()
         {
-            if (ToggleDefinitions.Length != Columns * Rows)
-                return;
-
-            _buttons.Clear();
-
-            for (int row = 0; row < Rows; row++)
+            int toggleCount = ToggleDefinitions.Length;
+            for (int index = 0; index < toggleCount; index++)
             {
-                for (int column = 0; column < Columns; column++)
-                {
-                    int index = row * Columns + column;
-                    ToggleDefinition definition = ToggleDefinitions[index];
-                    ToggleButton button = AddUIComponent<ToggleButton>();
-                    button.width = ButtonSize;
-                    button.height = ButtonSize;
-                    button.relativePosition = new Vector3(
-                        Padding + column * (ButtonSize + Spacing),
-                        DragHandleHeight + Padding + row * (ButtonSize + Spacing));
-                    button.Initialize(definition.SpriteName, definition.Binding, definition.Label);
-                    button.HueEditRequested += OnButtonHueEditRequested;
-                    _buttons.Add(button);
-                }
+                int row = index / Columns;
+                int column = index % Columns;
+                ToggleDefinition definition = ToggleDefinitions[index];
+                ToggleButton button = AddUIComponent<ToggleButton>();
+                button.width = ButtonSize;
+                button.height = ButtonSize;
+                button.relativePosition = new Vector3(
+                    Padding + column * (ButtonSize + Spacing),
+                    DragHandleHeight + Padding + row * (ButtonSize + Spacing));
+                button.Initialize(definition.SpriteName, definition.Binding, definition.Label, OnButtonHueEditRequested);
             }
-        }
-
-        private void UnsubscribeFromButtonEvents()
-        {
-            int count = _buttons.Count;
-            for (int i = 0; i < count; i++)
-            {
-                ToggleButton button = _buttons[i];
-                if (button != null)
-                {
-                    button.HueEditRequested -= OnButtonHueEditRequested;
-                }
-            }
-            _buttons.Clear();
         }
 
         private void OnButtonHueEditRequested(ToggleButton button, ToggleBinding binding)
@@ -256,7 +297,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (_huePopover == null || button == null || binding == null)
                 return;
 
-            if (_huePopover.IsOpen && _huePopover.Anchor == button)
+            if (_huePopover.IsAnchoredTo(button))
             {
                 _huePopover.Close();
                 return;
@@ -267,8 +308,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void ApplySavedPosition()
         {
-            UIView view = UIView.GetAView();
-            if (view == null)
+            if (_view == null)
                 return;
 
             Vector2 panelSize = size;
@@ -279,13 +319,21 @@ namespace NetworkHighlightOverlay.Code.GUI
             }
             else
             {
-                target = CenterPosition(view, panelSize);
+                target = CenterPosition(_view, panelSize);
             }
 
-            Vector2 clamped = ClampToScreen(view, target, panelSize);
+            Vector2 clamped = ClampToScreen(_view, target, panelSize);
             absolutePosition = new Vector3(clamped.x, clamped.y);
             ModSettings.PanelX = clamped.x;
             ModSettings.PanelY = clamped.y;
+        }
+
+        private void OnDragHandleMouseDown(UIComponent component, UIMouseEventParameter eventParam)
+        {
+            if (!DragHandle.IsCtrlDown)
+                return;
+
+            CloseHuePopover();
         }
 
         private void OnDragHandleMouseUp(UIComponent component, UIMouseEventParameter eventParam)
@@ -295,12 +343,11 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void SaveCurrentPosition()
         {
-            UIView view = UIView.GetAView();
-            if (view == null)
+            if (_view == null)
                 return;
 
             Vector2 currentPosition = new Vector2(absolutePosition.x, absolutePosition.y);
-            Vector2 clamped = ClampToScreen(view, currentPosition, size);
+            Vector2 clamped = ClampToScreen(_view, currentPosition, size);
 
             if (!Mathf.Approximately(currentPosition.x, clamped.x) ||
                 !Mathf.Approximately(currentPosition.y, clamped.y))
@@ -326,6 +373,14 @@ namespace NetworkHighlightOverlay.Code.GUI
             float x = Mathf.Clamp(desired.x, 0f, Mathf.Max(0f, screen.x - panelSize.x));
             float y = Mathf.Clamp(desired.y, 0f, Mathf.Max(0f, screen.y - panelSize.y));
             return new Vector2(x, y);
+        }
+
+        private static int GetRowCount(int toggleCount)
+        {
+            if (toggleCount <= 0)
+                return 0;
+
+            return (toggleCount + Columns - 1) / Columns;
         }
 
         private readonly struct ToggleDefinition

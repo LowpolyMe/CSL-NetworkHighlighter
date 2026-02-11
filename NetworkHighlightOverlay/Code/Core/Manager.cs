@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using ColossalFramework;
 using NetworkHighlightOverlay.Code.ModOptions;
 using UnityEngine;
@@ -7,6 +8,8 @@ namespace NetworkHighlightOverlay.Code.Core
 {
     public class Manager
     {
+        public event Action<bool> IsEnabledChanged;
+
         private bool _isEnabled;
         private readonly HighlightCache _cache = new HighlightCache();
         private readonly OverlayRenderer _renderer = new OverlayRenderer();
@@ -30,6 +33,11 @@ namespace NetworkHighlightOverlay.Code.Core
                 else
                 {
                     _cache.Clear();
+                }
+
+                if (IsEnabledChanged != null)
+                {
+                    IsEnabledChanged(_isEnabled);
                 }
             }
         }

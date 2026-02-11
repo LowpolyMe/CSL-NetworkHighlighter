@@ -5,6 +5,8 @@ namespace NetworkHighlightOverlay.Code.GUI
 {
     public class DragHandle : UIDragHandle
     {
+        public static bool IsCtrlDown => Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+
         public override void Awake()
         {
             base.Awake();
@@ -13,7 +15,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         protected override void OnMouseMove(UIMouseEventParameter p)
         {
-            if (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl))
+            if (!IsCtrlDown)
                 return;
 
             base.OnMouseMove(p);

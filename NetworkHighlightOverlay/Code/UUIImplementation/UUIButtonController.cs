@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnifiedUI.Helpers;
 using NetworkHighlightOverlay.Code.Core;
-using NetworkHighlightOverlay.Code.GUI;
 using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
@@ -12,14 +11,17 @@ namespace NetworkHighlightOverlay.Code.UI
 
         private static UUICustomButton _button;
         private static bool _syncing;
+        private static bool _isSubscribedToManager;
 
         public static void RegisterUui()
         {
+            SubscribeToManagerIsEnabledChanged();
+
             if (_button != null && _button.Button != null)
             {
+                ApplyPressedState(Manager.Instance.IsEnabled);
                 return;
             }
-
 
             Texture2D iconTexture = ModResources.LoadTexture("UUIIcon.png");
 
@@ -32,10 +34,13 @@ namespace NetworkHighlightOverlay.Code.UI
                 onToolChanged: null,
                 hotkeys: null
             );
-            
-            _syncing = true;
-            _button.IsPressed = Manager.Instance.IsEnabled;
-            _syncing = false;
+
+            ApplyPressedState(Manager.Instance.IsEnabled);
+        }
+
+        public static void UnregisterUui()
+        {
+            UnsubscribeFromManagerIsEnabledChanged();
         }
 
         private static void OnButtonToggled(bool isPressed)
@@ -44,26 +49,48 @@ namespace NetworkHighlightOverlay.Code.UI
             {
                 return;
             }
+
             Manager.Instance.IsEnabled = isPressed;
-            TogglePanelManager.SyncVisibility();
         }
-        
-        public static void SyncFromManager()
+
+        private static void OnManagerIsEnabledChanged(bool isEnabled)
+        {
+            ApplyPressedState(isEnabled);
+        }
+
+        private static void ApplyPressedState(bool isEnabled)
         {
             if (_button == null)
             {
                 return;
             }
 
-            bool desired = Manager.Instance.IsEnabled;
-            if (_button.IsPressed == desired)
+            if (_button.IsPressed == isEnabled)
             {
                 return;
             }
 
             _syncing = true;
-            _button.IsPressed = desired;
+            _button.IsPressed = isEnabled;
             _syncing = false;
+        }
+
+        private static void SubscribeToManagerIsEnabledChanged()
+        {
+            if (_isSubscribedToManager)
+                return;
+
+            Manager.Instance.IsEnabledChanged += OnManagerIsEnabledChanged;
+            _isSubscribedToManager = true;
+        }
+
+        private static void UnsubscribeFromManagerIsEnabledChanged()
+        {
+            if (!_isSubscribedToManager)
+                return;
+
+            Manager.Instance.IsEnabledChanged -= OnManagerIsEnabledChanged;
+            _isSubscribedToManager = false;
         }
     }
 }

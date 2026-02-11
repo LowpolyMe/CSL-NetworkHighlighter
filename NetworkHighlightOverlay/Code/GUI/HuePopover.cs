@@ -6,6 +6,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 {
     public class HuePopover : UIPanel
     {
+        #region Constants
         private const float PopoverWidth = 190f;
         private const float PopoverHeight = 42f;
         private const float SliderHeight = 18f;
@@ -13,16 +14,18 @@ namespace NetworkHighlightOverlay.Code.GUI
         private const float PopoverOffset = 6f;
 
         private static Texture2D _hueGradientTexture;
+        #endregion
 
+        #region Fields
         private ToggleButton _anchor;
         private ToggleBinding _binding;
+        private UIView _view;
         private UISlider _hueSlider;
         private bool _isApplyingHueValue;
-        private int _openedFrame = -1;
+        private bool _ignoreCloseUntilMouseButtonsReleased;
+        #endregion
 
         public bool IsOpen => isVisible && _anchor != null && _binding != null;
-        public int OpenedFrame => _openedFrame;
-        public ToggleButton Anchor => _anchor;
 
         public override void Awake()
         {
@@ -39,21 +42,10 @@ namespace NetworkHighlightOverlay.Code.GUI
             CreateSlider();
         }
 
-        public override void Update()
+        public override void Start()
         {
-            base.Update();
-
-            if (!IsOpen)
-                return;
-
-            if (_anchor == null || _anchor.parent == null || !_anchor.isVisible)
-            {
-                Close();
-                return;
-            }
-
-            UpdatePosition();
-            SyncSliderFromBinding();
+            base.Start();
+            CacheView();
         }
 
         public override void OnDestroy()
@@ -69,12 +61,12 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         public void Open(ToggleButton anchor, ToggleBinding binding)
         {
-            if (anchor == null || binding == null || !binding.CanAdjustHue)
+            if (anchor == null || binding == null)
                 return;
 
             _anchor = anchor;
             _binding = binding;
-            _openedFrame = Time.frameCount;
+            _ignoreCloseUntilMouseButtonsReleased = IsAnyMouseButtonHeld();
             isVisible = true;
             BringToFront();
             UpdatePosition();
@@ -85,8 +77,8 @@ namespace NetworkHighlightOverlay.Code.GUI
         {
             _anchor = null;
             _binding = null;
-            _openedFrame = -1;
             _isApplyingHueValue = false;
+            _ignoreCloseUntilMouseButtonsReleased = false;
             isVisible = false;
         }
 
@@ -131,16 +123,39 @@ namespace NetworkHighlightOverlay.Code.GUI
             _hueSlider.eventValueChanged += OnHueSliderValueChanged;
         }
 
+        public bool IsAnchoredTo(ToggleButton button)
+        {
+            return IsOpen && _anchor == button;
+        }
+
+        public bool ShouldCloseForCurrentMouseClick()
+        {
+            if (!IsOpen)
+                return false;
+
+            if (_ignoreCloseUntilMouseButtonsReleased)
+            {
+                if (IsAnyMouseButtonHeld())
+                    return false;
+
+                _ignoreCloseUntilMouseButtonsReleased = false;
+            }
+
+            if (!IsAnyMouseButtonDownThisFrame())
+                return false;
+
+            return !containsMouse;
+        }
+
         private void UpdatePosition()
         {
             if (_anchor == null)
                 return;
 
-            UIView view = UIView.GetAView();
-            if (view == null)
+            if (_view == null)
                 return;
 
-            Vector2 resolution = view.GetScreenResolution();
+            Vector2 resolution = _view.GetScreenResolution();
             float x = _anchor.absolutePosition.x + _anchor.width + PopoverOffset;
             float y = _anchor.absolutePosition.y + (_anchor.height - PopoverHeight) * 0.5f;
 
@@ -156,7 +171,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void SyncSliderFromBinding()
         {
-            if (_hueSlider == null || _binding == null || !_binding.CanAdjustHue)
+            if (_hueSlider == null || _binding == null)
                 return;
 
             float hue = Mathf.Clamp01(_binding.HueValue);
@@ -170,7 +185,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void OnHueSliderValueChanged(UIComponent component, float value)
         {
-            if (_isApplyingHueValue || _binding == null || !_binding.CanAdjustHue)
+            if (_isApplyingHueValue || _binding == null)
                 return;
 
             _binding.HueValue = Mathf.Clamp01(value);
@@ -184,6 +199,28 @@ namespace NetworkHighlightOverlay.Code.GUI
             }
 
             return _hueGradientTexture;
+        }
+
+        private static bool IsAnyMouseButtonHeld()
+        {
+            return Input.GetMouseButton(0) ||
+                   Input.GetMouseButton(1) ||
+                   Input.GetMouseButton(2);
+        }
+
+        private static bool IsAnyMouseButtonDownThisFrame()
+        {
+            return Input.GetMouseButtonDown(0) ||
+                   Input.GetMouseButtonDown(1) ||
+                   Input.GetMouseButtonDown(2);
+        }
+
+        private void CacheView()
+        {
+            if (_view != null)
+                return;
+
+            _view = UIView.GetAView();
         }
     }
 }
