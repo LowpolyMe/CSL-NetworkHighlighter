@@ -60,7 +60,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private static readonly ScalarSliderDefinition[] ScalarSliderDefinitions = new[]
+        private static readonly ScalarSliderDefinition[] _scalarSliderDefinitions = new[]
         {
             new ScalarSliderDefinition(
                 "Highlight Strength",
@@ -284,10 +284,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private void AddScalarColorSliders(UIHelper leftHelper, UIHelper rightHelper, ref int sliderIndex)
         {
-            int definitionCount = ScalarSliderDefinitions.Length;
+            int definitionCount = _scalarSliderDefinitions.Length;
             for (int i = 0; i < definitionCount; i++)
             {
-                ScalarSliderDefinition definition = ScalarSliderDefinitions[i];
+                ScalarSliderDefinition definition = _scalarSliderDefinitions[i];
                 UIHelper helper = GetColumnHelper(sliderIndex++, leftHelper, rightHelper);
 
                 AddBoundHueSlider(
@@ -440,7 +440,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static UITabContainer CreateUITabContainer(UIComponent parent, UITabstrip tabStrip)
         {
-            var tabContainer = parent.AddUIComponent<UITabContainer>();
+            UITabContainer tabContainer = parent.AddUIComponent<UITabContainer>();
             tabContainer.name = "NHO_TabContainer";
             tabContainer.relativePosition = new Vector3(0f, tabStrip.height + 5f);
             tabContainer.width  = parent.width;
@@ -450,7 +450,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static UITabstrip CreateUITabstrip(UIComponent parent)
         {
-            var tabStrip = parent.AddUIComponent<UITabstrip>();
+            UITabstrip tabStrip = parent.AddUIComponent<UITabstrip>();
             tabStrip.name = "NHO_TabStrip";
             tabStrip.width = parent.width;
             tabStrip.height = 30f;

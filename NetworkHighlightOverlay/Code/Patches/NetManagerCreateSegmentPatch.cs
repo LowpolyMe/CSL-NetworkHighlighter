@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Reflection;
 using System;
 using NetworkHighlightOverlay.Code.Core;
+// ReSharper disable UnusedMember.Local
 
 
 namespace NetworkHighlightOverlay.Code.Patches
@@ -13,7 +14,7 @@ namespace NetworkHighlightOverlay.Code.Patches
     {
         static MethodBase TargetMethod()
         {
-            var args = new[]
+            Type[] args = new[]
             {
                 typeof(ushort).MakeByRefType(), 
                 typeof(Randomizer).MakeByRefType(), 
@@ -30,8 +31,7 @@ namespace NetworkHighlightOverlay.Code.Patches
 
             return AccessTools.Method(typeof(NetManager), "CreateSegment", args);
         }
-
-      
+        
         static void Postfix(
             ref ushort segment,
             ref Randomizer randomizer,
@@ -49,7 +49,7 @@ namespace NetworkHighlightOverlay.Code.Patches
             if (!__result || info == null)
                 return;
 
-            var ai = info.m_netAI;
+            NetAI ai = info.m_netAI;
             if (ai != null)
             {
                 Manager.Instance?.OnSegmentCreated(segment);

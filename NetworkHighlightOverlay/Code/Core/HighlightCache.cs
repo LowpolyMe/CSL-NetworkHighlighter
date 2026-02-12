@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using ColossalFramework;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
@@ -44,7 +43,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 _highlightedSegments.Clear();
 
                 NetManager netManager = NetManager.instance;
-                var segments = netManager.m_segments;
+                Array16<NetSegment> segments = netManager.m_segments;
 
                 for (ushort i = 1; i < segments.m_size; i++)
                 {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using ColossalFramework.Plugins;
@@ -28,22 +29,22 @@ namespace NetworkHighlightOverlay.Code.Utility
         {
             try
             {
-                var pluginManager = PluginManager.instance;
-                var thisAssembly = typeof(ModResources).Assembly;
+                PluginManager pluginManager = PluginManager.instance;
+                Assembly thisAssembly = typeof(ModResources).Assembly;
 
                 if (pluginManager != null)
                 {
-                    foreach (var plugin in pluginManager.GetPluginsInfo())
+                    foreach (PluginManager.PluginInfo plugin in pluginManager.GetPluginsInfo())
                     {
                         if (plugin == null)
                             continue;
 
                         // ✔ THIS is the correct API:
-                        var assemblies = plugin.GetAssemblies();
+                        List<Assembly> assemblies = plugin.GetAssemblies();
                         if (assemblies == null)
                             continue;
 
-                        foreach (var asm in assemblies)
+                        foreach (Assembly asm in assemblies)
                         {
                             if (asm == thisAssembly)
                             {

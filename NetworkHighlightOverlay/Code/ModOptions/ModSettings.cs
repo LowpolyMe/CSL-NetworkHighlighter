@@ -9,6 +9,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
     public static class ModSettings
     {
         private static readonly Config _config;
+        
         private static readonly Observable<long> _changeVersion = new Observable<long>(0L);
 
         private static readonly Observable<float> _panelX;
@@ -17,11 +18,11 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static readonly Observable<float> _highlightStrength;
         private static readonly Observable<float> _highlightWidth;
 
-        private static readonly Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>> _categoryStates =
-            new Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>>();
-
         private static readonly Observable<bool> _highlightBridges;
         private static readonly Observable<bool> _highlightTunnels;
+        
+        private static readonly Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>> _categoryStates =
+            new Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>>();
 
         private static bool _suppressSaveAndRaise;
 

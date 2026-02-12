@@ -1,7 +1,5 @@
 using HarmonyLib;
-using ColossalFramework;
 using NetworkHighlightOverlay.Code.Core;
-using NetworkHighlightOverlay.Code;
 
 namespace NetworkHighlightOverlay.Code.Patches
 {

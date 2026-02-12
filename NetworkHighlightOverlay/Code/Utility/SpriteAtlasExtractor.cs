@@ -12,10 +12,10 @@ namespace NetworkHighlightOverlay.Code.Utility
         public static UITextureAtlas CreateAtlas(string atlasName, Texture2D texture, IDictionary<string, Rect> spritePixels)
         {
             if (string.IsNullOrEmpty(atlasName))
-                throw new ArgumentException("Atlas name is required.", "atlasName");
+                throw new ArgumentException("Atlas name is required.", nameof(atlasName));
 
             if (texture == null)
-                throw new ArgumentNullException("texture");
+                throw new ArgumentNullException(nameof(texture));
 
             UITextureAtlas atlas = ScriptableObject.CreateInstance<UITextureAtlas>();
             atlas.name = atlasName;
@@ -48,8 +48,10 @@ namespace NetworkHighlightOverlay.Code.Utility
             if (shader == null)
                 throw new InvalidOperationException("Cannot create atlas material. Shader not found: " + UiShaderName);
 
-            Material material = new Material(shader);
-            material.mainTexture = texture;
+            Material material = new Material(shader)
+            {
+                mainTexture = texture
+            };
             return material;
         }
 
@@ -59,11 +61,13 @@ namespace NetworkHighlightOverlay.Code.Utility
             Rect pixelRect = entry.Value;
             ValidateSpriteInput(texture, spriteName, pixelRect);
 
-            UITextureAtlas.SpriteInfo info = new UITextureAtlas.SpriteInfo();
-            info.name = spriteName;
-            info.texture = texture;
-            info.region = ToAtlasRegion(texture, pixelRect);
-
+            UITextureAtlas.SpriteInfo info = new UITextureAtlas.SpriteInfo
+            {
+                name = spriteName,
+                texture = texture,
+                region = ToAtlasRegion(texture, pixelRect)
+            };
+            
             atlas.AddSprite(info);
         }
 

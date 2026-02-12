@@ -20,7 +20,7 @@ namespace NetworkHighlightOverlay.Code.Patches
 
         static bool Prepare()
         {
-            var toolType = AccessTools.TypeByName("MoveIt.MoveItTool");
+            Type toolType = AccessTools.TypeByName("MoveIt.MoveItTool");
             if (toolType == null)
             {
                 Debug.Log(

@@ -8,7 +8,7 @@ namespace NetworkHighlightOverlay.Code.Core
     {
         public static bool TryGetHighlightColor(ref NetSegment segment, out Color color)
         {
-            var info = segment.Info;
+            NetInfo info = segment.Info;
             color = default;
 
             if (info == null)
@@ -16,7 +16,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 return false;
             }
 
-            var ai = info.m_netAI;
+            NetAI ai = info.m_netAI;
             if (ai == null)
             {
                 return false;
@@ -225,7 +225,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         private static bool IsHighway(NetInfo info)
         {
-            var ai = info == null ? null : info.m_netAI;
+            NetAI ai = info == null ? null : info.m_netAI;
             if (ai == null)
                 return false;
             return ai.IsHighway();
@@ -240,7 +240,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 VehicleInfo.VehicleType.Tram |
                 VehicleInfo.VehicleType.Trolleybus;
 
-            foreach (var lane in info.m_lanes)
+            foreach (NetInfo.Lane lane in info.m_lanes)
             {
                 if ((lane.m_vehicleType & tramLikeMask) != 0)
                     return true;
@@ -254,7 +254,7 @@ namespace NetworkHighlightOverlay.Code.Core
             if (info == null || info.m_lanes == null)
                 return false;
 
-            foreach (var lane in info.m_lanes)
+            foreach (NetInfo.Lane lane in info.m_lanes)
             {
                 if ((lane.m_vehicleType & VehicleInfo.VehicleType.Car) != 0)
                     return true;
@@ -279,8 +279,8 @@ namespace NetworkHighlightOverlay.Code.Core
 
         private static bool IsPedestrianStreet(NetInfo info)
         {
-            var itemClass = info == null ? null : info.m_class;
-            var name = itemClass == null ? null : itemClass.name;
+            ItemClass itemClass = info == null ? null : info.m_class;
+            string name = itemClass == null ? null : itemClass.name;
             if (string.IsNullOrEmpty(name))
                 return false;
 

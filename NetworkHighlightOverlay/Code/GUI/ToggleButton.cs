@@ -18,12 +18,12 @@ namespace NetworkHighlightOverlay.Code.GUI
         public void Initialize(
             string spriteName,
             ToggleBinding binding,
-            string tooltip,
+            string toggleTooltip,
             Action<ToggleButton, ToggleBinding> onHueEditRequested)
         {
-            name = "NHO_ToggleButton_" + tooltip.Replace(' ', '_');
+            name = "NHO_ToggleButton_" + toggleTooltip.Replace(' ', '_');
             text = string.Empty;
-            this.tooltip = tooltip;
+            this.tooltip = toggleTooltip;
             _binding = binding;
             _spriteName = spriteName;
             _onHueEditRequested = onHueEditRequested;
@@ -136,15 +136,9 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (_binding == null)
                 return false;
 
-            if (_onHueEditRequested != null)
-            {
-                _onHueEditRequested(this, _binding);
-            }
+            _onHueEditRequested?.Invoke(this, _binding);
 
-            if (p != null)
-            {
-                p.Use();
-            }
+            p?.Use();
 
             return true;
         }
@@ -207,11 +201,10 @@ namespace NetworkHighlightOverlay.Code.GUI
                 icon.atlas = iconAtlas;
                 icon.isInteractive = false;
 
-                if (!string.IsNullOrEmpty(spriteName))
-                {
-                    icon.spriteName = spriteName;
-                    UpdateIconLayout(button, icon);
-                }
+                if (string.IsNullOrEmpty(spriteName)) return icon;
+                
+                icon.spriteName = spriteName;
+                UpdateIconLayout(button, icon);
 
                 return icon;
             }

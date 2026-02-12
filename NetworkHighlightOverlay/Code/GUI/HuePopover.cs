@@ -59,12 +59,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             base.OnDestroy();
         }
 
-        public void Open(ToggleButton anchor, ToggleBinding binding)
+        public void Open(ToggleButton toggleButton, ToggleBinding binding)
         {
-            if (anchor == null || binding == null)
+            if (toggleButton == null || binding == null)
                 return;
 
-            _anchor = anchor;
+            _anchor = toggleButton;
             _binding = binding;
             _waitForMouseReleaseAfterOpen = IsAnyMouseButtonHeld();
             isVisible = true;

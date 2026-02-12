@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using ColossalFramework.UI;
 using ICities;
@@ -20,20 +21,20 @@ namespace NetworkHighlightOverlay.Code.Utility
             }
 
             // 2) Custom helpers (SkyveUIHelper etc.) via reflection
-            var helperType = helper.GetType();
+            Type helperType = helper.GetType();
             Debug.Log("[NetworkHighlightOverlay][Options] Trying to resolve root for custom helper type: " +
                       helperType.FullName);
 
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
             
-            foreach (var prop in helperType.GetProperties(flags))
+            foreach (PropertyInfo prop in helperType.GetProperties(flags))
             {
                 if (!typeof(UIComponent).IsAssignableFrom(prop.PropertyType))
                     continue;
 
                 try
                 {
-                    var value = prop.GetValue(helper, null) as UIComponent;
+                    UIComponent value = prop.GetValue(helper, null) as UIComponent;
                     if (value != null)
                     {
                         Debug.Log("[NetworkHighlightOverlay][Options] Root from property '" + prop.Name + "'");
@@ -44,14 +45,14 @@ namespace NetworkHighlightOverlay.Code.Utility
             }
 
             
-            foreach (var field in helperType.GetFields(flags))
+            foreach (FieldInfo field in helperType.GetFields(flags))
             {
                 if (!typeof(UIComponent).IsAssignableFrom(field.FieldType))
                     continue;
 
                 try
                 {
-                    var value = field.GetValue(helper) as UIComponent;
+                    UIComponent value = field.GetValue(helper) as UIComponent;
                     if (value != null)
                     {
                         Debug.Log("[NetworkHighlightOverlay][Options] Root from field '" + field.Name + "'");
@@ -97,7 +98,7 @@ namespace NetworkHighlightOverlay.Code.Utility
             {
                 slider.clipChildren = true;
 
-                var hueBar = slider.AddUIComponent<UITextureSprite>();
+                UITextureSprite hueBar = slider.AddUIComponent<UITextureSprite>();
                 hueBar.texture = backgroundTexture;
                 hueBar.size = slider.size;
                 hueBar.relativePosition = Vector3.zero;
@@ -114,7 +115,7 @@ namespace NetworkHighlightOverlay.Code.Utility
 
         private static UIButton CreateTabButton(UITabstrip tabStrip, string title, Color tintColor)
         {
-            var tabButton = tabStrip.AddUIComponent<UIButton>();
+            UIButton tabButton = tabStrip.AddUIComponent<UIButton>();
             tabButton.text = title;
             tabButton.textColor = tintColor;
             tabButton.autoSize = false;
@@ -130,7 +131,7 @@ namespace NetworkHighlightOverlay.Code.Utility
 
         private static UIPanel CreateTabPage(UITabContainer tabContainer, string title)
         {
-            var page = tabContainer.AddUIComponent<UIPanel>();
+            UIPanel page = tabContainer.AddUIComponent<UIPanel>();
             page.name = $"NHO_{title}_Page";
             page.autoLayout = true;
             page.autoLayoutDirection = LayoutDirection.Vertical;

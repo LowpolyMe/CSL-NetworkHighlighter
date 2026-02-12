@@ -6,13 +6,13 @@ namespace NetworkHighlightOverlay.Code.Utility
     {
         public static float ToHue(Color color)
         {
-            Color.RGBToHSV(color, out float h, out _, out _);
+            Color.RGBToHSV(color, out float h, out float _, out float _);
             return h;
         }
         
         public static Color FromHue(float hue, float strength)
         {
-            var color = Color.HSVToRGB(hue, 1f, 1f);
+            Color color = Color.HSVToRGB(hue, 1f, 1f);
             
             color.a = Mathf.Clamp01(strength);
 
