@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace NetworkHighlightOverlay.Code.Core
 {
     public sealed class Observable<T>
     {
+        private readonly object _sync = new object();
         private T _value;
-        private event Action<T, T> _valueChanged;
+        private Action<T, T> _valueChanged;
 
         public Observable(T initialValue)
         {
@@ -15,33 +17,83 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public event Action<T, T> ValueChanged
         {
-            add { _valueChanged += value; }
-            remove { _valueChanged -= value; }
+            add
+            {
+                lock (_sync)
+                {
+                    _valueChanged += value;
+                }
+            }
+            remove
+            {
+                lock (_sync)
+                {
+                    _valueChanged -= value;
+                }
+            }
         }
 
         public T Value
         {
-            get { return _value; }
-            set { SetValue(value); }
+            get
+            {
+                lock (_sync)
+                {
+                    return _value;
+                }
+            }
+            set => SetValue(value);
         }
 
         public bool SetValue(T value)
         {
-            if (EqualityComparer<T>.Default.Equals(_value, value))
-                return false;
+            T oldValue;
+            Action<T, T> callbacks;
+            lock (_sync)
+            {
+                if (EqualityComparer<T>.Default.Equals(_value, value))
+                    return false;
 
-            T oldValue = _value;
-            _value = value;
-            Notify(oldValue, _value);
+                oldValue = _value;
+                _value = value;
+                callbacks = _valueChanged;
+            }
+
+            InvokeCallbacks(callbacks, oldValue, value);
             return true;
         }
 
         public bool Update(Func<T, T> updater)
         {
             if (updater == null)
-                throw new ArgumentNullException("updater");
+                throw new ArgumentNullException(nameof(updater));
 
-            return SetValue(updater(_value));
+            // Keep updater execution outside the lock; contention can cause retries.
+            while (true)
+            {
+                T oldValue;
+                lock (_sync)
+                {
+                    oldValue = _value;
+                }
+
+                T newValue = updater(oldValue);
+                Action<T, T> callbacks;
+                lock (_sync)
+                {
+                    if (!EqualityComparer<T>.Default.Equals(_value, oldValue))
+                        continue;
+
+                    if (EqualityComparer<T>.Default.Equals(oldValue, newValue))
+                        return false;
+
+                    _value = newValue;
+                    callbacks = _valueChanged;
+                }
+
+                InvokeCallbacks(callbacks, oldValue, newValue);
+                return true;
+            }
         }
 
         public IDisposable Subscribe(Action<T, T> callback)
@@ -52,12 +104,23 @@ namespace NetworkHighlightOverlay.Code.Core
         public IDisposable Subscribe(Action<T, T> callback, bool notifyImmediately)
         {
             if (callback == null)
-                throw new ArgumentNullException("callback");
+                throw new ArgumentNullException(nameof(callback));
 
-            _valueChanged += callback;
-            if (notifyImmediately)
+            T currentValue = default(T);
+            bool shouldNotifyImmediately = false;
+            lock (_sync)
             {
-                callback(_value, _value);
+                _valueChanged += callback;
+                if (notifyImmediately)
+                {
+                    currentValue = _value;
+                    shouldNotifyImmediately = true;
+                }
+            }
+
+            if (shouldNotifyImmediately)
+            {
+                callback(currentValue, currentValue);
             }
 
             return new Subscription(this, callback);
@@ -65,15 +128,30 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public void ForceNotify()
         {
-            Notify(_value, _value);
+            T currentValue;
+            Action<T, T> callbacks;
+            lock (_sync)
+            {
+                currentValue = _value;
+                callbacks = _valueChanged;
+            }
+
+            InvokeCallbacks(callbacks, currentValue, currentValue);
         }
 
-        private void Notify(T oldValue, T newValue)
+        private static void InvokeCallbacks(Action<T, T> callbacks, T oldValue, T newValue)
         {
-            Action<T, T> callbacks = _valueChanged;
             if (callbacks != null)
             {
                 callbacks(oldValue, newValue);
+            }
+        }
+
+        private void Unsubscribe(Action<T, T> callback)
+        {
+            lock (_sync)
+            {
+                _valueChanged -= callback;
             }
         }
 
@@ -90,12 +168,12 @@ namespace NetworkHighlightOverlay.Code.Core
 
             public void Dispose()
             {
-                if (_owner == null || _callback == null)
+                Observable<T> owner = Interlocked.Exchange(ref _owner, null);
+                Action<T, T> callback = Interlocked.Exchange(ref _callback, null);
+                if (owner == null || callback == null)
                     return;
 
-                _owner._valueChanged -= _callback;
-                _owner = null;
-                _callback = null;
+                owner.Unsubscribe(callback);
             }
         }
     }
