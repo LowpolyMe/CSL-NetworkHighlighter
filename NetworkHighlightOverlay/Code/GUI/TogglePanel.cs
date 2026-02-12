@@ -15,70 +15,6 @@ namespace NetworkHighlightOverlay.Code.GUI
         private const float Padding = 2f;
         private const float DragHandleHeight = 18f;
         private const string HeaderText = "Network Highlighter";
-
-        private static readonly ToggleDefinition[] ToggleDefinitions = new[]
-        {
-            new ToggleDefinition(
-                "Pedestrian paths",
-                "SubBarBeautificationPedestrianZoneEssentials",
-                new ToggleBinding(
-                    ModSettings.PedestrianPathsState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Pink paths",
-                "SubBarRoadsMaintenance",
-                new ToggleBinding(
-                    ModSettings.PinkPathsState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Terraforming networks",
-                "ToolbarIconLandscaping",
-                new ToggleBinding(
-                    ModSettings.TerraformingNetworksState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Roads",
-                "SubBarRoadsSmall",
-                new ToggleBinding(
-                    ModSettings.RoadsState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Highways",
-                "SubBarRoadsHighway",
-                new ToggleBinding(
-                    ModSettings.HighwaysState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Train tracks",
-                "SubBarPublicTransportTrain",
-                new ToggleBinding(
-                    ModSettings.TrainTracksState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Metro tracks",
-                "SubBarPublicTransportMetro",
-                new ToggleBinding(
-                    ModSettings.MetroTracksState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Tram tracks",
-                "SubBarPublicTransportTram",
-                new ToggleBinding(
-                    ModSettings.TramTracksState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Monorail tracks",
-                "SubBarPublicTransportMonorail",
-                new ToggleBinding(
-                    ModSettings.MonorailTracksState,
-                    ModSettings.HighlightStrengthState)),
-            new ToggleDefinition(
-                "Cable cars",
-                "SubBarPublicTransportCableCar",
-                new ToggleBinding(
-                    ModSettings.CableCarsState,
-                    ModSettings.HighlightStrengthState))
-        };
         #endregion
 
         #region Fields
@@ -131,7 +67,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             clipChildren = true;
             isVisible = false;
 
-            int rowCount = GetRowCount(ToggleDefinitions.Length);
+            int rowCount = GetRowCount(HighlightCategoryCatalog.All.Length);
             Vector2 panelSize = new Vector2(
                 Padding * 2f + Columns * ButtonSize + (Columns - 1) * Spacing,
                 DragHandleHeight + Padding * 2f + rowCount * ButtonSize + Mathf.Max(0, rowCount - 1) * Spacing);
@@ -278,19 +214,29 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void CreateButtons()
         {
-            int toggleCount = ToggleDefinitions.Length;
-            for (int index = 0; index < toggleCount; index++)
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int index = 0; index < categoryCount; index++)
             {
                 int row = index / Columns;
                 int column = index % Columns;
-                ToggleDefinition definition = ToggleDefinitions[index];
+
+                HighlightCategoryDefinition categoryDefinition = categoryDefinitions[index];
+                ToggleBinding binding = new ToggleBinding(
+                    ModSettings.GetCategoryState(categoryDefinition.Id),
+                    ModSettings.HighlightStrengthState);
+
                 ToggleButton button = AddUIComponent<ToggleButton>();
                 button.width = ButtonSize;
                 button.height = ButtonSize;
                 button.relativePosition = new Vector3(
                     Padding + column * (ButtonSize + Spacing),
                     DragHandleHeight + Padding + row * (ButtonSize + Spacing));
-                button.Initialize(definition.SpriteName, definition.Binding, definition.Label, OnButtonHueEditRequested);
+                button.Initialize(
+                    categoryDefinition.SpriteName,
+                    binding,
+                    categoryDefinition.ToggleLabel,
+                    OnButtonHueEditRequested);
             }
         }
 
@@ -383,20 +329,6 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return 0;
 
             return (toggleCount + Columns - 1) / Columns;
-        }
-
-        private readonly struct ToggleDefinition
-        {
-            public readonly string Label;
-            public readonly string SpriteName;
-            public readonly ToggleBinding Binding;
-
-            public ToggleDefinition(string label, string spriteName, ToggleBinding binding)
-            {
-                Label = label;
-                SpriteName = spriteName;
-                Binding = binding;
-            }
         }
     }
 }

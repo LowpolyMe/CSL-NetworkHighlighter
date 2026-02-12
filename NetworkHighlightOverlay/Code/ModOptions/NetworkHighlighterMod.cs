@@ -1,6 +1,5 @@
 using ColossalFramework.UI;
 using ICities;
-using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.Utility;
 using System;
 using System.Collections.Generic;
@@ -22,6 +21,13 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private bool _isApplyingSettingsToUi;
         private IDisposable _settingsSubscription;
 
+        private enum SliderTextureKind
+        {
+            Hue,
+            Value,
+            Width
+        }
+
         private struct HueSliderBinding
         {
             public readonly UISlider Slider;
@@ -33,6 +39,40 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 GetValue = getValue;
             }
         }
+
+        private struct ScalarSliderDefinition
+        {
+            public readonly string Label;
+            public readonly Func<float> GetValue;
+            public readonly Action<float> SetValue;
+            public readonly SliderTextureKind TextureKind;
+
+            public ScalarSliderDefinition(
+                string label,
+                Func<float> getValue,
+                Action<float> setValue,
+                SliderTextureKind textureKind)
+            {
+                Label = label;
+                GetValue = getValue;
+                SetValue = setValue;
+                TextureKind = textureKind;
+            }
+        }
+
+        private static readonly ScalarSliderDefinition[] ScalarSliderDefinitions = new[]
+        {
+            new ScalarSliderDefinition(
+                "Highlight Strength",
+                GetHighlightStrength,
+                SetHighlightStrength,
+                SliderTextureKind.Value),
+            new ScalarSliderDefinition(
+                "Highlight Thickness",
+                GetHighlightWidth,
+                SetHighlightWidth,
+                SliderTextureKind.Width)
+        };
 
         private struct CheckboxBinding
         {
@@ -52,18 +92,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             EnsureSettingsSubscription();
             ClearUiBindings();
 
-            if (_hueTexture == null)
-            {
-                _hueTexture = ModResources.LoadTexture("HueGradient.png");
-            }
-            if (_valueTexture == null)
-            {
-                _valueTexture = ModResources.LoadTexture("ValueGradient.png");
-            }
-            if (_widthTexture == null)
-            {
-                _widthTexture = ModResources.LoadTexture("HighlightWidth.png");
-            }
+            EnsureTexturesLoaded();
             
             // Some mods (e.g. Skyve) seem to replace the vanilla UIHelper with their own UIHelperBase implementation,
             // so we cannot rely on UIHelper.self always being available. I solved this by resolving the underlying UIComponent first
@@ -87,6 +116,24 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 ", size=" + rootComponent.size);
 
             BuildTabbedSettingsUI(rootComponent);
+        }
+
+        private void EnsureTexturesLoaded()
+        {
+            if (_hueTexture == null)
+            {
+                _hueTexture = ModResources.LoadTexture("HueGradient.png");
+            }
+
+            if (_valueTexture == null)
+            {
+                _valueTexture = ModResources.LoadTexture("ValueGradient.png");
+            }
+
+            if (_widthTexture == null)
+            {
+                _widthTexture = ModResources.LoadTexture("HighlightWidth.png");
+            }
         }
 
 
@@ -121,78 +168,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 UIHelper rightHelper = new UIHelper(rightColumn);
                 int sliderIndex = 0;
 
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Highlight Strength",
-                    () => ModSettings.HighlightStrength,
-                    value => ModSettings.HighlightStrength = value,
-                    _valueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Highlight Thickness",
-                    () => ModSettings.HighlightWidth,
-                    value => ModSettings.HighlightWidth = value,
-                    _widthTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Pedestrian paths",
-                    () => ModSettings.PedestrianPathsHue,
-                    value => ModSettings.PedestrianPathsHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Pink paths",
-                    () => ModSettings.PinkPathsHue,
-                    value => ModSettings.PinkPathsHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Terraforming networks",
-                    () => ModSettings.TerraformingNetworksHue,
-                    value => ModSettings.TerraformingNetworksHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Roads",
-                    () => ModSettings.RoadsHue,
-                    value => ModSettings.RoadsHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Highways",
-                    () => ModSettings.HighwaysHue,
-                    value => ModSettings.HighwaysHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Train tracks",
-                    () => ModSettings.TrainTracksHue,
-                    value => ModSettings.TrainTracksHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Metro tracks",
-                    () => ModSettings.MetroTracksHue,
-                    value => ModSettings.MetroTracksHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Tram and Trolley tracks",
-                    () => ModSettings.TramTracksHue,
-                    value => ModSettings.TramTracksHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Monorail tracks",
-                    () => ModSettings.MonorailTracksHue,
-                    value => ModSettings.MonorailTracksHue = value,
-                    _hueTexture);
-                AddBoundHueSlider(
-                    GetColumnHelper(sliderIndex++, leftHelper, rightHelper),
-                    "Cable car paths",
-                    () => ModSettings.CableCarsHue,
-                    value => ModSettings.CableCarsHue = value,
-                    _hueTexture);
+                AddScalarColorSliders(leftHelper, rightHelper, ref sliderIndex);
+                AddCategoryColorSliders(leftHelper, rightHelper, ref sliderIndex);
 
                 UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
                 colorsPanel.eventSizeChanged += (component, size) =>
@@ -205,65 +182,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             UIHelper filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white, out filtersPanel);
             if (filtersHelper != null)
             {
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight pedestrian paths",
-                    () => ModSettings.HighlightPedestrianPaths,
-                    value => ModSettings.HighlightPedestrianPaths = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight pink paths",
-                    () => ModSettings.HighlightPinkPaths,
-                    value => ModSettings.HighlightPinkPaths = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight terraforming networks",
-                    () => ModSettings.HighlightTerraformingNetworks,
-                    value => ModSettings.HighlightTerraformingNetworks = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight roads",
-                    () => ModSettings.HighlightRoads,
-                    value => ModSettings.HighlightRoads = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight highways",
-                    () => ModSettings.HighlightHighways,
-                    value => ModSettings.HighlightHighways = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight train tracks",
-                    () => ModSettings.HighlightTrainTracks,
-                    value => ModSettings.HighlightTrainTracks = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight metro tracks",
-                    () => ModSettings.HighlightMetroTracks,
-                    value => ModSettings.HighlightMetroTracks = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight tram tracks",
-                    () => ModSettings.HighlightTramTracks,
-                    value => ModSettings.HighlightTramTracks = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight monorail tracks",
-                    () => ModSettings.HighlightMonorailTracks,
-                    value => ModSettings.HighlightMonorailTracks = value);
-
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight cable car paths",
-                    () => ModSettings.HighlightCableCars,
-                    value => ModSettings.HighlightCableCars = value);
+                AddCategoryFilterCheckboxes(filtersHelper);
 
                 AddBoundCheckbox(
                     filtersHelper,
@@ -363,6 +282,74 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
+        private void AddScalarColorSliders(UIHelper leftHelper, UIHelper rightHelper, ref int sliderIndex)
+        {
+            int definitionCount = ScalarSliderDefinitions.Length;
+            for (int i = 0; i < definitionCount; i++)
+            {
+                ScalarSliderDefinition definition = ScalarSliderDefinitions[i];
+                UIHelper helper = GetColumnHelper(sliderIndex++, leftHelper, rightHelper);
+
+                AddBoundHueSlider(
+                    helper,
+                    definition.Label,
+                    definition.GetValue,
+                    definition.SetValue,
+                    GetTextureForSlider(definition.TextureKind));
+            }
+        }
+
+        private void AddCategoryColorSliders(UIHelper leftHelper, UIHelper rightHelper, ref int sliderIndex)
+        {
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int i = 0; i < categoryCount; i++)
+            {
+                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                HighlightCategoryId categoryId = definition.Id;
+                UIHelper helper = GetColumnHelper(sliderIndex++, leftHelper, rightHelper);
+
+                AddBoundHueSlider(
+                    helper,
+                    definition.ColorSliderLabel,
+                    () => ModSettings.GetCategoryHue(categoryId),
+                    value => ModSettings.SetCategoryHue(categoryId, value),
+                    _hueTexture);
+            }
+        }
+
+        private void AddCategoryFilterCheckboxes(UIHelper filtersHelper)
+        {
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int i = 0; i < categoryCount; i++)
+            {
+                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                HighlightCategoryId categoryId = definition.Id;
+
+                AddBoundCheckbox(
+                    filtersHelper,
+                    definition.FilterLabel,
+                    () => ModSettings.GetCategoryEnabled(categoryId),
+                    value => ModSettings.SetCategoryEnabled(categoryId, value));
+            }
+        }
+
+        private Texture2D GetTextureForSlider(SliderTextureKind textureKind)
+        {
+            if (textureKind == SliderTextureKind.Value)
+            {
+                return _valueTexture;
+            }
+
+            if (textureKind == SliderTextureKind.Width)
+            {
+                return _widthTexture;
+            }
+
+            return _hueTexture;
+        }
+
         private void AddBoundHueSlider(
             UIHelper helper,
             string label,
@@ -411,6 +398,26 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 return;
 
             _checkboxBindings.Add(new CheckboxBinding(checkbox, getValue));
+        }
+
+        private static float GetHighlightStrength()
+        {
+            return ModSettings.HighlightStrength;
+        }
+
+        private static void SetHighlightStrength(float value)
+        {
+            ModSettings.HighlightStrength = value;
+        }
+
+        private static float GetHighlightWidth()
+        {
+            return ModSettings.HighlightWidth;
+        }
+
+        private static void SetHighlightWidth(float value)
+        {
+            ModSettings.HighlightWidth = value;
         }
 
         private static UIHelper GetColumnHelper(int index, UIHelper leftHelper, UIHelper rightHelper)

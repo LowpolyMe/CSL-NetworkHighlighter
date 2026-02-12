@@ -67,6 +67,8 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
                 _harmony.UnpatchAll(HarmonyId);
                 _harmony = null;
             }
+
+            _patched = false;
         }
 
         private void CreateRendererObject()

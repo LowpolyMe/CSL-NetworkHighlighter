@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.Utility;
 using UnityEngine;
@@ -16,16 +17,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static readonly Observable<float> _highlightStrength;
         private static readonly Observable<float> _highlightWidth;
 
-        private static readonly Observable<HighlightCategorySetting> _pedestrianPaths;
-        private static readonly Observable<HighlightCategorySetting> _pinkPaths;
-        private static readonly Observable<HighlightCategorySetting> _terraformingNetworks;
-        private static readonly Observable<HighlightCategorySetting> _roads;
-        private static readonly Observable<HighlightCategorySetting> _highways;
-        private static readonly Observable<HighlightCategorySetting> _trainTracks;
-        private static readonly Observable<HighlightCategorySetting> _metroTracks;
-        private static readonly Observable<HighlightCategorySetting> _tramTracks;
-        private static readonly Observable<HighlightCategorySetting> _monorailTracks;
-        private static readonly Observable<HighlightCategorySetting> _cableCars;
+        private static readonly Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>> _categoryStates =
+            new Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>>();
 
         private static readonly Observable<bool> _highlightBridges;
         private static readonly Observable<bool> _highlightTunnels;
@@ -34,37 +27,12 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         public static Observable<long> ChangeVersion => _changeVersion;
 
-        public static Observable<float> PanelXState => _panelX;
-
-        public static Observable<float> PanelYState => _panelY;
-
         public static Observable<float> HighlightStrengthState => _highlightStrength;
 
-        public static Observable<float> HighlightWidthState => _highlightWidth;
-
-        public static Observable<HighlightCategorySetting> PedestrianPathsState => _pedestrianPaths;
-
-        public static Observable<HighlightCategorySetting> PinkPathsState => _pinkPaths;
-
-        public static Observable<HighlightCategorySetting> TerraformingNetworksState => _terraformingNetworks;
-
-        public static Observable<HighlightCategorySetting> RoadsState => _roads;
-
-        public static Observable<HighlightCategorySetting> HighwaysState => _highways;
-
-        public static Observable<HighlightCategorySetting> TrainTracksState => _trainTracks;
-
-        public static Observable<HighlightCategorySetting> MetroTracksState => _metroTracks;
-
-        public static Observable<HighlightCategorySetting> TramTracksState => _tramTracks;
-
-        public static Observable<HighlightCategorySetting> MonorailTracksState => _monorailTracks;
-
-        public static Observable<HighlightCategorySetting> CableCarsState => _cableCars;
-
-        public static Observable<bool> HighlightBridgesState => _highlightBridges;
-
-        public static Observable<bool> HighlightTunnelsState => _highlightTunnels;
+        public static Observable<HighlightCategorySetting> GetCategoryState(HighlightCategoryId categoryId)
+        {
+            return _categoryStates[categoryId];
+        }
 
         static ModSettings()
         {
@@ -76,30 +44,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             _highlightStrength = new Observable<float>(_config.HighlightStrength);
             _highlightWidth = new Observable<float>(_config.HighlightWidth);
 
-            _pedestrianPaths = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightPedestrianPaths, _config.PedestrianPathsHue));
-            _pinkPaths = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightPinkPaths, _config.PinkPathsHue));
-            _terraformingNetworks = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightTerraformingNetworks, _config.TerraformingNetworksHue));
-            _roads = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightRoads, _config.RoadsHue));
-            _highways = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightHighways, _config.HighwaysHue));
-            _trainTracks = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightTrainTracks, _config.TrainTracksHue));
-            _metroTracks = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightMetroTracks, _config.MetroTracksHue));
-            _tramTracks = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightTramTracks, _config.TramTracksHue));
-            _monorailTracks = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightMonorailTracks, _config.MonorailHue));
-            _cableCars = new Observable<HighlightCategorySetting>(
-                new HighlightCategorySetting(_config.HighlightCableCars, _config.CableCarsHue));
-
             _highlightBridges = new Observable<bool>(_config.HighlightBridges);
             _highlightTunnels = new Observable<bool>(_config.HighlightTunnels);
 
+            InitializeCategoryStates();
             SubscribeToStateChanges();
         }
 
@@ -111,68 +59,34 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             BindFloat(_highlightStrength, (config, value) => config.HighlightStrength = value);
             BindFloat(_highlightWidth, (config, value) => config.HighlightWidth = value);
 
-            BindCategory(_pedestrianPaths, (config, value) =>
-            {
-                config.HighlightPedestrianPaths = value.IsEnabled;
-                config.PedestrianPathsHue = value.Hue;
-            });
-
-            BindCategory(_pinkPaths, (config, value) =>
-            {
-                config.HighlightPinkPaths = value.IsEnabled;
-                config.PinkPathsHue = value.Hue;
-            });
-
-            BindCategory(_terraformingNetworks, (config, value) =>
-            {
-                config.HighlightTerraformingNetworks = value.IsEnabled;
-                config.TerraformingNetworksHue = value.Hue;
-            });
-
-            BindCategory(_roads, (config, value) =>
-            {
-                config.HighlightRoads = value.IsEnabled;
-                config.RoadsHue = value.Hue;
-            });
-
-            BindCategory(_highways, (config, value) =>
-            {
-                config.HighlightHighways = value.IsEnabled;
-                config.HighwaysHue = value.Hue;
-            });
-
-            BindCategory(_trainTracks, (config, value) =>
-            {
-                config.HighlightTrainTracks = value.IsEnabled;
-                config.TrainTracksHue = value.Hue;
-            });
-
-            BindCategory(_metroTracks, (config, value) =>
-            {
-                config.HighlightMetroTracks = value.IsEnabled;
-                config.MetroTracksHue = value.Hue;
-            });
-
-            BindCategory(_tramTracks, (config, value) =>
-            {
-                config.HighlightTramTracks = value.IsEnabled;
-                config.TramTracksHue = value.Hue;
-            });
-
-            BindCategory(_monorailTracks, (config, value) =>
-            {
-                config.HighlightMonorailTracks = value.IsEnabled;
-                config.MonorailHue = value.Hue;
-            });
-
-            BindCategory(_cableCars, (config, value) =>
-            {
-                config.HighlightCableCars = value.IsEnabled;
-                config.CableCarsHue = value.Hue;
-            });
+            BindAllCategoryStates();
 
             BindBool(_highlightBridges, (config, value) => config.HighlightBridges = value);
             BindBool(_highlightTunnels, (config, value) => config.HighlightTunnels = value);
+        }
+
+        private static void InitializeCategoryStates()
+        {
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int i = 0; i < categoryCount; i++)
+            {
+                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                HighlightCategorySetting initialState = definition.ReadState(_config);
+                _categoryStates[definition.Id] = new Observable<HighlightCategorySetting>(initialState);
+            }
+        }
+
+        private static void BindAllCategoryStates()
+        {
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int i = 0; i < categoryCount; i++)
+            {
+                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                Observable<HighlightCategorySetting> state = _categoryStates[definition.Id];
+                BindCategory(state, (config, value) => definition.WriteState(config, value));
+            }
         }
 
         private static void BindFloat(Observable<float> state, Action<Config, float> apply)
@@ -241,7 +155,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             state.Value = value;
         }
 
-        private static void SetCategoryEnabled(Observable<HighlightCategorySetting> state, bool isEnabled)
+        private static void SetCategoryEnabledState(Observable<HighlightCategorySetting> state, bool isEnabled)
         {
             HighlightCategorySetting currentValue = state.Value;
             if (currentValue.IsEnabled == isEnabled) return;
@@ -249,12 +163,44 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             state.Value = currentValue.WithEnabled(isEnabled);
         }
 
-        private static void SetCategoryHue(Observable<HighlightCategorySetting> state, float hue)
+        private static void SetCategoryHueState(Observable<HighlightCategorySetting> state, float hue)
         {
             HighlightCategorySetting currentValue = state.Value;
             if (Mathf.Approximately(currentValue.Hue, hue)) return;
 
             state.Value = currentValue.WithHue(hue);
+        }
+
+        public static bool GetCategoryEnabled(HighlightCategoryId categoryId)
+        {
+            return _categoryStates[categoryId].Value.IsEnabled;
+        }
+
+        public static void SetCategoryEnabled(HighlightCategoryId categoryId, bool value)
+        {
+            Observable<HighlightCategorySetting> state = _categoryStates[categoryId];
+            SetCategoryEnabledState(state, value);
+        }
+
+        public static float GetCategoryHue(HighlightCategoryId categoryId)
+        {
+            return _categoryStates[categoryId].Value.Hue;
+        }
+
+        public static void SetCategoryHue(HighlightCategoryId categoryId, float value)
+        {
+            Observable<HighlightCategorySetting> state = _categoryStates[categoryId];
+            SetCategoryHueState(state, value);
+        }
+
+        private static Color GetCategoryColor(HighlightCategoryId categoryId)
+        {
+            return ColorConversion.FromHue(GetCategoryHue(categoryId), HighlightStrength);
+        }
+
+        private static void SetCategoryColor(HighlightCategoryId categoryId, Color color)
+        {
+            SetCategoryHue(categoryId, ColorConversion.ToHue(color));
         }
 
         public static float PanelX
@@ -283,182 +229,182 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         public static float PedestrianPathsHue
         {
-            get => _pedestrianPaths.Value.Hue;
-            set => SetCategoryHue(_pedestrianPaths, value);
+            get => GetCategoryHue(HighlightCategoryId.PedestrianPaths);
+            set => SetCategoryHue(HighlightCategoryId.PedestrianPaths, value);
         }
 
         public static Color PedestrianPathColor
         {
-            get => ColorConversion.FromHue(PedestrianPathsHue, HighlightStrength);
-            set => PedestrianPathsHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.PedestrianPaths);
+            set => SetCategoryColor(HighlightCategoryId.PedestrianPaths, value);
         }
 
         public static float PinkPathsHue
         {
-            get => _pinkPaths.Value.Hue;
-            set => SetCategoryHue(_pinkPaths, value);
+            get => GetCategoryHue(HighlightCategoryId.PinkPaths);
+            set => SetCategoryHue(HighlightCategoryId.PinkPaths, value);
         }
 
         public static Color PinkPathColor
         {
-            get => ColorConversion.FromHue(PinkPathsHue, HighlightStrength);
-            set => PinkPathsHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.PinkPaths);
+            set => SetCategoryColor(HighlightCategoryId.PinkPaths, value);
         }
 
         public static float TerraformingNetworksHue
         {
-            get => _terraformingNetworks.Value.Hue;
-            set => SetCategoryHue(_terraformingNetworks, value);
+            get => GetCategoryHue(HighlightCategoryId.TerraformingNetworks);
+            set => SetCategoryHue(HighlightCategoryId.TerraformingNetworks, value);
         }
 
         public static Color TerraformingNetworksColor
         {
-            get => ColorConversion.FromHue(TerraformingNetworksHue, HighlightStrength);
-            set => TerraformingNetworksHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.TerraformingNetworks);
+            set => SetCategoryColor(HighlightCategoryId.TerraformingNetworks, value);
         }
 
         public static float RoadsHue
         {
-            get => _roads.Value.Hue;
-            set => SetCategoryHue(_roads, value);
+            get => GetCategoryHue(HighlightCategoryId.Roads);
+            set => SetCategoryHue(HighlightCategoryId.Roads, value);
         }
 
         public static Color RoadsColor
         {
-            get => ColorConversion.FromHue(RoadsHue, HighlightStrength);
-            set => RoadsHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.Roads);
+            set => SetCategoryColor(HighlightCategoryId.Roads, value);
         }
 
         public static float HighwaysHue
         {
-            get => _highways.Value.Hue;
-            set => SetCategoryHue(_highways, value);
+            get => GetCategoryHue(HighlightCategoryId.Highways);
+            set => SetCategoryHue(HighlightCategoryId.Highways, value);
         }
 
         public static Color HighwaysColor
         {
-            get => ColorConversion.FromHue(HighwaysHue, HighlightStrength);
-            set => HighwaysHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.Highways);
+            set => SetCategoryColor(HighlightCategoryId.Highways, value);
         }
 
         public static float TrainTracksHue
         {
-            get => _trainTracks.Value.Hue;
-            set => SetCategoryHue(_trainTracks, value);
+            get => GetCategoryHue(HighlightCategoryId.TrainTracks);
+            set => SetCategoryHue(HighlightCategoryId.TrainTracks, value);
         }
 
         public static Color TrainTracksColor
         {
-            get => ColorConversion.FromHue(TrainTracksHue, HighlightStrength);
-            set => TrainTracksHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.TrainTracks);
+            set => SetCategoryColor(HighlightCategoryId.TrainTracks, value);
         }
 
         public static float MetroTracksHue
         {
-            get => _metroTracks.Value.Hue;
-            set => SetCategoryHue(_metroTracks, value);
+            get => GetCategoryHue(HighlightCategoryId.MetroTracks);
+            set => SetCategoryHue(HighlightCategoryId.MetroTracks, value);
         }
 
         public static Color MetroTracksColor
         {
-            get => ColorConversion.FromHue(MetroTracksHue, HighlightStrength);
-            set => MetroTracksHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.MetroTracks);
+            set => SetCategoryColor(HighlightCategoryId.MetroTracks, value);
         }
 
         public static float TramTracksHue
         {
-            get => _tramTracks.Value.Hue;
-            set => SetCategoryHue(_tramTracks, value);
+            get => GetCategoryHue(HighlightCategoryId.TramTracks);
+            set => SetCategoryHue(HighlightCategoryId.TramTracks, value);
         }
 
         public static Color TramTracksColor
         {
-            get => ColorConversion.FromHue(TramTracksHue, HighlightStrength);
-            set => TramTracksHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.TramTracks);
+            set => SetCategoryColor(HighlightCategoryId.TramTracks, value);
         }
 
         public static float MonorailTracksHue
         {
-            get => _monorailTracks.Value.Hue;
-            set => SetCategoryHue(_monorailTracks, value);
+            get => GetCategoryHue(HighlightCategoryId.MonorailTracks);
+            set => SetCategoryHue(HighlightCategoryId.MonorailTracks, value);
         }
 
         public static Color MonorailTracksColor
         {
-            get => ColorConversion.FromHue(MonorailTracksHue, HighlightStrength);
-            set => MonorailTracksHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.MonorailTracks);
+            set => SetCategoryColor(HighlightCategoryId.MonorailTracks, value);
         }
 
         public static float CableCarsHue
         {
-            get => _cableCars.Value.Hue;
-            set => SetCategoryHue(_cableCars, value);
+            get => GetCategoryHue(HighlightCategoryId.CableCars);
+            set => SetCategoryHue(HighlightCategoryId.CableCars, value);
         }
 
         public static Color CableCarColor
         {
-            get => ColorConversion.FromHue(CableCarsHue, HighlightStrength);
-            set => CableCarsHue = ColorConversion.ToHue(value);
+            get => GetCategoryColor(HighlightCategoryId.CableCars);
+            set => SetCategoryColor(HighlightCategoryId.CableCars, value);
         }
 
         public static bool HighlightPedestrianPaths
         {
-            get => _pedestrianPaths.Value.IsEnabled;
-            set => SetCategoryEnabled(_pedestrianPaths, value);
+            get => GetCategoryEnabled(HighlightCategoryId.PedestrianPaths);
+            set => SetCategoryEnabled(HighlightCategoryId.PedestrianPaths, value);
         }
 
         public static bool HighlightPinkPaths
         {
-            get => _pinkPaths.Value.IsEnabled;
-            set => SetCategoryEnabled(_pinkPaths, value);
+            get => GetCategoryEnabled(HighlightCategoryId.PinkPaths);
+            set => SetCategoryEnabled(HighlightCategoryId.PinkPaths, value);
         }
 
         public static bool HighlightTerraformingNetworks
         {
-            get => _terraformingNetworks.Value.IsEnabled;
-            set => SetCategoryEnabled(_terraformingNetworks, value);
+            get => GetCategoryEnabled(HighlightCategoryId.TerraformingNetworks);
+            set => SetCategoryEnabled(HighlightCategoryId.TerraformingNetworks, value);
         }
 
         public static bool HighlightRoads
         {
-            get => _roads.Value.IsEnabled;
-            set => SetCategoryEnabled(_roads, value);
+            get => GetCategoryEnabled(HighlightCategoryId.Roads);
+            set => SetCategoryEnabled(HighlightCategoryId.Roads, value);
         }
 
         public static bool HighlightHighways
         {
-            get => _highways.Value.IsEnabled;
-            set => SetCategoryEnabled(_highways, value);
+            get => GetCategoryEnabled(HighlightCategoryId.Highways);
+            set => SetCategoryEnabled(HighlightCategoryId.Highways, value);
         }
 
         public static bool HighlightTrainTracks
         {
-            get => _trainTracks.Value.IsEnabled;
-            set => SetCategoryEnabled(_trainTracks, value);
+            get => GetCategoryEnabled(HighlightCategoryId.TrainTracks);
+            set => SetCategoryEnabled(HighlightCategoryId.TrainTracks, value);
         }
 
         public static bool HighlightMetroTracks
         {
-            get => _metroTracks.Value.IsEnabled;
-            set => SetCategoryEnabled(_metroTracks, value);
+            get => GetCategoryEnabled(HighlightCategoryId.MetroTracks);
+            set => SetCategoryEnabled(HighlightCategoryId.MetroTracks, value);
         }
 
         public static bool HighlightTramTracks
         {
-            get => _tramTracks.Value.IsEnabled;
-            set => SetCategoryEnabled(_tramTracks, value);
+            get => GetCategoryEnabled(HighlightCategoryId.TramTracks);
+            set => SetCategoryEnabled(HighlightCategoryId.TramTracks, value);
         }
 
         public static bool HighlightMonorailTracks
         {
-            get => _monorailTracks.Value.IsEnabled;
-            set => SetCategoryEnabled(_monorailTracks, value);
+            get => GetCategoryEnabled(HighlightCategoryId.MonorailTracks);
+            set => SetCategoryEnabled(HighlightCategoryId.MonorailTracks, value);
         }
 
         public static bool HighlightCableCars
         {
-            get => _cableCars.Value.IsEnabled;
-            set => SetCategoryEnabled(_cableCars, value);
+            get => GetCategoryEnabled(HighlightCategoryId.CableCars);
+            set => SetCategoryEnabled(HighlightCategoryId.CableCars, value);
         }
 
         public static bool HighlightBridges
@@ -486,26 +432,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 SetFloat(_highlightStrength, source.HighlightStrength);
                 SetFloat(_highlightWidth, source.HighlightWidth);
 
-                SetCategory(_pedestrianPaths,
-                    new HighlightCategorySetting(source.HighlightPedestrianPaths, source.PedestrianPathsHue));
-                SetCategory(_pinkPaths,
-                    new HighlightCategorySetting(source.HighlightPinkPaths, source.PinkPathsHue));
-                SetCategory(_terraformingNetworks,
-                    new HighlightCategorySetting(source.HighlightTerraformingNetworks, source.TerraformingNetworksHue));
-                SetCategory(_roads,
-                    new HighlightCategorySetting(source.HighlightRoads, source.RoadsHue));
-                SetCategory(_highways,
-                    new HighlightCategorySetting(source.HighlightHighways, source.HighwaysHue));
-                SetCategory(_trainTracks,
-                    new HighlightCategorySetting(source.HighlightTrainTracks, source.TrainTracksHue));
-                SetCategory(_metroTracks,
-                    new HighlightCategorySetting(source.HighlightMetroTracks, source.MetroTracksHue));
-                SetCategory(_tramTracks,
-                    new HighlightCategorySetting(source.HighlightTramTracks, source.TramTracksHue));
-                SetCategory(_monorailTracks,
-                    new HighlightCategorySetting(source.HighlightMonorailTracks, source.MonorailHue));
-                SetCategory(_cableCars,
-                    new HighlightCategorySetting(source.HighlightCableCars, source.CableCarsHue));
+                ApplyAllCategoryStates(source);
 
                 SetBool(_highlightBridges, source.HighlightBridges);
                 SetBool(_highlightTunnels, source.HighlightTunnels);
@@ -519,6 +446,18 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
 
             SaveAndRaise();
+        }
+
+        private static void ApplyAllCategoryStates(Config source)
+        {
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int i = 0; i < categoryCount; i++)
+            {
+                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                Observable<HighlightCategorySetting> state = _categoryStates[definition.Id];
+                SetCategory(state, definition.ReadState(source));
+            }
         }
     }
 }

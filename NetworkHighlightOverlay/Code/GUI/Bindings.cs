@@ -19,9 +19,6 @@ namespace NetworkHighlightOverlay.Code.GUI
             _strengthState = strengthState ?? throw new ArgumentNullException(nameof(strengthState));
         }
 
-        public Observable<HighlightCategorySetting> CategoryState => _categoryState;
-        public Observable<float> StrengthState => _strengthState;
-
         public bool Value
         {
             get => _categoryState.Value.IsEnabled;

@@ -36,7 +36,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             SubscribeToBindingChanges();
             SetupVisuals();
-            UpdateVisual();
+            ApplyVisualState();
         }
 
         protected override void OnClick(UIMouseEventParameter p)
@@ -77,7 +77,6 @@ namespace NetworkHighlightOverlay.Code.GUI
             atlas = ToggleButtonAtlas.GetOrCreate();
             ToggleButtonVisual.ApplyBackgroundSprites(this);
             _icon = ToggleButtonVisual.EnsureIcon(this, _icon, _view.defaultAtlas, _spriteName);
-            UpdateToggleState(_binding != null && _binding.Value);
         }
 
         private void OnButtonSizeChanged(UIComponent component, Vector2 value)
@@ -85,26 +84,18 @@ namespace NetworkHighlightOverlay.Code.GUI
             ToggleButtonVisual.UpdateIconLayout(this, _icon);
         }
 
-        private void UpdateVisual()
+        private void ApplyVisualState()
         {
             if (_binding == null)
                 return;
 
-            bool isOn = _binding.Value;
-
             opacity = 1f;
             isInteractive = true;
-
-            UpdateToggleState(isOn);
-            ToggleButtonVisual.ApplyBackgroundColors(this, GetColorFromConfig());
-        }
-
-        private void UpdateToggleState(bool isOn)
-        {
-            normalBgSprite = isOn
+            normalBgSprite = _binding.Value
                 ? ToggleButtonAtlas.ActiveSpriteName
                 : ToggleButtonAtlas.InactiveSpriteName;
             focusedBgSprite = normalBgSprite;
+            ToggleButtonVisual.ApplyBackgroundColors(this, GetConfiguredColor());
         }
 
         private void SubscribeToBindingChanges()
@@ -126,7 +117,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void OnBindingChanged()
         {
-            UpdateVisual();
+            ApplyVisualState();
         }
 
         private static bool IsRightMouseClick(UIMouseEventParameter p)
@@ -158,7 +149,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             return true;
         }
 
-        private Color GetColorFromConfig()
+        private Color GetConfiguredColor()
         {
             if (_binding == null)
                 return Color.white;

@@ -57,7 +57,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 }
                 
             }
-            catch (IOException ex)
+            catch (System.Exception ex)
             {
                 Debug.LogError($"[NetworkHighlightOverlay] Failed to save config: {ex}");
             }

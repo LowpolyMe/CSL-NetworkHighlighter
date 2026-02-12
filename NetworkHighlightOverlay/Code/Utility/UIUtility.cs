@@ -70,8 +70,8 @@ namespace NetworkHighlightOverlay.Code.Utility
             out UIPanel page)
         {
             
-            page = Page(tabContainer, title);
-            UIButton tabButton = UIButton(tabStrip, title, tintColor);
+            page = CreateTabPage(tabContainer, title);
+            UIButton tabButton = CreateTabButton(tabStrip, title, tintColor);
 
             tabStrip.AddTab(title, tabButton.gameObject, page.gameObject);
             
@@ -112,7 +112,7 @@ namespace NetworkHighlightOverlay.Code.Utility
             return slider;
         }
 
-        private static UIButton UIButton(UITabstrip tabStrip, string title, Color tintColor)
+        private static UIButton CreateTabButton(UITabstrip tabStrip, string title, Color tintColor)
         {
             var tabButton = tabStrip.AddUIComponent<UIButton>();
             tabButton.text = title;
@@ -128,7 +128,7 @@ namespace NetworkHighlightOverlay.Code.Utility
             return tabButton;
         }
 
-        private static UIPanel Page(UITabContainer tabContainer, string title)
+        private static UIPanel CreateTabPage(UITabContainer tabContainer, string title)
         {
             var page = tabContainer.AddUIComponent<UIPanel>();
             page.name = $"NHO_{title}_Page";

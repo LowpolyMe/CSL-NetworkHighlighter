@@ -22,7 +22,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         private UIView _view;
         private UISlider _hueSlider;
         private bool _isApplyingHueValue;
-        private bool _ignoreCloseUntilMouseButtonsReleased;
+        private bool _waitForMouseReleaseAfterOpen;
         #endregion
 
         public bool IsOpen => isVisible && _anchor != null && _binding != null;
@@ -66,7 +66,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             _anchor = anchor;
             _binding = binding;
-            _ignoreCloseUntilMouseButtonsReleased = IsAnyMouseButtonHeld();
+            _waitForMouseReleaseAfterOpen = IsAnyMouseButtonHeld();
             isVisible = true;
             BringToFront();
             UpdatePosition();
@@ -78,7 +78,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             _anchor = null;
             _binding = null;
             _isApplyingHueValue = false;
-            _ignoreCloseUntilMouseButtonsReleased = false;
+            _waitForMouseReleaseAfterOpen = false;
             isVisible = false;
         }
 
@@ -133,12 +133,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (!IsOpen)
                 return false;
 
-            if (_ignoreCloseUntilMouseButtonsReleased)
+            if (_waitForMouseReleaseAfterOpen)
             {
                 if (IsAnyMouseButtonHeld())
                     return false;
 
-                _ignoreCloseUntilMouseButtonsReleased = false;
+                _waitForMouseReleaseAfterOpen = false;
             }
 
             if (!IsAnyMouseButtonDownThisFrame())
@@ -149,10 +149,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void UpdatePosition()
         {
-            if (_anchor == null)
-                return;
-
-            if (_view == null)
+            if (_anchor == null || _view == null)
                 return;
 
             Vector2 resolution = _view.GetScreenResolution();

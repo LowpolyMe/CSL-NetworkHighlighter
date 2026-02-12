@@ -90,6 +90,10 @@
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
         <Compile Include="Code\Patches\ToolRenderOverlayPatch.cs" />
         <Compile Include="Code\ModOptions\Config.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategoryCatalog.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategoryDefinition.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategoryId.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategorySetting.cs" />
         <Compile Include="Code\ModOptions\NetworkHighlighterMod.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />
