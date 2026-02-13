@@ -115,7 +115,6 @@
         <!-- Mod output path -->
         <PropertyGroup>
             <DeployDir>$(SteamRoot)\steamapps\workshop\content\255710\3614208002</DeployDir>
-            <AllowedReferenceRelatedFileExtensions>.nope</AllowedReferenceRelatedFileExtensions>
         </PropertyGroup>
 
         <!-- Ensure destination exists -->
@@ -123,15 +122,12 @@
 
         <!-- Copy the compiled DLL -->
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
-        
-        <ItemGroup>
-            <_DeployDeps Include="@(ReferenceCopyLocalPaths)"
-                         Exclude="$(TargetPath)" />
-        </ItemGroup>
 
-        <Copy SourceFiles="@(_DeployDeps)"
+        <!-- Copy required external dependency -->
+        <Copy SourceFiles="$(TargetDir)UnifiedUILib.dll"
               DestinationFolder="$(DeployDir)"
-              SkipUnchangedFiles="true" />
+              SkipUnchangedFiles="true"
+              Condition="Exists('$(TargetDir)UnifiedUILib.dll')" />
 
         <!-- Copy resources (PNG, etc.) -->
         <ItemGroup>

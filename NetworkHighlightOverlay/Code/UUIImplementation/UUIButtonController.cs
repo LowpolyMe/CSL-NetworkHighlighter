@@ -1,7 +1,7 @@
+using System;
 using UnityEngine;
 using UnifiedUI.Helpers;
 using NetworkHighlightOverlay.Code.Core;
-using System;
 using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
@@ -9,9 +9,9 @@ namespace NetworkHighlightOverlay.Code.UI
     public static class UuiButtonController
     {
         private const string ButtonName = "NetworkHighlightOverlay.ToggleButton";
+        private const string ToggleTooltip = "Toggle Network Highlight Overlay";
 
         private static UUICustomButton _button;
-        private static bool _syncing;
         private static IDisposable _enabledStateSubscription;
 
         public static void RegisterUui()
@@ -25,16 +25,14 @@ namespace NetworkHighlightOverlay.Code.UI
             }
 
             Texture2D iconTexture = ModResources.LoadTexture("UUIIcon.png");
-
             _button = UUIHelpers.RegisterCustomButton(
                 name: ButtonName,
                 groupName: null,
-                tooltip: "Toggle Network Highlight Overlay",
+                tooltip: ToggleTooltip,
                 icon: iconTexture,
                 onToggle: OnButtonToggled,
                 onToolChanged: null,
-                hotkeys: null
-            );
+                hotkeys: null);
 
             ApplyPressedState(Manager.Instance.IsEnabled);
         }
@@ -42,11 +40,16 @@ namespace NetworkHighlightOverlay.Code.UI
         public static void UnregisterUui()
         {
             DisposeEnabledStateSubscription();
+            if (_button != null && _button.Button != null)
+            {
+                UUIHelpers.Destroy(_button.Button);
+            }
+            _button = null;
         }
 
         private static void OnButtonToggled(bool isPressed)
         {
-            if (_syncing)
+            if (Manager.Instance.IsEnabled == isPressed)
             {
                 return;
             }
@@ -61,19 +64,12 @@ namespace NetworkHighlightOverlay.Code.UI
 
         private static void ApplyPressedState(bool isEnabled)
         {
-            if (_button == null)
+            if (_button == null || _button.IsPressed == isEnabled)
             {
                 return;
             }
 
-            if (_button.IsPressed == isEnabled)
-            {
-                return;
-            }
-
-            _syncing = true;
             _button.IsPressed = isEnabled;
-            _syncing = false;
         }
 
         private static void SubscribeToEnabledState()
