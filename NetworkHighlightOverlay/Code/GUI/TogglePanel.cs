@@ -44,7 +44,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             _instance = panel;
 
             DisposeEnabledStateSubscription();
-            _enabledStateSubscription = Manager.Instance.EnabledState.Subscribe(OnEnabledStateChanged, true);
+            _enabledStateSubscription = ActivationHandler.Subscribe(OnEnabledStateChanged);
         }
 
         public static void Destroy()

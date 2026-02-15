@@ -16,6 +16,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static readonly SavedInputKey _toggleOverlayHotkey;
 
         private static readonly Observable<long> _changeVersion = new Observable<long>(0L);
+        private static readonly Observable<long> _highlightRulesVersion = new Observable<long>(0L);
 
         private static readonly Observable<float> _panelX;
         private static readonly Observable<float> _panelY;
@@ -33,6 +34,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static bool _suppressSaveAndRaise;
 
         public static Observable<long> ChangeVersion => _changeVersion;
+        public static Observable<long> HighlightRulesVersion => _highlightRulesVersion;
         public static Observable<float> HighlightStrengthState => _highlightStrength;
         public static Observable<bool> UseUuiButtonState => _useUuiButton;
         public static SavedInputKey ToggleOverlayHotkey => _toggleOverlayHotkey;
@@ -72,17 +74,17 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static void SubscribeToStateChanges()
         {
-            BindFloat(_panelX, (config, value) => config.PanelX = value);
-            BindFloat(_panelY, (config, value) => config.PanelY = value);
+            BindFloat(_panelX, (config, value) => config.PanelX = value, false);
+            BindFloat(_panelY, (config, value) => config.PanelY = value, false);
 
-            BindFloat(_highlightStrength, (config, value) => config.HighlightStrength = value);
-            BindFloat(_highlightWidth, (config, value) => config.HighlightWidth = value);
+            BindFloat(_highlightStrength, (config, value) => config.HighlightStrength = value, true);
+            BindFloat(_highlightWidth, (config, value) => config.HighlightWidth = value, false);
 
             BindAllCategoryStates();
 
-            BindBool(_highlightBridges, (config, value) => config.HighlightBridges = value);
-            BindBool(_highlightTunnels, (config, value) => config.HighlightTunnels = value);
-            BindBool(_useUuiButton, (config, value) => config.UseUuiButton = value);
+            BindBool(_highlightBridges, (config, value) => config.HighlightBridges = value, true);
+            BindBool(_highlightTunnels, (config, value) => config.HighlightTunnels = value, true);
+            BindBool(_useUuiButton, (config, value) => config.UseUuiButton = value, false);
         }
 
         private static void EnsureKeybindingsSettingsFile()
@@ -113,45 +115,50 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             {
                 HighlightCategoryDefinition definition = categoryDefinitions[i];
                 Observable<HighlightCategorySetting> state = _categoryStates[definition.Id];
-                BindCategory(state, (config, value) => definition.WriteState(config, value));
+                BindCategory(state, (config, value) => definition.WriteState(config, value), true);
             }
         }
 
-        private static void BindFloat(Observable<float> state, Action<Config, float> apply)
+        private static void BindFloat(Observable<float> state, Action<Config, float> apply, bool affectsHighlightRules)
         {
             state.Subscribe((previousValue, currentValue) =>
             {
                 apply(_config, currentValue);
-                SaveAndRaise();
+                SaveAndRaise(affectsHighlightRules);
             });
         }
 
-        private static void BindBool(Observable<bool> state, Action<Config, bool> apply)
+        private static void BindBool(Observable<bool> state, Action<Config, bool> apply, bool affectsHighlightRules)
         {
             state.Subscribe((previousValue, currentValue) =>
             {
                 apply(_config, currentValue);
-                SaveAndRaise();
+                SaveAndRaise(affectsHighlightRules);
             });
         }
 
         private static void BindCategory(
             Observable<HighlightCategorySetting> state,
-            Action<Config, HighlightCategorySetting> apply)
+            Action<Config, HighlightCategorySetting> apply,
+            bool affectsHighlightRules)
         {
             state.Subscribe((previousValue, currentValue) =>
             {
                 apply(_config, currentValue);
-                SaveAndRaise();
+                SaveAndRaise(affectsHighlightRules);
             });
         }
 
-        private static void SaveAndRaise()
+        private static void SaveAndRaise(bool affectsHighlightRules)
         {
             if (_suppressSaveAndRaise) return;
 
             SettingsLoader.Save(_config);
             _changeVersion.Update(IncrementVersion);
+            if (affectsHighlightRules)
+            {
+                _highlightRulesVersion.Update(IncrementVersion);
+            }
         }
 
         private static long IncrementVersion(long version)
@@ -461,7 +468,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 _suppressSaveAndRaise = false;
             }
 
-            SaveAndRaise();
+            SaveAndRaise(true);
         }
 
         private static void ApplyAllCategoryStates(Config source)

@@ -1,8 +1,6 @@
 using System;
 using UnityEngine;
 using UnifiedUI.Helpers;
-using NetworkHighlightOverlay.Code.Core;
-using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
@@ -13,15 +11,14 @@ namespace NetworkHighlightOverlay.Code.UI
         private const string ToggleTooltip = "Toggle Network Highlight Overlay";
 
         private static UUICustomButton _button;
-        private static IDisposable _enabledStateSubscription;
+        private static Action<bool> _toggleRequested;
 
-        public static void RegisterUui()
+        public static void RegisterUui(Action<bool> toggleRequested)
         {
-            SubscribeToEnabledState();
+            _toggleRequested = toggleRequested;
 
             if (_button != null && _button.Button != null)
             {
-                ApplyPressedState(Manager.Instance.IsEnabled);
                 return;
             }
 
@@ -32,65 +29,39 @@ namespace NetworkHighlightOverlay.Code.UI
                 tooltip: ToggleTooltip,
                 icon: iconTexture,
                 onToggle: OnButtonToggled,
-                onToolChanged: null,
-                hotkeys: new UUIHotKeys
-                {
-                    ActivationKey = ModSettings.ToggleOverlayHotkey
-                });
-
-            ApplyPressedState(Manager.Instance.IsEnabled);
+                onToolChanged: null);
         }
 
         public static void UnregisterUui()
         {
-            DisposeEnabledStateSubscription();
             if (_button != null && _button.Button != null)
             {
                 UUIHelpers.Destroy(_button.Button);
             }
+
             _button = null;
+            _toggleRequested = null;
         }
 
         private static void OnButtonToggled(bool isPressed)
         {
-            if (Manager.Instance.IsEnabled == isPressed)
+            Action<bool> toggleRequested = _toggleRequested;
+            if (toggleRequested == null)
             {
                 return;
             }
 
-            Manager.Instance.IsEnabled = isPressed;
+            toggleRequested(isPressed);
         }
 
-        private static void OnEnabledStateChanged(bool previousState, bool isEnabled)
+        public static void SetPressed(bool isPressed)
         {
-            ApplyPressedState(isEnabled);
-        }
-
-        private static void ApplyPressedState(bool isEnabled)
-        {
-            if (_button == null || _button.IsPressed == isEnabled)
+            if (_button == null || _button.IsPressed == isPressed)
             {
                 return;
             }
 
-            _button.IsPressed = isEnabled;
-        }
-
-        private static void SubscribeToEnabledState()
-        {
-            if (_enabledStateSubscription != null)
-                return;
-
-            _enabledStateSubscription = Manager.Instance.EnabledState.Subscribe(OnEnabledStateChanged, true);
-        }
-
-        private static void DisposeEnabledStateSubscription()
-        {
-            if (_enabledStateSubscription == null)
-                return;
-
-            _enabledStateSubscription.Dispose();
-            _enabledStateSubscription = null;
+            _button.IsPressed = isPressed;
         }
     }
 }
