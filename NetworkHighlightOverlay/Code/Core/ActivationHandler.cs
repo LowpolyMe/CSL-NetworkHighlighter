@@ -1,4 +1,5 @@
 using UnityEngine;
+using NetworkHighlightOverlay.Code.ModOptions;
 
 namespace NetworkHighlightOverlay.Code.Core
 {
@@ -6,7 +7,7 @@ namespace NetworkHighlightOverlay.Code.Core
     {
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F9))
+            if (ModSettings.ToggleOverlayHotkey.IsPressed())
             {
                 Manager.Instance.IsEnabled = !Manager.Instance.IsEnabled;
             }

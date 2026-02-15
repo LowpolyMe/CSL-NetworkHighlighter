@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ColossalFramework;
 using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.Utility;
 using UnityEngine;
@@ -8,8 +9,12 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 {
     public static class ModSettings
     {
+        private const string KeybindingsFileName = "NetworkHighlightOverlay_Keybindings";
+        private const string ToggleOverlayHotkeyName = "NetworkHighlightOverlay_ToggleOverlay";
+
         private static readonly Config _config;
-        
+        private static readonly SavedInputKey _toggleOverlayHotkey;
+
         private static readonly Observable<long> _changeVersion = new Observable<long>(0L);
 
         private static readonly Observable<float> _panelX;
@@ -20,15 +25,17 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static readonly Observable<bool> _highlightBridges;
         private static readonly Observable<bool> _highlightTunnels;
-        
+        private static readonly Observable<bool> _useUuiButton;
+
         private static readonly Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>> _categoryStates =
             new Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>>();
 
         private static bool _suppressSaveAndRaise;
 
         public static Observable<long> ChangeVersion => _changeVersion;
-
         public static Observable<float> HighlightStrengthState => _highlightStrength;
+        public static Observable<bool> UseUuiButtonState => _useUuiButton;
+        public static SavedInputKey ToggleOverlayHotkey => _toggleOverlayHotkey;
 
         public static Observable<HighlightCategorySetting> GetCategoryState(HighlightCategoryId categoryId)
         {
@@ -37,6 +44,16 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         static ModSettings()
         {
+            EnsureKeybindingsSettingsFile();
+            _toggleOverlayHotkey = new SavedInputKey(
+                ToggleOverlayHotkeyName,
+                KeybindingsFileName,
+                KeyCode.F9,
+                false,
+                false,
+                false,
+                true);
+
             _config = SettingsLoader.Load();
 
             _panelX = new Observable<float>(_config.PanelX);
@@ -47,6 +64,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
             _highlightBridges = new Observable<bool>(_config.HighlightBridges);
             _highlightTunnels = new Observable<bool>(_config.HighlightTunnels);
+            _useUuiButton = new Observable<bool>(_config.UseUuiButton);
 
             InitializeCategoryStates();
             SubscribeToStateChanges();
@@ -64,6 +82,15 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
             BindBool(_highlightBridges, (config, value) => config.HighlightBridges = value);
             BindBool(_highlightTunnels, (config, value) => config.HighlightTunnels = value);
+            BindBool(_useUuiButton, (config, value) => config.UseUuiButton = value);
+        }
+
+        private static void EnsureKeybindingsSettingsFile()
+        {
+            if (GameSettings.FindSettingsFileByName(KeybindingsFileName) != null) return;
+
+            SettingsFile keybindingsFile = new SettingsFile { fileName = KeybindingsFileName };
+            GameSettings.AddSettingsFile(new SettingsFile[] { keybindingsFile });
         }
 
         private static void InitializeCategoryStates()
@@ -132,20 +159,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             return version == long.MaxValue ? 0L : version + 1L;
         }
 
-        private static void SetFloat(Observable<float> state, float value)
-        {
-            if (Mathf.Approximately(state.Value, value)) return;
-
-            state.Value = value;
-        }
-
-        private static void SetBool(Observable<bool> state, bool value)
-        {
-            if (state.Value == value) return;
-
-            state.Value = value;
-        }
-
         private static void SetCategory(
             Observable<HighlightCategorySetting> state,
             HighlightCategorySetting value)
@@ -199,33 +212,28 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             return ColorConversion.FromHue(GetCategoryHue(categoryId), HighlightStrength);
         }
 
-        private static void SetCategoryColor(HighlightCategoryId categoryId, Color color)
-        {
-            SetCategoryHue(categoryId, ColorConversion.ToHue(color));
-        }
-
         public static float PanelX
         {
             get => _panelX.Value;
-            set => SetFloat(_panelX, value);
+            set => _panelX.Value = value;
         }
 
         public static float PanelY
         {
             get => _panelY.Value;
-            set => SetFloat(_panelY, value);
+            set => _panelY.Value = value;
         }
 
         public static float HighlightStrength
         {
             get => _highlightStrength.Value;
-            set => SetFloat(_highlightStrength, value);
+            set => _highlightStrength.Value = value;
         }
 
         public static float HighlightWidth
         {
             get => _highlightWidth.Value;
-            set => SetFloat(_highlightWidth, value);
+            set => _highlightWidth.Value = value;
         }
 
         public static float PedestrianPathsHue
@@ -237,7 +245,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color PedestrianPathColor
         {
             get => GetCategoryColor(HighlightCategoryId.PedestrianPaths);
-            set => SetCategoryColor(HighlightCategoryId.PedestrianPaths, value);
+            set => SetCategoryHue(HighlightCategoryId.PedestrianPaths, ColorConversion.ToHue(value));
         }
 
         public static float PinkPathsHue
@@ -249,7 +257,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color PinkPathColor
         {
             get => GetCategoryColor(HighlightCategoryId.PinkPaths);
-            set => SetCategoryColor(HighlightCategoryId.PinkPaths, value);
+            set => SetCategoryHue(HighlightCategoryId.PinkPaths, ColorConversion.ToHue(value));
         }
 
         public static float TerraformingNetworksHue
@@ -261,7 +269,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color TerraformingNetworksColor
         {
             get => GetCategoryColor(HighlightCategoryId.TerraformingNetworks);
-            set => SetCategoryColor(HighlightCategoryId.TerraformingNetworks, value);
+            set => SetCategoryHue(HighlightCategoryId.TerraformingNetworks, ColorConversion.ToHue(value));
         }
 
         public static float RoadsHue
@@ -273,7 +281,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color RoadsColor
         {
             get => GetCategoryColor(HighlightCategoryId.Roads);
-            set => SetCategoryColor(HighlightCategoryId.Roads, value);
+            set => SetCategoryHue(HighlightCategoryId.Roads, ColorConversion.ToHue(value));
         }
 
         public static float HighwaysHue
@@ -285,7 +293,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color HighwaysColor
         {
             get => GetCategoryColor(HighlightCategoryId.Highways);
-            set => SetCategoryColor(HighlightCategoryId.Highways, value);
+            set => SetCategoryHue(HighlightCategoryId.Highways, ColorConversion.ToHue(value));
         }
 
         public static float TrainTracksHue
@@ -297,7 +305,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color TrainTracksColor
         {
             get => GetCategoryColor(HighlightCategoryId.TrainTracks);
-            set => SetCategoryColor(HighlightCategoryId.TrainTracks, value);
+            set => SetCategoryHue(HighlightCategoryId.TrainTracks, ColorConversion.ToHue(value));
         }
 
         public static float MetroTracksHue
@@ -309,7 +317,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color MetroTracksColor
         {
             get => GetCategoryColor(HighlightCategoryId.MetroTracks);
-            set => SetCategoryColor(HighlightCategoryId.MetroTracks, value);
+            set => SetCategoryHue(HighlightCategoryId.MetroTracks, ColorConversion.ToHue(value));
         }
 
         public static float TramTracksHue
@@ -321,7 +329,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color TramTracksColor
         {
             get => GetCategoryColor(HighlightCategoryId.TramTracks);
-            set => SetCategoryColor(HighlightCategoryId.TramTracks, value);
+            set => SetCategoryHue(HighlightCategoryId.TramTracks, ColorConversion.ToHue(value));
         }
 
         public static float MonorailTracksHue
@@ -333,7 +341,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color MonorailTracksColor
         {
             get => GetCategoryColor(HighlightCategoryId.MonorailTracks);
-            set => SetCategoryColor(HighlightCategoryId.MonorailTracks, value);
+            set => SetCategoryHue(HighlightCategoryId.MonorailTracks, ColorConversion.ToHue(value));
         }
 
         public static float CableCarsHue
@@ -345,7 +353,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Color CableCarColor
         {
             get => GetCategoryColor(HighlightCategoryId.CableCars);
-            set => SetCategoryColor(HighlightCategoryId.CableCars, value);
+            set => SetCategoryHue(HighlightCategoryId.CableCars, ColorConversion.ToHue(value));
         }
 
         public static bool HighlightPedestrianPaths
@@ -411,13 +419,19 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static bool HighlightBridges
         {
             get => _highlightBridges.Value;
-            set => SetBool(_highlightBridges, value);
+            set => _highlightBridges.Value = value;
         }
 
         public static bool HighlightTunnels
         {
             get => _highlightTunnels.Value;
-            set => SetBool(_highlightTunnels, value);
+            set => _highlightTunnels.Value = value;
+        }
+
+        public static bool UseUuiButton
+        {
+            get => _useUuiButton.Value;
+            set => _useUuiButton.Value = value;
         }
 
         public static void ResetToDefaults()
@@ -430,16 +444,17 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             _suppressSaveAndRaise = true;
             try
             {
-                SetFloat(_highlightStrength, source.HighlightStrength);
-                SetFloat(_highlightWidth, source.HighlightWidth);
+                _highlightStrength.Value = source.HighlightStrength;
+                _highlightWidth.Value = source.HighlightWidth;
 
                 ApplyAllCategoryStates(source);
 
-                SetBool(_highlightBridges, source.HighlightBridges);
-                SetBool(_highlightTunnels, source.HighlightTunnels);
+                _highlightBridges.Value = source.HighlightBridges;
+                _highlightTunnels.Value = source.HighlightTunnels;
+                _useUuiButton.Value = source.UseUuiButton;
 
-                SetFloat(_panelX, source.PanelX);
-                SetFloat(_panelY, source.PanelY);
+                _panelX.Value = source.PanelX;
+                _panelY.Value = source.PanelY;
             }
             finally
             {

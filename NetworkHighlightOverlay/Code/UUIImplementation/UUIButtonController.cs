@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnifiedUI.Helpers;
 using NetworkHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
@@ -32,7 +33,10 @@ namespace NetworkHighlightOverlay.Code.UI
                 icon: iconTexture,
                 onToggle: OnButtonToggled,
                 onToolChanged: null,
-                hotkeys: null);
+                hotkeys: new UUIHotKeys
+                {
+                    ActivationKey = ModSettings.ToggleOverlayHotkey
+                });
 
             ApplyPressedState(Manager.Instance.IsEnabled);
         }

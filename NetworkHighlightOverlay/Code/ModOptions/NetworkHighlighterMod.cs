@@ -195,6 +195,12 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     "Highlight tunnels",
                     () => ModSettings.HighlightTunnels,
                     value => ModSettings.HighlightTunnels = value);
+
+                AddBoundCheckbox(
+                    filtersHelper,
+                    "Use UUI button",
+                    () => ModSettings.UseUuiButton,
+                    value => ModSettings.UseUuiButton = value);
             }
             #endregion
             

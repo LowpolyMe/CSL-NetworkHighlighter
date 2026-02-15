@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
 {
     public sealed class Observable<T>
     {
         private readonly object _sync = new object();
+        private static readonly Func<T, T, bool> _areEqual = CreateEquality();
         private T _value;
         private Action<T, T> _valueChanged;
 
@@ -51,7 +53,7 @@ namespace NetworkHighlightOverlay.Code.Core
             Action<T, T> callbacks;
             lock (_sync)
             {
-                if (EqualityComparer<T>.Default.Equals(_value, value))
+                if (_areEqual(_value, value))
                     return false;
 
                 oldValue = _value;
@@ -81,10 +83,10 @@ namespace NetworkHighlightOverlay.Code.Core
                 Action<T, T> callbacks;
                 lock (_sync)
                 {
-                    if (!EqualityComparer<T>.Default.Equals(_value, oldValue))
+                    if (!_areEqual(_value, oldValue))
                         continue;
 
-                    if (EqualityComparer<T>.Default.Equals(oldValue, newValue))
+                    if (_areEqual(oldValue, newValue))
                         return false;
 
                     _value = newValue;
@@ -145,6 +147,28 @@ namespace NetworkHighlightOverlay.Code.Core
             {
                 callbacks(oldValue, newValue);
             }
+        }
+
+        private static bool AreEqualByDefault(T left, T right)
+        {
+            return EqualityComparer<T>.Default.Equals(left, right);
+        }
+
+        private static Func<T, T, bool> CreateEquality()
+        {
+            if (typeof(T) == typeof(float))
+            {
+                return AreEqualAsFloat;
+            }
+
+            return AreEqualByDefault;
+        }
+
+        private static bool AreEqualAsFloat(T left, T right)
+        {
+            float leftValue = (float)(object)left;
+            float rightValue = (float)(object)right;
+            return Mathf.Approximately(leftValue, rightValue);
         }
 
         private void Unsubscribe(Action<T, T> callback)
