@@ -80,6 +80,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
             bool didSelect = HighlightSelection.TrySelectCategory(
                 flags,
+                ModSettings.GetCategoryEnabled,
                 out categoryId,
                 out isBridge,
                 out isTunnel);

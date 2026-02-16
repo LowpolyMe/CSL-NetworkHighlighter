@@ -38,6 +38,7 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
             TogglePanel.Destroy();
             ToggleButtonAtlas.Clear();
             DestroyRendererObject();
+            Manager.Instance.ResetForLevelUnload();
         }
 
         #region Helpers

@@ -9,38 +9,57 @@ namespace NetworkHighlightOverlay.Code.Core
         private readonly OverlayRenderer _renderer = new OverlayRenderer();
         private readonly List<KeyValuePair<ushort, Color>> _segmentSnapshot =
             new List<KeyValuePair<ushort, Color>>(1024);
+        private bool _hasCacheSnapshot;
+        private bool _isCacheDirty;
 
         private static readonly Manager _instance = new Manager();
         public static Manager Instance => _instance;
 
         private Manager()
         {
+            _hasCacheSnapshot = false;
+            _isCacheDirty = false;
         }
 
         public void OnActivated()
         {
-            _cache.RebuildCache();
+            if (!_hasCacheSnapshot || _isCacheDirty)
+            {
+                _cache.RebuildCache();
+                _hasCacheSnapshot = true;
+                _isCacheDirty = false;
+            }
         }
 
         public void OnDeactivated()
         {
+        }
+
+        public void ResetForLevelUnload()
+        {
             _cache.Clear();
+            _hasCacheSnapshot = false;
+            _isCacheDirty = false;
         }
 
         public void OnHighlightRulesChanged()
         {
             if (!ActivationHandler.IsActive)
             {
+                MarkCacheDirty();
                 return;
             }
 
             _cache.RebuildCache();
+            _hasCacheSnapshot = true;
+            _isCacheDirty = false;
         }
 
         public void OnSegmentCreated(ushort segmentId)
         {
             if (!ActivationHandler.IsActive)
             {
+                MarkCacheDirty();
                 return;
             }
 
@@ -51,6 +70,7 @@ namespace NetworkHighlightOverlay.Code.Core
         {
             if (!ActivationHandler.IsActive)
             {
+                MarkCacheDirty();
                 return;
             }
 
@@ -64,6 +84,11 @@ namespace NetworkHighlightOverlay.Code.Core
 
             _cache.CopySegmentsTo(_segmentSnapshot);
             _renderer.Render(cameraInfo, _segmentSnapshot);
+        }
+
+        private void MarkCacheDirty()
+        {
+            _isCacheDirty = true;
         }
     }
 }

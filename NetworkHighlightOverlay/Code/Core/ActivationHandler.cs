@@ -1,6 +1,7 @@
 using System;
 using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.UI;
+using UnifiedUI.Util;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
@@ -45,7 +46,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         private void Update()
         {
-            if (!ModSettings.ToggleOverlayHotkey.IsPressed())
+            if (!ModSettings.ToggleOverlayHotkey.IsKeyUp())
             {
                 return;
             }

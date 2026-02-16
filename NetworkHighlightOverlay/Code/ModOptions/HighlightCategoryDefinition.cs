@@ -71,11 +71,11 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             _writeHue = writeHue;
         }
 
-        public HighlightCategoryId Id { get; private set; }
-        public string ToggleLabel { get; private set; }
-        public string ColorSliderLabel { get; private set; }
-        public string FilterLabel { get; private set; }
-        public string SpriteName { get; private set; }
+        public HighlightCategoryId Id { get; }
+        public string ToggleLabel { get; }
+        public string ColorSliderLabel { get; }
+        public string FilterLabel { get; }
+        public string SpriteName { get; }
 
         public HighlightCategorySetting ReadState(Config config)
         {

@@ -32,6 +32,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public static bool TrySelectCategory(
             SegmentFlags flags,
+            Func<HighlightCategoryId, bool> isCategoryEnabled,
             out HighlightCategoryId categoryId,
             out bool isBridge,
             out bool isTunnel)
@@ -113,6 +114,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 flags.HasTramOrTrolleyLanes,
                 flags.HasMonorailLanes,
                 flags.HasCarLanes,
+                isCategoryEnabled,
                 out categoryId,
                 out isBridge,
                 out isTunnel);
@@ -158,6 +160,7 @@ namespace NetworkHighlightOverlay.Code.Core
             bool hasTramOrTrolleyLanes,
             bool hasMonorailLanes,
             bool hasCarLanes,
+            Func<HighlightCategoryId, bool> isCategoryEnabled,
             out HighlightCategoryId categoryId,
             out bool isBridge,
             out bool isTunnel)
@@ -166,28 +169,31 @@ namespace NetworkHighlightOverlay.Code.Core
             isBridge = isRoadBridge;
             isTunnel = isRoadTunnel;
 
+            if (isCategoryEnabled == null)
+            {
+                return false;
+            }
+
             if (isPedestrianStreet)
             {
-                if (hasTramOrTrolleyLanes)
+                if (hasTramOrTrolleyLanes &&
+                    TrySelectIfEnabled(HighlightCategoryId.TramTracks, isCategoryEnabled, out categoryId))
                 {
-                    categoryId = HighlightCategoryId.TramTracks;
                     return true;
                 }
 
-                if (hasMonorailLanes)
+                if (hasMonorailLanes &&
+                    TrySelectIfEnabled(HighlightCategoryId.MonorailTracks, isCategoryEnabled, out categoryId))
                 {
-                    categoryId = HighlightCategoryId.MonorailTracks;
                     return true;
                 }
 
-                categoryId = HighlightCategoryId.PedestrianPaths;
-                return true;
+                return TrySelectIfEnabled(HighlightCategoryId.PedestrianPaths, isCategoryEnabled, out categoryId);
             }
 
             if (isHighway)
             {
-                categoryId = HighlightCategoryId.Highways;
-                return true;
+                return TrySelectIfEnabled(HighlightCategoryId.Highways, isCategoryEnabled, out categoryId);
             }
 
             if (!hasCarLanes && !hasTramOrTrolleyLanes && !hasMonorailLanes)
@@ -195,19 +201,39 @@ namespace NetworkHighlightOverlay.Code.Core
                 return false;
             }
 
-            if (hasTramOrTrolleyLanes)
+            if (hasTramOrTrolleyLanes &&
+                TrySelectIfEnabled(HighlightCategoryId.TramTracks, isCategoryEnabled, out categoryId))
             {
-                categoryId = HighlightCategoryId.TramTracks;
                 return true;
             }
 
-            if (hasMonorailLanes)
+            if (hasMonorailLanes &&
+                TrySelectIfEnabled(HighlightCategoryId.MonorailTracks, isCategoryEnabled, out categoryId))
             {
-                categoryId = HighlightCategoryId.MonorailTracks;
                 return true;
             }
 
-            categoryId = HighlightCategoryId.Roads;
+            if (hasCarLanes &&
+                TrySelectIfEnabled(HighlightCategoryId.Roads, isCategoryEnabled, out categoryId))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TrySelectIfEnabled(
+            HighlightCategoryId categoryId,
+            Func<HighlightCategoryId, bool> isCategoryEnabled,
+            out HighlightCategoryId selectedCategoryId)
+        {
+            selectedCategoryId = default(HighlightCategoryId);
+            if (!isCategoryEnabled(categoryId))
+            {
+                return false;
+            }
+
+            selectedCategoryId = categoryId;
             return true;
         }
     }
