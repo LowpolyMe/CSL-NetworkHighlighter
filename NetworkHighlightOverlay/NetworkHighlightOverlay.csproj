@@ -75,6 +75,7 @@
         <Compile Include="Code\Core\ActivationHandler.cs" />
         <Compile Include="Code\Core\HighlightCache.cs" />
         <Compile Include="Code\Core\HighlightRules.cs" />
+        <Compile Include="Code\Core\HighlightSelection.cs" />
         <Compile Include="Code\Core\Manager.cs" />
         <Compile Include="Code\Core\Observable.cs" />
         <Compile Include="Code\Core\OverlayRenderer.cs" />

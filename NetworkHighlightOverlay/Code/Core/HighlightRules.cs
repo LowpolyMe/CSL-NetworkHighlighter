@@ -6,11 +6,15 @@ namespace NetworkHighlightOverlay.Code.Core
 {
     public static class HighlightRules
     {
+        private const string PinkPathNetworkName = "Pedestrian Connection";
+        private const string TerraformingToken = "terraforming";
+        private const string PedestrianStreetClassName = "Pedestrian Street";
+
         public static bool TryGetHighlightColor(ref NetSegment segment, out Color color)
         {
-            NetInfo info = segment.Info;
-            color = default;
+            color = default(Color);
 
+            NetInfo info = segment.Info;
             if (info == null)
             {
                 return false;
@@ -22,269 +26,146 @@ namespace NetworkHighlightOverlay.Code.Core
                 return false;
             }
 
-            if (IsPinkPath(info, ai))
+            HighlightCategoryId categoryId;
+            bool isBridge;
+            bool isTunnel;
+
+            const VehicleInfo.VehicleType TramLikeMask =
+                VehicleInfo.VehicleType.Tram |
+                VehicleInfo.VehicleType.Trolleybus;
+
+            HighlightSelection.SegmentFlags flags = new HighlightSelection.SegmentFlags
             {
-                if (!ModSettings.HighlightPedestrianPaths || !ModSettings.HighlightPinkPaths)
-                    return false;
+                IsPinkPath = IsPinkPath(info, ai),
+                IsTerraformingNetwork = IsTerraformingNetwork(info),
+                IsPedestrianPath = ai is PedestrianPathAI || ai is PedestrianWayAI || ai is PedestrianZoneRoadAI,
+                IsPedestrianBridge = ai is PedestrianBridgeAI || ai is PedestrianZoneBridgeAI,
+                IsPedestrianTunnel = ai is PedestrianTunnelAI,
+                IsTrainTrack = ai is TrainTrackAI,
+                IsTrainBridge = ai is TrainTrackBridgeAI,
+                IsTrainTunnel = ai is TrainTrackTunnelAI,
+                IsMetroTrack = ai is MetroTrackAI,
+                IsMetroBridge = ai is MetroTrackBridgeAI,
+                IsMetroTunnel = ai is MetroTrackTunnelAI,
+                IsMonorailTrack = ai is MonorailTrackAI,
+                IsCableCarPath = ai is CableCarPathAI,
+                IsRoadFamily = ai is RoadAI || ai is RoadBridgeAI || ai is RoadTunnelAI,
+                IsRoadBridge = ai is RoadBridgeAI,
+                IsRoadTunnel = ai is RoadTunnelAI,
+                IsPedestrianStreet = IsPedestrianStreet(info),
+                IsHighway = IsHighway(info),
+                HasTramOrTrolleyLanes = HasLaneVehicleTypes(info, TramLikeMask),
+                HasMonorailLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Monorail),
+                HasCarLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Car)
+            };
 
-                color = ModSettings.PinkPathColor;
-                return true;
-            }
+            bool didSelect = HighlightSelection.TrySelectCategory(
+                flags,
+                out categoryId,
+                out isBridge,
+                out isTunnel);
 
-            if (IsTerraformingNetwork(info, ai))
+            if (!didSelect)
             {
-                if (!ModSettings.HighlightTerraformingNetworks)
-                    return false;
-
-                color = ModSettings.TerraformingNetworksColor;
-                return true;
-            }
-
-            if (ai is PedestrianPathAI || ai is PedestrianWayAI || ai is PedestrianZoneRoadAI)
-            {
-                if (!ModSettings.HighlightPedestrianPaths)
-                    return false;
-
-                color = ModSettings.PedestrianPathColor;
-                return true;
-            }
-
-            if (ai is PedestrianBridgeAI || ai is PedestrianZoneBridgeAI)
-            {
-                if (!ModSettings.HighlightPedestrianPaths ||
-                    !ModSettings.HighlightBridges)
-                    return false;
-
-                color = ModSettings.PedestrianPathColor;
-                return true;
-            }
-
-            if (ai is PedestrianTunnelAI)
-            {
-                if (!ModSettings.HighlightPedestrianPaths ||
-                    !ModSettings.HighlightTunnels)
-                    return false;
-
-                color = ModSettings.PedestrianPathColor;
-                return true;
-            }
-
-            if (ai is TrainTrackAI || ai is TrainTrackBridgeAI || ai is TrainTrackTunnelAI)
-            {
-                if (!ModSettings.HighlightTrainTracks)
-                    return false;
-
-                if (ai is TrainTrackBridgeAI && !ModSettings.HighlightBridges)
-                    return false;
-
-                if (ai is TrainTrackTunnelAI && !ModSettings.HighlightTunnels)
-                    return false;
-
-                color = ModSettings.TrainTracksColor;
-                return true;
-            }
-
-            if (ai is MetroTrackAI || ai is MetroTrackBridgeAI || ai is MetroTrackTunnelAI)
-            {
-                if (!ModSettings.HighlightMetroTracks)
-                    return false;
-
-                if (ai is MetroTrackBridgeAI && !ModSettings.HighlightBridges)
-                    return false;
-
-                if (ai is MetroTrackTunnelAI && !ModSettings.HighlightTunnels)
-                    return false;
-
-                color = ModSettings.MetroTracksColor;
-                return true;
-            }
-
-            if (ai is MonorailTrackAI)
-            {
-                if (!ModSettings.HighlightMonorailTracks)
-                    return false;
-
-                color = ModSettings.MonorailTracksColor;
-                return true;
-            }
-
-            if (ai is CableCarPathAI)
-            {
-                if (!ModSettings.HighlightCableCars)
-                    return false;
-
-                color = ModSettings.CableCarColor;
-                return true;
-            }
-
-            if (ai is RoadAI || ai is RoadBridgeAI || ai is RoadTunnelAI)
-            {
-                bool isHighway = IsHighway(info);
-                bool hasTramLike = HasTramOrTrolleyLanes(info);
-                bool hasMonorailLike = HasMonorailLanes(info);
-                bool hasCarLike = HasCarLikeLanes(info);
-                bool isPedestrianStreet = IsPedestrianStreet(info);
-
-                bool isBridge = ai is RoadBridgeAI;
-                bool isTunnel = ai is RoadTunnelAI;
-
-                if (isBridge && !ModSettings.HighlightBridges)
-                    return false;
-
-                if (isTunnel && !ModSettings.HighlightTunnels)
-                    return false;
-
-                if (isPedestrianStreet)
-                {
-                    if (hasTramLike && ModSettings.HighlightTramTracks)
-                    {
-                        color = ModSettings.TramTracksColor;
-                        return true;
-                    }
-
-                    if (hasMonorailLike && ModSettings.HighlightMonorailTracks)
-                    {
-                        color = ModSettings.MonorailTracksColor;
-                        return true;
-                    }
-
-                    if (!ModSettings.HighlightPedestrianPaths)
-                        return false;
-
-                    color = ModSettings.PedestrianPathColor;
-                    return true;
-                }
-
-                if (isHighway)
-                {
-                    if (!ModSettings.HighlightHighways)
-                        return false;
-
-                    color = ModSettings.HighwaysColor;
-                    return true;
-                }
-
-                if (!hasCarLike && !hasTramLike && !hasMonorailLike)
-                    return false;
-
-                if (hasTramLike && ModSettings.HighlightTramTracks)
-                {
-                    color = ModSettings.TramTracksColor;
-                    return true;
-                }
-
-                if (hasMonorailLike && ModSettings.HighlightMonorailTracks)
-                {
-                    color = ModSettings.MonorailTracksColor;
-                    return true;
-                }
-
-                if (hasCarLike && ModSettings.HighlightRoads)
-                {
-                    color = ModSettings.RoadsColor;
-                    return true;
-                }
-
                 return false;
             }
 
-            return false;
+            bool isEnabled = HighlightSelection.IsCategoryEnabledForSegment(
+                categoryId,
+                isBridge,
+                isTunnel,
+                ModSettings.HighlightBridges,
+                ModSettings.HighlightTunnels,
+                ModSettings.GetCategoryEnabled);
+
+            if (!isEnabled)
+            {
+                return false;
+            }
+
+            color = ModSettings.GetCategoryColor(categoryId);
+            return true;
         }
 
         private static bool IsPinkPath(NetInfo info, NetAI ai)
         {
             if (info == null || ai == null)
+            {
                 return false;
+            }
 
             if (!(ai is PedestrianPathAI))
+            {
                 return false;
+            }
 
-            return string.Equals(info.name, "Pedestrian Connection", StringComparison.Ordinal);
+            return string.Equals(info.name, PinkPathNetworkName, StringComparison.Ordinal);
         }
 
-        private static bool IsTerraformingNetwork(NetInfo info, NetAI ai)
-        {
-            if (info == null || ai == null)
-                return false;
-
-            if (string.IsNullOrEmpty(info.name))
-                return false;
-
-            if (info.name.IndexOf("terraforming", StringComparison.OrdinalIgnoreCase) < 0)
-                return false;
-
-            return IsFlattenTerrainEnabled(info);
-        }
-
-        private static bool IsFlattenTerrainEnabled(NetInfo info)
+        private static bool IsTerraformingNetwork(NetInfo info)
         {
             if (info == null)
+            {
                 return false;
+            }
+
+            string infoName = info.name;
+            if (string.IsNullOrEmpty(infoName))
+            {
+                return false;
+            }
+
+            if (infoName.IndexOf(TerraformingToken, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+
             return info.m_flattenTerrain;
+        }
+
+        private static bool IsPedestrianStreet(NetInfo info)
+        {
+            if (info == null || info.m_class == null)
+            {
+                return false;
+            }
+
+            string className = info.m_class.name;
+            if (string.IsNullOrEmpty(className))
+            {
+                return false;
+            }
+
+            return string.Equals(className, PedestrianStreetClassName, StringComparison.Ordinal);
         }
 
         private static bool IsHighway(NetInfo info)
         {
             NetAI ai = info == null ? null : info.m_netAI;
             if (ai == null)
+            {
                 return false;
+            }
+
             return ai.IsHighway();
         }
 
-        private static bool HasTramOrTrolleyLanes(NetInfo info)
+        private static bool HasLaneVehicleTypes(NetInfo info, VehicleInfo.VehicleType mask)
         {
             if (info == null || info.m_lanes == null)
+            {
                 return false;
-
-            const VehicleInfo.VehicleType tramLikeMask =
-                VehicleInfo.VehicleType.Tram |
-                VehicleInfo.VehicleType.Trolleybus;
+            }
 
             foreach (NetInfo.Lane lane in info.m_lanes)
             {
-                if ((lane.m_vehicleType & tramLikeMask) != 0)
+                if ((lane.m_vehicleType & mask) != 0)
+                {
                     return true;
+                }
             }
 
             return false;
-        }
-
-        private static bool HasCarLikeLanes(NetInfo info)
-        {
-            if (info == null || info.m_lanes == null)
-                return false;
-
-            foreach (NetInfo.Lane lane in info.m_lanes)
-            {
-                if ((lane.m_vehicleType & VehicleInfo.VehicleType.Car) != 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool HasMonorailLanes(NetInfo info)
-        {
-            if (info == null || info.m_lanes == null)
-                return false;
-
-            foreach (NetInfo.Lane lane in info.m_lanes)
-            {
-                if ((lane.m_vehicleType & VehicleInfo.VehicleType.Monorail) != 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsPedestrianStreet(NetInfo info)
-        {
-            ItemClass itemClass = info == null ? null : info.m_class;
-            string name = itemClass == null ? null : itemClass.name;
-            if (string.IsNullOrEmpty(name))
-                return false;
-
-            return string.Equals(name, "Pedestrian Street", StringComparison.Ordinal);
         }
     }
 }

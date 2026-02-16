@@ -74,22 +74,25 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static void SubscribeToStateChanges()
         {
-            BindFloat(_panelX, (config, value) => config.PanelX = value, false);
-            BindFloat(_panelY, (config, value) => config.PanelY = value, false);
+            BindState(_panelX, (config, value) => config.PanelX = value, false);
+            BindState(_panelY, (config, value) => config.PanelY = value, false);
 
-            BindFloat(_highlightStrength, (config, value) => config.HighlightStrength = value, true);
-            BindFloat(_highlightWidth, (config, value) => config.HighlightWidth = value, false);
+            BindState(_highlightStrength, (config, value) => config.HighlightStrength = value, true);
+            BindState(_highlightWidth, (config, value) => config.HighlightWidth = value, false);
 
             BindAllCategoryStates();
 
-            BindBool(_highlightBridges, (config, value) => config.HighlightBridges = value, true);
-            BindBool(_highlightTunnels, (config, value) => config.HighlightTunnels = value, true);
-            BindBool(_useUuiButton, (config, value) => config.UseUuiButton = value, false);
+            BindState(_highlightBridges, (config, value) => config.HighlightBridges = value, true);
+            BindState(_highlightTunnels, (config, value) => config.HighlightTunnels = value, true);
+            BindState(_useUuiButton, (config, value) => config.UseUuiButton = value, false);
         }
 
         private static void EnsureKeybindingsSettingsFile()
         {
-            if (GameSettings.FindSettingsFileByName(KeybindingsFileName) != null) return;
+            if (GameSettings.FindSettingsFileByName(KeybindingsFileName) != null)
+            {
+                return;
+            }
 
             SettingsFile keybindingsFile = new SettingsFile { fileName = KeybindingsFileName };
             GameSettings.AddSettingsFile(new SettingsFile[] { keybindingsFile });
@@ -115,31 +118,13 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             {
                 HighlightCategoryDefinition definition = categoryDefinitions[i];
                 Observable<HighlightCategorySetting> state = _categoryStates[definition.Id];
-                BindCategory(state, (config, value) => definition.WriteState(config, value), true);
+                BindState(state, (config, value) => definition.WriteState(config, value), true);
             }
         }
 
-        private static void BindFloat(Observable<float> state, Action<Config, float> apply, bool affectsHighlightRules)
-        {
-            state.Subscribe((previousValue, currentValue) =>
-            {
-                apply(_config, currentValue);
-                SaveAndRaise(affectsHighlightRules);
-            });
-        }
-
-        private static void BindBool(Observable<bool> state, Action<Config, bool> apply, bool affectsHighlightRules)
-        {
-            state.Subscribe((previousValue, currentValue) =>
-            {
-                apply(_config, currentValue);
-                SaveAndRaise(affectsHighlightRules);
-            });
-        }
-
-        private static void BindCategory(
-            Observable<HighlightCategorySetting> state,
-            Action<Config, HighlightCategorySetting> apply,
+        private static void BindState<TValue>(
+            Observable<TValue> state,
+            Action<Config, TValue> apply,
             bool affectsHighlightRules)
         {
             state.Subscribe((previousValue, currentValue) =>
@@ -151,7 +136,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static void SaveAndRaise(bool affectsHighlightRules)
         {
-            if (_suppressSaveAndRaise) return;
+            if (_suppressSaveAndRaise)
+            {
+                return;
+            }
 
             SettingsLoader.Save(_config);
             _changeVersion.Update(IncrementVersion);
@@ -171,7 +159,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             HighlightCategorySetting value)
         {
             HighlightCategorySetting currentValue = state.Value;
-            if (currentValue.Equals(value)) return;
+            if (currentValue.Equals(value))
+            {
+                return;
+            }
 
             state.Value = value;
         }
@@ -179,7 +170,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static void SetCategoryEnabledState(Observable<HighlightCategorySetting> state, bool isEnabled)
         {
             HighlightCategorySetting currentValue = state.Value;
-            if (currentValue.IsEnabled == isEnabled) return;
+            if (currentValue.IsEnabled == isEnabled)
+            {
+                return;
+            }
 
             state.Value = currentValue.WithEnabled(isEnabled);
         }
@@ -187,7 +181,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static void SetCategoryHueState(Observable<HighlightCategorySetting> state, float hue)
         {
             HighlightCategorySetting currentValue = state.Value;
-            if (Mathf.Approximately(currentValue.Hue, hue)) return;
+            if (Mathf.Approximately(currentValue.Hue, hue))
+            {
+                return;
+            }
 
             state.Value = currentValue.WithHue(hue);
         }
@@ -214,7 +211,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             SetCategoryHueState(state, value);
         }
 
-        private static Color GetCategoryColor(HighlightCategoryId categoryId)
+        public static Color GetCategoryColor(HighlightCategoryId categoryId)
         {
             return ColorConversion.FromHue(GetCategoryHue(categoryId), HighlightStrength);
         }
@@ -241,186 +238,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         {
             get => _highlightWidth.Value;
             set => _highlightWidth.Value = value;
-        }
-
-        public static float PedestrianPathsHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.PedestrianPaths);
-            set => SetCategoryHue(HighlightCategoryId.PedestrianPaths, value);
-        }
-
-        public static Color PedestrianPathColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.PedestrianPaths);
-            set => SetCategoryHue(HighlightCategoryId.PedestrianPaths, ColorConversion.ToHue(value));
-        }
-
-        public static float PinkPathsHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.PinkPaths);
-            set => SetCategoryHue(HighlightCategoryId.PinkPaths, value);
-        }
-
-        public static Color PinkPathColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.PinkPaths);
-            set => SetCategoryHue(HighlightCategoryId.PinkPaths, ColorConversion.ToHue(value));
-        }
-
-        public static float TerraformingNetworksHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.TerraformingNetworks);
-            set => SetCategoryHue(HighlightCategoryId.TerraformingNetworks, value);
-        }
-
-        public static Color TerraformingNetworksColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.TerraformingNetworks);
-            set => SetCategoryHue(HighlightCategoryId.TerraformingNetworks, ColorConversion.ToHue(value));
-        }
-
-        public static float RoadsHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.Roads);
-            set => SetCategoryHue(HighlightCategoryId.Roads, value);
-        }
-
-        public static Color RoadsColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.Roads);
-            set => SetCategoryHue(HighlightCategoryId.Roads, ColorConversion.ToHue(value));
-        }
-
-        public static float HighwaysHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.Highways);
-            set => SetCategoryHue(HighlightCategoryId.Highways, value);
-        }
-
-        public static Color HighwaysColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.Highways);
-            set => SetCategoryHue(HighlightCategoryId.Highways, ColorConversion.ToHue(value));
-        }
-
-        public static float TrainTracksHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.TrainTracks);
-            set => SetCategoryHue(HighlightCategoryId.TrainTracks, value);
-        }
-
-        public static Color TrainTracksColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.TrainTracks);
-            set => SetCategoryHue(HighlightCategoryId.TrainTracks, ColorConversion.ToHue(value));
-        }
-
-        public static float MetroTracksHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.MetroTracks);
-            set => SetCategoryHue(HighlightCategoryId.MetroTracks, value);
-        }
-
-        public static Color MetroTracksColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.MetroTracks);
-            set => SetCategoryHue(HighlightCategoryId.MetroTracks, ColorConversion.ToHue(value));
-        }
-
-        public static float TramTracksHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.TramTracks);
-            set => SetCategoryHue(HighlightCategoryId.TramTracks, value);
-        }
-
-        public static Color TramTracksColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.TramTracks);
-            set => SetCategoryHue(HighlightCategoryId.TramTracks, ColorConversion.ToHue(value));
-        }
-
-        public static float MonorailTracksHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.MonorailTracks);
-            set => SetCategoryHue(HighlightCategoryId.MonorailTracks, value);
-        }
-
-        public static Color MonorailTracksColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.MonorailTracks);
-            set => SetCategoryHue(HighlightCategoryId.MonorailTracks, ColorConversion.ToHue(value));
-        }
-
-        public static float CableCarsHue
-        {
-            get => GetCategoryHue(HighlightCategoryId.CableCars);
-            set => SetCategoryHue(HighlightCategoryId.CableCars, value);
-        }
-
-        public static Color CableCarColor
-        {
-            get => GetCategoryColor(HighlightCategoryId.CableCars);
-            set => SetCategoryHue(HighlightCategoryId.CableCars, ColorConversion.ToHue(value));
-        }
-
-        public static bool HighlightPedestrianPaths
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.PedestrianPaths);
-            set => SetCategoryEnabled(HighlightCategoryId.PedestrianPaths, value);
-        }
-
-        public static bool HighlightPinkPaths
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.PinkPaths);
-            set => SetCategoryEnabled(HighlightCategoryId.PinkPaths, value);
-        }
-
-        public static bool HighlightTerraformingNetworks
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.TerraformingNetworks);
-            set => SetCategoryEnabled(HighlightCategoryId.TerraformingNetworks, value);
-        }
-
-        public static bool HighlightRoads
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.Roads);
-            set => SetCategoryEnabled(HighlightCategoryId.Roads, value);
-        }
-
-        public static bool HighlightHighways
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.Highways);
-            set => SetCategoryEnabled(HighlightCategoryId.Highways, value);
-        }
-
-        public static bool HighlightTrainTracks
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.TrainTracks);
-            set => SetCategoryEnabled(HighlightCategoryId.TrainTracks, value);
-        }
-
-        public static bool HighlightMetroTracks
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.MetroTracks);
-            set => SetCategoryEnabled(HighlightCategoryId.MetroTracks, value);
-        }
-
-        public static bool HighlightTramTracks
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.TramTracks);
-            set => SetCategoryEnabled(HighlightCategoryId.TramTracks, value);
-        }
-
-        public static bool HighlightMonorailTracks
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.MonorailTracks);
-            set => SetCategoryEnabled(HighlightCategoryId.MonorailTracks, value);
-        }
-
-        public static bool HighlightCableCars
-        {
-            get => GetCategoryEnabled(HighlightCategoryId.CableCars);
-            set => SetCategoryEnabled(HighlightCategoryId.CableCars, value);
         }
 
         public static bool HighlightBridges
