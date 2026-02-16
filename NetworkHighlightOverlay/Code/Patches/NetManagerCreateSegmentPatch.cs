@@ -32,10 +32,7 @@ namespace NetworkHighlightOverlay.Code.Patches
         
         static void Postfix(ref ushort segment, NetInfo info, bool __result)
         {
-            if (!__result || info == null)
-            {
-                return;
-            }
+            if (!__result || info == null) return;
 
             NetAI ai = info.m_netAI;
             if (ai != null)

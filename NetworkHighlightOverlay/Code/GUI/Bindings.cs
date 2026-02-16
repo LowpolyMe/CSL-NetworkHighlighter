@@ -47,10 +47,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         public Color ColorValue => ColorConversion.FromHue(_categoryState.Value.Hue, _strengthState.Value);
 
-        public IDisposable Subscribe(Action callback)
-        {
-            return Subscribe(callback, false);
-        }
+        public IDisposable Subscribe(Action callback) => Subscribe(callback, false);
 
         public IDisposable Subscribe(Action callback, bool notifyImmediately)
         {

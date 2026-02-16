@@ -101,10 +101,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 return true;
             }
 
-            if (!flags.IsRoadFamily)
-            {
-                return false;
-            }
+            if (!flags.IsRoadFamily) return false;
 
             return TrySelectRoadCategory(
                 flags.IsRoadBridge,
@@ -128,20 +125,11 @@ namespace NetworkHighlightOverlay.Code.Core
             bool highlightTunnels,
             Func<HighlightCategoryId, bool> isCategoryEnabled)
         {
-            if (isCategoryEnabled == null)
-            {
-                return false;
-            }
+            if (isCategoryEnabled == null) return false;
 
-            if (isBridge && !highlightBridges)
-            {
-                return false;
-            }
+            if (isBridge && !highlightBridges) return false;
 
-            if (isTunnel && !highlightTunnels)
-            {
-                return false;
-            }
+            if (isTunnel && !highlightTunnels) return false;
 
             if (categoryId == HighlightCategoryId.PinkPaths)
             {
@@ -169,10 +157,7 @@ namespace NetworkHighlightOverlay.Code.Core
             isBridge = isRoadBridge;
             isTunnel = isRoadTunnel;
 
-            if (isCategoryEnabled == null)
-            {
-                return false;
-            }
+            if (isCategoryEnabled == null) return false;
 
             if (isPedestrianStreet)
             {
@@ -191,15 +176,9 @@ namespace NetworkHighlightOverlay.Code.Core
                 return TrySelectIfEnabled(HighlightCategoryId.PedestrianPaths, isCategoryEnabled, out categoryId);
             }
 
-            if (isHighway)
-            {
-                return TrySelectIfEnabled(HighlightCategoryId.Highways, isCategoryEnabled, out categoryId);
-            }
+            if (isHighway) return TrySelectIfEnabled(HighlightCategoryId.Highways, isCategoryEnabled, out categoryId);
 
-            if (!hasCarLanes && !hasTramOrTrolleyLanes && !hasMonorailLanes)
-            {
-                return false;
-            }
+            if (!hasCarLanes && !hasTramOrTrolleyLanes && !hasMonorailLanes) return false;
 
             if (hasTramOrTrolleyLanes &&
                 TrySelectIfEnabled(HighlightCategoryId.TramTracks, isCategoryEnabled, out categoryId))
@@ -228,10 +207,7 @@ namespace NetworkHighlightOverlay.Code.Core
             out HighlightCategoryId selectedCategoryId)
         {
             selectedCategoryId = default(HighlightCategoryId);
-            if (!isCategoryEnabled(categoryId))
-            {
-                return false;
-            }
+            if (!isCategoryEnabled(categoryId)) return false;
 
             selectedCategoryId = categoryId;
             return true;

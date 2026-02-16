@@ -123,10 +123,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             _hueSlider.eventValueChanged += OnHueSliderValueChanged;
         }
 
-        public bool IsAnchoredTo(ToggleButton button)
-        {
-            return IsOpen && _anchor == button;
-        }
+        public bool IsAnchoredTo(ToggleButton button) => IsOpen && _anchor == button;
 
         public bool ShouldCloseForCurrentMouseClick()
         {
@@ -198,19 +195,13 @@ namespace NetworkHighlightOverlay.Code.GUI
             return _hueGradientTexture;
         }
 
-        private static bool IsAnyMouseButtonHeld()
-        {
-            return Input.GetMouseButton(0) ||
-                   Input.GetMouseButton(1) ||
-                   Input.GetMouseButton(2);
-        }
+        private static bool IsAnyMouseButtonHeld() => Input.GetMouseButton(0) ||
+                                                      Input.GetMouseButton(1) ||
+                                                      Input.GetMouseButton(2);
 
-        private static bool IsAnyMouseButtonDownThisFrame()
-        {
-            return Input.GetMouseButtonDown(0) ||
-                   Input.GetMouseButtonDown(1) ||
-                   Input.GetMouseButtonDown(2);
-        }
+        private static bool IsAnyMouseButtonDownThisFrame() => Input.GetMouseButtonDown(0) ||
+                                                                Input.GetMouseButtonDown(1) ||
+                                                                Input.GetMouseButtonDown(2);
 
         private void CacheView()
         {

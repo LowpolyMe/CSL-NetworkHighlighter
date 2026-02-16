@@ -17,10 +17,7 @@ namespace NetworkHighlightOverlay.Code.UI
         {
             _toggleRequested = toggleRequested;
 
-            if (_button != null && _button.Button != null)
-            {
-                return;
-            }
+            if (_button != null && _button.Button != null) return;
 
             Texture2D iconTexture = ModResources.LoadTexture("UUIIcon.png");
             _button = UUIHelpers.RegisterCustomButton(
@@ -46,20 +43,14 @@ namespace NetworkHighlightOverlay.Code.UI
         private static void OnButtonToggled(bool isPressed)
         {
             Action<bool> toggleRequested = _toggleRequested;
-            if (toggleRequested == null)
-            {
-                return;
-            }
+            if (toggleRequested == null) return;
 
             toggleRequested(isPressed);
         }
 
         public static void SetPressed(bool isPressed)
         {
-            if (_button == null || _button.IsPressed == isPressed)
-            {
-                return;
-            }
+            if (_button == null || _button.IsPressed == isPressed) return;
 
             _button.IsPressed = isPressed;
         }

@@ -13,27 +13,15 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public bool IsEnabled { get; private set; }
         public float Hue { get; private set; }
 
-        public HighlightCategorySetting WithEnabled(bool isEnabled)
-        {
-            return new HighlightCategorySetting(isEnabled, Hue);
-        }
+        public HighlightCategorySetting WithEnabled(bool isEnabled) => new HighlightCategorySetting(isEnabled, Hue);
 
-        public HighlightCategorySetting WithHue(float hue)
-        {
-            return new HighlightCategorySetting(IsEnabled, hue);
-        }
+        public HighlightCategorySetting WithHue(float hue) => new HighlightCategorySetting(IsEnabled, hue);
 
-        public bool Equals(HighlightCategorySetting other)
-        {
-            return IsEnabled == other.IsEnabled && Hue.Equals(other.Hue);
-        }
+        public bool Equals(HighlightCategorySetting other) => IsEnabled == other.IsEnabled && Hue.Equals(other.Hue);
 
         public override bool Equals(object obj)
         {
-            if (!(obj is HighlightCategorySetting))
-            {
-                return false;
-            }
+            if (!(obj is HighlightCategorySetting)) return false;
 
             HighlightCategorySetting other = (HighlightCategorySetting)obj;
             return Equals(other);

@@ -85,10 +85,7 @@ namespace NetworkHighlightOverlay.Code.Utility
 
             object sliderObj = group.AddSlider(label, 0f, 1f, 0.01f, initialHue, onChanged);
             UISlider slider = sliderObj as UISlider;
-            if (slider == null)
-            {
-                return null;
-            }
+            if (slider == null) return null;
 
             // Remove the default grey background
             slider.backgroundSprite = string.Empty;

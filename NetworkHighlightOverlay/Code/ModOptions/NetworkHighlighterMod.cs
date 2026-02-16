@@ -1,4 +1,4 @@
-﻿using ColossalFramework.UI;
+using ColossalFramework.UI;
 using ICities;
 using NetworkHighlightOverlay.Code.Utility;
 using System;
@@ -343,15 +343,9 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private Texture2D GetTextureForSlider(SliderTextureKind textureKind)
         {
-            if (textureKind == SliderTextureKind.Value)
-            {
-                return _valueTexture;
-            }
+            if (textureKind == SliderTextureKind.Value) return _valueTexture;
 
-            if (textureKind == SliderTextureKind.Width)
-            {
-                return _widthTexture;
-            }
+            if (textureKind == SliderTextureKind.Width) return _widthTexture;
 
             return _hueTexture;
         }
@@ -406,10 +400,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             _checkboxBindings.Add(new CheckboxBinding(checkbox, getValue));
         }
 
-        private static UIHelper GetColumnHelper(int index, UIHelper leftHelper, UIHelper rightHelper)
-        {
-            return (index % 2 == 0) ? leftHelper : rightHelper;
-        }
+        private static UIHelper GetColumnHelper(int index, UIHelper leftHelper, UIHelper rightHelper) => (index % 2 == 0) ? leftHelper : rightHelper;
 
         private static UIPanel CreateRootPanel(UIComponent rootComponent)
         {
@@ -472,10 +463,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static void UpdateColorColumnsLayout(UIPanel colorsPanel, UIPanel columnsRoot,
             UIPanel leftColumn, UIPanel rightColumn)
         {
-            if (colorsPanel == null || columnsRoot == null || leftColumn == null || rightColumn == null)
-            {
-                return;
-            }
+            if (colorsPanel == null || columnsRoot == null || leftColumn == null || rightColumn == null) return;
 
             float availableWidth = Mathf.Max(0f, colorsPanel.width);
             float horizontalPadding = colorsPanel.autoLayoutPadding != null

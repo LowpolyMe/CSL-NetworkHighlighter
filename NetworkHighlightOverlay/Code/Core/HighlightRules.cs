@@ -15,16 +15,10 @@ namespace NetworkHighlightOverlay.Code.Core
             color = default(Color);
 
             NetInfo info = segment.Info;
-            if (info == null)
-            {
-                return false;
-            }
+            if (info == null) return false;
 
             NetAI ai = info.m_netAI;
-            if (ai == null)
-            {
-                return false;
-            }
+            if (ai == null) return false;
 
             HighlightCategoryId categoryId;
             bool isBridge;
@@ -85,10 +79,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 out isBridge,
                 out isTunnel);
 
-            if (!didSelect)
-            {
-                return false;
-            }
+            if (!didSelect) return false;
 
             bool isEnabled = HighlightSelection.IsCategoryEnabledForSegment(
                 categoryId,
@@ -98,10 +89,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 ModSettings.HighlightTunnels,
                 ModSettings.GetCategoryEnabled);
 
-            if (!isEnabled)
-            {
-                return false;
-            }
+            if (!isEnabled) return false;
 
             color = ModSettings.GetCategoryColor(categoryId);
             return true;
@@ -109,52 +97,31 @@ namespace NetworkHighlightOverlay.Code.Core
 
         private static bool IsPinkPath(NetInfo info, NetAI ai)
         {
-            if (info == null || ai == null)
-            {
-                return false;
-            }
+            if (info == null || ai == null) return false;
 
-            if (!(ai is PedestrianPathAI))
-            {
-                return false;
-            }
+            if (!(ai is PedestrianPathAI)) return false;
 
             return string.Equals(info.name, PinkPathNetworkName, StringComparison.Ordinal);
         }
 
         private static bool IsTerraformingNetwork(NetInfo info)
         {
-            if (info == null)
-            {
-                return false;
-            }
+            if (info == null) return false;
 
             string infoName = info.name;
-            if (string.IsNullOrEmpty(infoName))
-            {
-                return false;
-            }
+            if (string.IsNullOrEmpty(infoName)) return false;
 
-            if (infoName.IndexOf(TerraformingToken, StringComparison.OrdinalIgnoreCase) < 0)
-            {
-                return false;
-            }
+            if (infoName.IndexOf(TerraformingToken, StringComparison.OrdinalIgnoreCase) < 0) return false;
 
             return info.m_flattenTerrain;
         }
 
         private static bool IsPedestrianStreet(NetInfo info)
         {
-            if (info == null || info.m_class == null)
-            {
-                return false;
-            }
+            if (info == null || info.m_class == null) return false;
 
             string className = info.m_class.name;
-            if (string.IsNullOrEmpty(className))
-            {
-                return false;
-            }
+            if (string.IsNullOrEmpty(className)) return false;
 
             return string.Equals(className, PedestrianStreetClassName, StringComparison.Ordinal);
         }
@@ -162,20 +129,14 @@ namespace NetworkHighlightOverlay.Code.Core
         private static bool IsHighway(NetInfo info)
         {
             NetAI ai = info == null ? null : info.m_netAI;
-            if (ai == null)
-            {
-                return false;
-            }
+            if (ai == null) return false;
 
             return ai.IsHighway();
         }
 
         private static VehicleInfo.VehicleType GetLaneVehicleTypes(NetInfo info)
         {
-            if (info == null || info.m_lanes == null)
-            {
-                return VehicleInfo.VehicleType.None;
-            }
+            if (info == null || info.m_lanes == null) return VehicleInfo.VehicleType.None;
 
             VehicleInfo.VehicleType laneVehicleTypes = VehicleInfo.VehicleType.None;
             foreach (NetInfo.Lane lane in info.m_lanes)

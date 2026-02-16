@@ -48,10 +48,7 @@ namespace NetworkHighlightOverlay.Code.Utility
                         {
                             if (asm == thisAssembly)
                             {
-                                if (!string.IsNullOrEmpty(plugin.modPath))
-                                {
-                                    return plugin.modPath;
-                                }
+                                if (!string.IsNullOrEmpty(plugin.modPath)) return plugin.modPath;
                             }
                         }
                     }
@@ -64,10 +61,7 @@ namespace NetworkHighlightOverlay.Code.Utility
 
             // Fallback 1: assembly location
             string asmLocation = typeof(ModResources).Assembly.Location;
-            if (!string.IsNullOrEmpty(asmLocation))
-            {
-                return Path.GetDirectoryName(asmLocation);
-            }
+            if (!string.IsNullOrEmpty(asmLocation)) return Path.GetDirectoryName(asmLocation);
 
             // Fallback 2: current directory (last resort)
             Debug.LogWarning("[NetworkHighlightOverlay] Assembly location is empty, using Environment.CurrentDirectory as fallback.");

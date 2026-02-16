@@ -40,10 +40,7 @@ namespace NetworkHighlightOverlay.Code.Patches
             return true;
         }
 
-        static MethodBase TargetMethod()
-        {
-            return _target;
-        }
+        static MethodBase TargetMethod() => _target;
 
         // Use prefix so MoveIt highlights still render above this overlay.
         static void Prefix(RenderManager.CameraInfo cameraInfo)

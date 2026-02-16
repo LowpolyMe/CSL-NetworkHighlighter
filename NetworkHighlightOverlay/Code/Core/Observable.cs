@@ -80,10 +80,7 @@ namespace NetworkHighlightOverlay.Code.Core
             }
         }
 
-        public IDisposable Subscribe(Action<T, T> callback)
-        {
-            return Subscribe(callback, false);
-        }
+        public IDisposable Subscribe(Action<T, T> callback) => Subscribe(callback, false);
 
         public IDisposable Subscribe(Action<T, T> callback, bool notifyImmediately)
         {
@@ -118,17 +115,11 @@ namespace NetworkHighlightOverlay.Code.Core
             }
         }
 
-        private static bool AreEqualByDefault(T left, T right)
-        {
-            return EqualityComparer<T>.Default.Equals(left, right);
-        }
+        private static bool AreEqualByDefault(T left, T right) => EqualityComparer<T>.Default.Equals(left, right);
 
         private static Func<T, T, bool> CreateEquality()
         {
-            if (typeof(T) == typeof(float))
-            {
-                return AreEqualAsFloat;
-            }
+            if (typeof(T) == typeof(float)) return AreEqualAsFloat;
 
             return AreEqualByDefault;
         }

@@ -39,10 +39,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         public static Observable<bool> UseUuiButtonState => _useUuiButton;
         public static SavedInputKey ToggleOverlayHotkey => _toggleOverlayHotkey;
 
-        public static Observable<HighlightCategorySetting> GetCategoryState(HighlightCategoryId categoryId)
-        {
-            return _categoryStates[categoryId];
-        }
+        public static Observable<HighlightCategorySetting> GetCategoryState(HighlightCategoryId categoryId) => _categoryStates[categoryId];
 
         static ModSettings()
         {
@@ -89,10 +86,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static void EnsureKeybindingsSettingsFile()
         {
-            if (GameSettings.FindSettingsFileByName(KeybindingsFileName) != null)
-            {
-                return;
-            }
+            if (GameSettings.FindSettingsFileByName(KeybindingsFileName) != null) return;
 
             SettingsFile keybindingsFile = new SettingsFile { fileName = KeybindingsFileName };
             GameSettings.AddSettingsFile(new SettingsFile[] { keybindingsFile });
@@ -136,10 +130,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static void SaveAndRaise(bool affectsHighlightRules)
         {
-            if (_suppressSaveAndRaise)
-            {
-                return;
-            }
+            if (_suppressSaveAndRaise) return;
 
             SettingsLoader.Save(_config);
             _changeVersion.Update(IncrementVersion);
@@ -149,20 +140,14 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private static long IncrementVersion(long version)
-        {
-            return version == long.MaxValue ? 0L : version + 1L;
-        }
+        private static long IncrementVersion(long version) => version == long.MaxValue ? 0L : version + 1L;
 
         private static void SetCategory(
             Observable<HighlightCategorySetting> state,
             HighlightCategorySetting value)
         {
             HighlightCategorySetting currentValue = state.Value;
-            if (currentValue.Equals(value))
-            {
-                return;
-            }
+            if (currentValue.Equals(value)) return;
 
             state.Value = value;
         }
@@ -170,10 +155,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static void SetCategoryEnabledState(Observable<HighlightCategorySetting> state, bool isEnabled)
         {
             HighlightCategorySetting currentValue = state.Value;
-            if (currentValue.IsEnabled == isEnabled)
-            {
-                return;
-            }
+            if (currentValue.IsEnabled == isEnabled) return;
 
             state.Value = currentValue.WithEnabled(isEnabled);
         }
@@ -181,18 +163,12 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static void SetCategoryHueState(Observable<HighlightCategorySetting> state, float hue)
         {
             HighlightCategorySetting currentValue = state.Value;
-            if (Mathf.Approximately(currentValue.Hue, hue))
-            {
-                return;
-            }
+            if (Mathf.Approximately(currentValue.Hue, hue)) return;
 
             state.Value = currentValue.WithHue(hue);
         }
 
-        public static bool GetCategoryEnabled(HighlightCategoryId categoryId)
-        {
-            return _categoryStates[categoryId].Value.IsEnabled;
-        }
+        public static bool GetCategoryEnabled(HighlightCategoryId categoryId) => _categoryStates[categoryId].Value.IsEnabled;
 
         public static void SetCategoryEnabled(HighlightCategoryId categoryId, bool value)
         {
@@ -200,10 +176,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             SetCategoryEnabledState(state, value);
         }
 
-        public static float GetCategoryHue(HighlightCategoryId categoryId)
-        {
-            return _categoryStates[categoryId].Value.Hue;
-        }
+        public static float GetCategoryHue(HighlightCategoryId categoryId) => _categoryStates[categoryId].Value.Hue;
 
         public static void SetCategoryHue(HighlightCategoryId categoryId, float value)
         {
@@ -211,10 +184,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             SetCategoryHueState(state, value);
         }
 
-        public static Color GetCategoryColor(HighlightCategoryId categoryId)
-        {
-            return ColorConversion.FromHue(GetCategoryHue(categoryId), HighlightStrength);
-        }
+        public static Color GetCategoryColor(HighlightCategoryId categoryId) => ColorConversion.FromHue(GetCategoryHue(categoryId), HighlightStrength);
 
         public static float PanelX
         {

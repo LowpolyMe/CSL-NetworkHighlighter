@@ -15,10 +15,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public static bool IsActive => _isActive.Value;
 
-        public static IDisposable Subscribe(Action<bool, bool> callback)
-        {
-            return _isActive.Subscribe(callback, true);
-        }
+        public static IDisposable Subscribe(Action<bool, bool> callback) => _isActive.Subscribe(callback, true);
 
         public static void SetActive(bool isActive)
         {
@@ -46,10 +43,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         private void Update()
         {
-            if (!ModSettings.ToggleOverlayHotkey.IsKeyUp())
-            {
-                return;
-            }
+            if (!ModSettings.ToggleOverlayHotkey.IsKeyUp()) return;
 
             SetActive(!IsActive);
         }
@@ -80,10 +74,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         private static void SyncUuiPressedState(bool isActive)
         {
-            if (!ModSettings.UseUuiButton)
-            {
-                return;
-            }
+            if (!ModSettings.UseUuiButton) return;
 
             UuiButtonController.SetPressed(isActive);
         }

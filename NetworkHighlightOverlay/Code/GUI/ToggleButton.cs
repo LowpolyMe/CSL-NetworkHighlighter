@@ -53,10 +53,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         protected override void OnMouseDown(UIMouseEventParameter p)
         {
-            if (TryHandleHueEditMouseDown(p))
-            {
-                return;
-            }
+            if (TryHandleHueEditMouseDown(p)) return;
 
             base.OnMouseDown(p);
         }
