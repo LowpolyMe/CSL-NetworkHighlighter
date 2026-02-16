@@ -1,6 +1,7 @@
 using System;
 using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.UI;
+using NetworkHighlightOverlay.Utility;
 using UnifiedUI.Util;
 using UnityEngine;
 

@@ -77,7 +77,6 @@
         <Compile Include="Code\Core\HighlightRules.cs" />
         <Compile Include="Code\Core\HighlightSelection.cs" />
         <Compile Include="Code\Core\Manager.cs" />
-        <Compile Include="Code\Core\Observable.cs" />
         <Compile Include="Code\Core\OverlayRenderer.cs" />
         <Compile Include="Code\GUI\Bindings.cs" />
         <Compile Include="Code\GUI\DragHandle.cs" />
@@ -100,6 +99,7 @@
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
+        <Compile Include="Code\Utility\Observable.cs" />
         <Compile Include="Code\Utility\SpriteAtlasExtractor.cs" />
         <Compile Include="Code\Utility\UIUtility.cs" />
         <Compile Include="Code\UUIImplementation\UUIButtonController.cs" />

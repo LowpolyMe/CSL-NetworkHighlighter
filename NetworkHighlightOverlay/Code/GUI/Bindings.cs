@@ -2,6 +2,7 @@ using System;
 using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.Utility;
+using NetworkHighlightOverlay.Utility;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI

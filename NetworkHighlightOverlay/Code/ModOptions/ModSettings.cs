@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ColossalFramework;
 using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.Utility;
+using NetworkHighlightOverlay.Utility;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.ModOptions
