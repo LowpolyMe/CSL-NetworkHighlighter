@@ -63,10 +63,5 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        public static void Reset()
-        {
-            Config config = new Config();
-            Save(config);
-        }
     }
 }

@@ -45,11 +45,12 @@ namespace NetworkHighlightOverlay.Code.Core
 
             if (isRoadFamily)
             {
+                VehicleInfo.VehicleType laneVehicleTypes = GetLaneVehicleTypes(info);
                 isPedestrianStreet = IsPedestrianStreet(info);
                 isHighway = IsHighway(info);
-                hasTramOrTrolleyLanes = HasLaneVehicleTypes(info, TramLikeMask);
-                hasMonorailLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Monorail);
-                hasCarLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Car);
+                hasTramOrTrolleyLanes = (laneVehicleTypes & TramLikeMask) != 0;
+                hasMonorailLanes = (laneVehicleTypes & VehicleInfo.VehicleType.Monorail) != 0;
+                hasCarLanes = (laneVehicleTypes & VehicleInfo.VehicleType.Car) != 0;
             }
 
             HighlightSelection.SegmentFlags flags = new HighlightSelection.SegmentFlags
@@ -168,22 +169,20 @@ namespace NetworkHighlightOverlay.Code.Core
             return ai.IsHighway();
         }
 
-        private static bool HasLaneVehicleTypes(NetInfo info, VehicleInfo.VehicleType mask)
+        private static VehicleInfo.VehicleType GetLaneVehicleTypes(NetInfo info)
         {
             if (info == null || info.m_lanes == null)
             {
-                return false;
+                return VehicleInfo.VehicleType.None;
             }
 
+            VehicleInfo.VehicleType laneVehicleTypes = VehicleInfo.VehicleType.None;
             foreach (NetInfo.Lane lane in info.m_lanes)
             {
-                if ((lane.m_vehicleType & mask) != 0)
-                {
-                    return true;
-                }
+                laneVehicleTypes |= lane.m_vehicleType;
             }
 
-            return false;
+            return laneVehicleTypes;
         }
     }
 }

@@ -17,24 +17,6 @@ namespace NetworkHighlightOverlay.Code.Core
             _value = initialValue;
         }
 
-        public event Action<T, T> ValueChanged
-        {
-            add
-            {
-                lock (_sync)
-                {
-                    _valueChanged += value;
-                }
-            }
-            remove
-            {
-                lock (_sync)
-                {
-                    _valueChanged -= value;
-                }
-            }
-        }
-
         public T Value
         {
             get
@@ -126,19 +108,6 @@ namespace NetworkHighlightOverlay.Code.Core
             }
 
             return new Subscription(this, callback);
-        }
-
-        public void ForceNotify()
-        {
-            T currentValue;
-            Action<T, T> callbacks;
-            lock (_sync)
-            {
-                currentValue = _value;
-                callbacks = _valueChanged;
-            }
-
-            InvokeCallbacks(callbacks, currentValue, currentValue);
         }
 
         private static void InvokeCallbacks(Action<T, T> callbacks, T oldValue, T newValue)

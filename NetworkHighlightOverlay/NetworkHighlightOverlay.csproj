@@ -89,6 +89,7 @@
         <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\Patches\MoveItRenderOverlayPatch.cs" />
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
+        <Compile Include="Code\Patches\NetManagerReleaseSegmentPatch.cs" />
         <Compile Include="Code\Patches\ToolRenderOverlayPatch.cs" />
         <Compile Include="Code\ModOptions\Config.cs" />
         <Compile Include="Code\ModOptions\HighlightCategoryCatalog.cs" />

@@ -10,7 +10,6 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
     {
         private GameObject _controllerObject;
         private Harmony _harmony;
-        private static bool _patched;
         
         private const string HarmonyId = "com.lowpolyme.NetworkHighlightOverlay";
 
@@ -45,13 +44,11 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
 
         private void PatchHarmony()
         {
-            if (_patched)
+            if (_harmony != null)
                 return;
             
             _harmony = new Harmony(HarmonyId);
             _harmony.PatchAll();
-
-            _patched = true;
         }
 
         private void UnpatchHarmony()
@@ -61,8 +58,6 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
                 _harmony.UnpatchAll(HarmonyId);
                 _harmony = null;
             }
-
-            _patched = false;
         }
 
         private void CreateRendererObject()

@@ -93,17 +93,5 @@ namespace NetworkHighlightOverlay.Code.Utility
             tex.wrapMode = TextureWrapMode.Clamp;
             return tex;
         }
-
-        public static string LoadTextFile(string fileName)
-        {
-            string fullPath = Path.Combine(ResourcesPath, fileName);
-            return File.Exists(fullPath) ? File.ReadAllText(fullPath) : null;
-        }
-
-        public static byte[] LoadRawFile(string fileName)
-        {
-            string fullPath = Path.Combine(ResourcesPath, fileName);
-            return File.Exists(fullPath) ? File.ReadAllBytes(fullPath) : null;
-        }
     }
 }

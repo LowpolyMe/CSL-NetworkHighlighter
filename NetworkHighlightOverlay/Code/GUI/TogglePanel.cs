@@ -23,7 +23,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private UIView _view;
         private DragHandle _dragHandle;
-        private UILabel _headerLabel;
         private HuePopover _huePopover;
         #endregion
 
@@ -104,7 +103,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             UnsubscribeFromDragHandleEvents();
             _dragHandle = null;
-            _headerLabel = null;
 
             DestroyHuePopover();
             base.OnDestroy();
@@ -160,18 +158,18 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (_dragHandle == null)
                 return;
 
-            _headerLabel = _dragHandle.AddUIComponent<UILabel>();
-            _headerLabel.name = "NHO_TogglePanelHeaderLabel";
-            _headerLabel.anchor = UIAnchorStyle.CenterHorizontal | UIAnchorStyle.CenterVertical;
-            _headerLabel.width = _dragHandle.width;
-            _headerLabel.height = _dragHandle.height;
-            _headerLabel.relativePosition = Vector3.zero;
-            _headerLabel.text = HeaderText;
-            _headerLabel.autoSize = false;
-            _headerLabel.textAlignment = UIHorizontalAlignment.Center;
-            _headerLabel.verticalAlignment = UIVerticalAlignment.Middle;
-            _headerLabel.textScale = 0.8f;
-            _headerLabel.isInteractive = false;
+            UILabel headerLabel = _dragHandle.AddUIComponent<UILabel>();
+            headerLabel.name = "NHO_TogglePanelHeaderLabel";
+            headerLabel.anchor = UIAnchorStyle.CenterHorizontal | UIAnchorStyle.CenterVertical;
+            headerLabel.width = _dragHandle.width;
+            headerLabel.height = _dragHandle.height;
+            headerLabel.relativePosition = Vector3.zero;
+            headerLabel.text = HeaderText;
+            headerLabel.autoSize = false;
+            headerLabel.textAlignment = UIHorizontalAlignment.Center;
+            headerLabel.verticalAlignment = UIVerticalAlignment.Middle;
+            headerLabel.textScale = 0.8f;
+            headerLabel.isInteractive = false;
         }
 
         private void SubscribeToDragHandleEvents()

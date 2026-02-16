@@ -1,4 +1,4 @@
-using ColossalFramework.UI;
+﻿using ColossalFramework.UI;
 using ICities;
 using NetworkHighlightOverlay.Code.Utility;
 using System;
@@ -64,13 +64,13 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         {
             new ScalarSliderDefinition(
                 "Highlight Strength",
-                GetHighlightStrength,
-                SetHighlightStrength,
+                () => ModSettings.HighlightStrength,
+                value => ModSettings.HighlightStrength = value,
                 SliderTextureKind.Value),
             new ScalarSliderDefinition(
                 "Highlight Thickness",
-                GetHighlightWidth,
-                SetHighlightWidth,
+                () => ModSettings.HighlightWidth,
+                value => ModSettings.HighlightWidth = value,
                 SliderTextureKind.Width)
         };
 
@@ -106,7 +106,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     (helper != null ? helper.GetType().FullName : "null") +
                     ". Falling back to simple (non-tabbed) settings UI.");
 
-                //BuildSimpleSettings(helper);   //todo fallback – no tabs, just groups
+                // BuildSimpleSettings(helper); // fallback: no tabs, just groups
                 return;
             }
 
@@ -404,26 +404,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 return;
 
             _checkboxBindings.Add(new CheckboxBinding(checkbox, getValue));
-        }
-
-        private static float GetHighlightStrength()
-        {
-            return ModSettings.HighlightStrength;
-        }
-
-        private static void SetHighlightStrength(float value)
-        {
-            ModSettings.HighlightStrength = value;
-        }
-
-        private static float GetHighlightWidth()
-        {
-            return ModSettings.HighlightWidth;
-        }
-
-        private static void SetHighlightWidth(float value)
-        {
-            ModSettings.HighlightWidth = value;
         }
 
         private static UIHelper GetColumnHelper(int index, UIHelper leftHelper, UIHelper rightHelper)

@@ -161,7 +161,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             _view = UIView.GetAView();
         }
 
-        private struct ToggleButtonVisual
+        private static class ToggleButtonVisual
         {
             private static readonly Vector2 IconSize = new Vector2(30f, 30f);
 
