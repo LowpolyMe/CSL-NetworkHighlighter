@@ -34,6 +34,24 @@ namespace NetworkHighlightOverlay.Code.Core
                 VehicleInfo.VehicleType.Tram |
                 VehicleInfo.VehicleType.Trolleybus;
 
+            bool isRoadFamily = ai is RoadAI || ai is RoadBridgeAI || ai is RoadTunnelAI;
+            bool isRoadBridge = ai is RoadBridgeAI;
+            bool isRoadTunnel = ai is RoadTunnelAI;
+            bool isPedestrianStreet = false;
+            bool isHighway = false;
+            bool hasTramOrTrolleyLanes = false;
+            bool hasMonorailLanes = false;
+            bool hasCarLanes = false;
+
+            if (isRoadFamily)
+            {
+                isPedestrianStreet = IsPedestrianStreet(info);
+                isHighway = IsHighway(info);
+                hasTramOrTrolleyLanes = HasLaneVehicleTypes(info, TramLikeMask);
+                hasMonorailLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Monorail);
+                hasCarLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Car);
+            }
+
             HighlightSelection.SegmentFlags flags = new HighlightSelection.SegmentFlags
             {
                 IsPinkPath = IsPinkPath(info, ai),
@@ -49,14 +67,14 @@ namespace NetworkHighlightOverlay.Code.Core
                 IsMetroTunnel = ai is MetroTrackTunnelAI,
                 IsMonorailTrack = ai is MonorailTrackAI,
                 IsCableCarPath = ai is CableCarPathAI,
-                IsRoadFamily = ai is RoadAI || ai is RoadBridgeAI || ai is RoadTunnelAI,
-                IsRoadBridge = ai is RoadBridgeAI,
-                IsRoadTunnel = ai is RoadTunnelAI,
-                IsPedestrianStreet = IsPedestrianStreet(info),
-                IsHighway = IsHighway(info),
-                HasTramOrTrolleyLanes = HasLaneVehicleTypes(info, TramLikeMask),
-                HasMonorailLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Monorail),
-                HasCarLanes = HasLaneVehicleTypes(info, VehicleInfo.VehicleType.Car)
+                IsRoadFamily = isRoadFamily,
+                IsRoadBridge = isRoadBridge,
+                IsRoadTunnel = isRoadTunnel,
+                IsPedestrianStreet = isPedestrianStreet,
+                IsHighway = isHighway,
+                HasTramOrTrolleyLanes = hasTramOrTrolleyLanes,
+                HasMonorailLanes = hasMonorailLanes,
+                HasCarLanes = hasCarLanes
             };
 
             bool didSelect = HighlightSelection.TrySelectCategory(
