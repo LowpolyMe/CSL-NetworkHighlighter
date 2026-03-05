@@ -8,53 +8,39 @@ namespace NetworkHighlightOverlay.Code.GUI
 {
     public class TogglePanel : UIPanel
     {
-        #region Constants
         private const int Columns = 5;
         private const float ButtonSize = 40f;
         private const float Spacing = 4f;
         private const float Padding = 2f;
         private const float DragHandleHeight = 18f;
         private const string HeaderText = "Network Highlighter";
-        #endregion
 
-        #region Fields
-        private static TogglePanel _instance;
-        private static IDisposable _enabledStateSubscription;
-
+        private ModSettings _settings;
+        private ActivationHandler _activationHandler;
+        private ToggleButtonAtlas _toggleButtonAtlas;
+        private IDisposable _enabledStateSubscription;
         private UIView _view;
         private DragHandle _dragHandle;
         private HuePopover _huePopover;
-        #endregion
 
-        public static void Create()
+        public void Initialize(ModSettings settings, ActivationHandler activationHandler, ToggleButtonAtlas toggleButtonAtlas)
         {
-            if (_instance != null)
-                return;
+            if (settings == null)
+                throw new ArgumentNullException("settings");
 
-            UIView view = UIView.GetAView();
-            if (view == null)
-                return;
+            if (activationHandler == null)
+                throw new ArgumentNullException("activationHandler");
 
-            TogglePanel panel = view.AddUIComponent(typeof(TogglePanel)) as TogglePanel;
-            if (panel == null)
-                return;
+            if (toggleButtonAtlas == null)
+                throw new ArgumentNullException("toggleButtonAtlas");
 
-            panel.isVisible = false;
-            _instance = panel;
+            _settings = settings;
+            _activationHandler = activationHandler;
+            _toggleButtonAtlas = toggleButtonAtlas;
 
             DisposeEnabledStateSubscription();
-            _enabledStateSubscription = ActivationHandler.Subscribe(OnEnabledStateChanged);
-        }
-
-        public static void Destroy()
-        {
-            DisposeEnabledStateSubscription();
-
-            if (_instance == null)
-                return;
-
-            UnityEngine.Object.Destroy(_instance.gameObject);
-            _instance = null;
+            _enabledStateSubscription = _activationHandler.Subscribe(OnEnabledStateChanged);
+            isVisible = _activationHandler.IsActive;
         }
 
         public override void Awake()
@@ -76,6 +62,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         public override void Start()
         {
             base.Start();
+            EnsureInitialized();
             _view = UIView.GetAView();
             CreateDragHandle();
             CreateHuePopover();
@@ -95,11 +82,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         public override void OnDestroy()
         {
-            if (_instance == this)
-            {
-                DisposeEnabledStateSubscription();
-                _instance = null;
-            }
+            DisposeEnabledStateSubscription();
 
             UnsubscribeFromDragHandleEvents();
             _dragHandle = null;
@@ -116,20 +99,17 @@ namespace NetworkHighlightOverlay.Code.GUI
             }
         }
 
-        private static void OnEnabledStateChanged(bool previousState, bool isEnabled)
+        private void OnEnabledStateChanged(bool previousState, bool isEnabled)
         {
-            if (_instance == null)
-                return;
-
             if (!isEnabled)
             {
-                _instance.CloseHuePopover();
+                CloseHuePopover();
             }
 
-            _instance.isVisible = isEnabled;
+            isVisible = isEnabled;
         }
 
-        private static void DisposeEnabledStateSubscription()
+        private void DisposeEnabledStateSubscription()
         {
             if (_enabledStateSubscription == null)
                 return;
@@ -221,8 +201,8 @@ namespace NetworkHighlightOverlay.Code.GUI
 
                 HighlightCategoryDefinition categoryDefinition = categoryDefinitions[index];
                 ToggleBinding binding = new ToggleBinding(
-                    ModSettings.GetCategoryState(categoryDefinition.Id),
-                    ModSettings.HighlightStrengthState);
+                    _settings.GetCategoryState(categoryDefinition.Id),
+                    _settings.HighlightStrengthState);
 
                 ToggleButton button = AddUIComponent<ToggleButton>();
                 button.width = ButtonSize;
@@ -234,6 +214,7 @@ namespace NetworkHighlightOverlay.Code.GUI
                     categoryDefinition.SpriteName,
                     binding,
                     categoryDefinition.ToggleLabel,
+                    _toggleButtonAtlas,
                     OnButtonHueEditRequested);
             }
         }
@@ -259,9 +240,9 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             Vector2 panelSize = size;
             Vector2 target;
-            if (ModSettings.PanelX >= 0f && ModSettings.PanelY >= 0f)
+            if (_settings.PanelX >= 0f && _settings.PanelY >= 0f)
             {
-                target = new Vector2(ModSettings.PanelX, ModSettings.PanelY);
+                target = new Vector2(_settings.PanelX, _settings.PanelY);
             }
             else
             {
@@ -270,8 +251,8 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             Vector2 clamped = ClampToScreen(_view, target, panelSize);
             absolutePosition = new Vector3(clamped.x, clamped.y);
-            ModSettings.PanelX = clamped.x;
-            ModSettings.PanelY = clamped.y;
+            _settings.PanelX = clamped.x;
+            _settings.PanelY = clamped.y;
         }
 
         private void OnDragHandleMouseDown(UIComponent component, UIMouseEventParameter eventParam)
@@ -301,8 +282,8 @@ namespace NetworkHighlightOverlay.Code.GUI
                 absolutePosition = new Vector3(clamped.x, clamped.y);
             }
 
-            ModSettings.PanelX = clamped.x;
-            ModSettings.PanelY = clamped.y;
+            _settings.PanelX = clamped.x;
+            _settings.PanelY = clamped.y;
         }
 
         private static Vector2 CenterPosition(UIView view, Vector2 panelSize)
@@ -327,6 +308,12 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return 0;
 
             return (toggleCount + Columns - 1) / Columns;
+        }
+
+        private void EnsureInitialized()
+        {
+            if (_settings == null || _activationHandler == null || _toggleButtonAtlas == null)
+                throw new InvalidOperationException("TogglePanel must be initialized before Start.");
         }
     }
 }

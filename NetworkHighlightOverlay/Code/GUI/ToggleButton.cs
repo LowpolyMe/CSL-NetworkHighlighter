@@ -9,6 +9,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         #region Fields
         private UIView _view;
         private ToggleBinding _binding;
+        private ToggleButtonAtlas _toggleButtonAtlas;
         private string _spriteName;
         private IDisposable _bindingSubscription;
         private Action<ToggleButton, ToggleBinding> _onHueEditRequested;
@@ -19,12 +20,17 @@ namespace NetworkHighlightOverlay.Code.GUI
             string spriteName,
             ToggleBinding binding,
             string toggleTooltip,
+            ToggleButtonAtlas toggleButtonAtlas,
             Action<ToggleButton, ToggleBinding> onHueEditRequested)
         {
             name = "NHO_ToggleButton_" + toggleTooltip.Replace(' ', '_');
             text = string.Empty;
             this.tooltip = toggleTooltip;
             _binding = binding;
+            if (toggleButtonAtlas == null)
+                throw new ArgumentNullException("toggleButtonAtlas");
+
+            _toggleButtonAtlas = toggleButtonAtlas;
             _spriteName = spriteName;
             _onHueEditRequested = onHueEditRequested;
             playAudioEvents = true;
@@ -71,7 +77,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (_view == null)
                 return;
 
-            atlas = ToggleButtonAtlas.GetOrCreate();
+            atlas = _toggleButtonAtlas.GetOrCreate();
             ToggleButtonVisual.ApplyBackgroundSprites(this);
             _icon = ToggleButtonVisual.EnsureIcon(this, _icon, _view.defaultAtlas, _spriteName);
         }

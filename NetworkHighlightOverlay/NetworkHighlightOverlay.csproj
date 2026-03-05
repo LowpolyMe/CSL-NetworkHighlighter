@@ -95,8 +95,11 @@
         <Compile Include="Code\ModOptions\HighlightCategoryDefinition.cs" />
         <Compile Include="Code\ModOptions\HighlightCategoryId.cs" />
         <Compile Include="Code\ModOptions\HighlightCategorySetting.cs" />
+        <Compile Include="Code\ModOptions\ModCompositionRoot.cs" />
         <Compile Include="Code\ModOptions\NetworkHighlighterMod.cs" />
+        <Compile Include="Code\ModOptions\ModSettingsProvider.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
+        <Compile Include="Code\Patches\PatchTargets.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
         <Compile Include="Code\Utility\Observable.cs" />

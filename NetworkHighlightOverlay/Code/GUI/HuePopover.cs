@@ -13,7 +13,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         private const float SliderPadding = 10f;
         private const float PopoverOffset = 6f;
 
-        private static Texture2D _hueGradientTexture;
+        private Texture2D _hueGradientTexture;
         #endregion
 
         #region Fields
@@ -54,6 +54,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             {
                 _hueSlider.eventValueChanged -= OnHueSliderValueChanged;
                 _hueSlider = null;
+            }
+
+            if (_hueGradientTexture != null)
+            {
+                UnityEngine.Object.Destroy(_hueGradientTexture);
+                _hueGradientTexture = null;
             }
 
             base.OnDestroy();
@@ -185,7 +191,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             _binding.HueValue = Mathf.Clamp01(value);
         }
 
-        private static Texture2D GetHueGradientTexture()
+        private Texture2D GetHueGradientTexture()
         {
             if (_hueGradientTexture == null)
             {

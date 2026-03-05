@@ -1,48 +1,47 @@
 using System;
 using System.Collections.Generic;
 using ColossalFramework;
-using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.Utility;
 using NetworkHighlightOverlay.Utility;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.ModOptions
 {
-    public static class ModSettings
+    public sealed class ModSettings
     {
         private const string KeybindingsFileName = "NetworkHighlightOverlay_Keybindings";
         private const string ToggleOverlayHotkeyName = "NetworkHighlightOverlay_ToggleOverlay";
 
-        private static readonly Config _config;
-        private static readonly SavedInputKey _toggleOverlayHotkey;
+        private readonly Config _config;
+        private readonly SavedInputKey _toggleOverlayHotkey;
 
-        private static readonly Observable<long> _changeVersion = new Observable<long>(0L);
-        private static readonly Observable<long> _highlightRulesVersion = new Observable<long>(0L);
+        private readonly Observable<long> _changeVersion = new Observable<long>(0L);
+        private readonly Observable<long> _highlightRulesVersion = new Observable<long>(0L);
 
-        private static readonly Observable<float> _panelX;
-        private static readonly Observable<float> _panelY;
+        private readonly Observable<float> _panelX;
+        private readonly Observable<float> _panelY;
 
-        private static readonly Observable<float> _highlightStrength;
-        private static readonly Observable<float> _highlightWidth;
+        private readonly Observable<float> _highlightStrength;
+        private readonly Observable<float> _highlightWidth;
 
-        private static readonly Observable<bool> _highlightBridges;
-        private static readonly Observable<bool> _highlightTunnels;
-        private static readonly Observable<bool> _useUuiButton;
+        private readonly Observable<bool> _highlightBridges;
+        private readonly Observable<bool> _highlightTunnels;
+        private readonly Observable<bool> _useUuiButton;
 
-        private static readonly Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>> _categoryStates =
+        private readonly Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>> _categoryStates =
             new Dictionary<HighlightCategoryId, Observable<HighlightCategorySetting>>();
 
-        private static bool _suppressSaveAndRaise;
+        private bool _suppressSaveAndRaise;
 
-        public static Observable<long> ChangeVersion => _changeVersion;
-        public static Observable<long> HighlightRulesVersion => _highlightRulesVersion;
-        public static Observable<float> HighlightStrengthState => _highlightStrength;
-        public static Observable<bool> UseUuiButtonState => _useUuiButton;
-        public static SavedInputKey ToggleOverlayHotkey => _toggleOverlayHotkey;
+        public Observable<long> ChangeVersion => _changeVersion;
+        public Observable<long> HighlightRulesVersion => _highlightRulesVersion;
+        public Observable<float> HighlightStrengthState => _highlightStrength;
+        public Observable<bool> UseUuiButtonState => _useUuiButton;
+        public SavedInputKey ToggleOverlayHotkey => _toggleOverlayHotkey;
 
-        public static Observable<HighlightCategorySetting> GetCategoryState(HighlightCategoryId categoryId) => _categoryStates[categoryId];
+        public Observable<HighlightCategorySetting> GetCategoryState(HighlightCategoryId categoryId) => _categoryStates[categoryId];
 
-        static ModSettings()
+        public ModSettings()
         {
             EnsureKeybindingsSettingsFile();
             _toggleOverlayHotkey = new SavedInputKey(
@@ -70,7 +69,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             SubscribeToStateChanges();
         }
 
-        private static void SubscribeToStateChanges()
+        private void SubscribeToStateChanges()
         {
             BindState(_panelX, (config, value) => config.PanelX = value, false);
             BindState(_panelY, (config, value) => config.PanelY = value, false);
@@ -85,7 +84,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             BindState(_useUuiButton, (config, value) => config.UseUuiButton = value, false);
         }
 
-        private static void EnsureKeybindingsSettingsFile()
+        private void EnsureKeybindingsSettingsFile()
         {
             if (GameSettings.FindSettingsFileByName(KeybindingsFileName) != null) return;
 
@@ -93,7 +92,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             GameSettings.AddSettingsFile(new SettingsFile[] { keybindingsFile });
         }
 
-        private static void InitializeCategoryStates()
+        private void InitializeCategoryStates()
         {
             HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
             int categoryCount = categoryDefinitions.Length;
@@ -105,7 +104,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private static void BindAllCategoryStates()
+        private void BindAllCategoryStates()
         {
             HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
             int categoryCount = categoryDefinitions.Length;
@@ -117,7 +116,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private static void BindState<TValue>(
+        private void BindState<TValue>(
             Observable<TValue> state,
             Action<Config, TValue> apply,
             bool affectsHighlightRules)
@@ -129,7 +128,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             });
         }
 
-        private static void SaveAndRaise(bool affectsHighlightRules)
+        private void SaveAndRaise(bool affectsHighlightRules)
         {
             if (_suppressSaveAndRaise) return;
 
@@ -141,9 +140,9 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private static long IncrementVersion(long version) => version == long.MaxValue ? 0L : version + 1L;
+        private long IncrementVersion(long version) => version == long.MaxValue ? 0L : version + 1L;
 
-        private static void SetCategory(
+        private void SetCategory(
             Observable<HighlightCategorySetting> state,
             HighlightCategorySetting value)
         {
@@ -153,7 +152,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             state.Value = value;
         }
 
-        private static void SetCategoryEnabledState(Observable<HighlightCategorySetting> state, bool isEnabled)
+        private void SetCategoryEnabledState(Observable<HighlightCategorySetting> state, bool isEnabled)
         {
             HighlightCategorySetting currentValue = state.Value;
             if (currentValue.IsEnabled == isEnabled) return;
@@ -161,7 +160,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             state.Value = currentValue.WithEnabled(isEnabled);
         }
 
-        private static void SetCategoryHueState(Observable<HighlightCategorySetting> state, float hue)
+        private void SetCategoryHueState(Observable<HighlightCategorySetting> state, float hue)
         {
             HighlightCategorySetting currentValue = state.Value;
             if (Mathf.Approximately(currentValue.Hue, hue)) return;
@@ -169,72 +168,72 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             state.Value = currentValue.WithHue(hue);
         }
 
-        public static bool GetCategoryEnabled(HighlightCategoryId categoryId) => _categoryStates[categoryId].Value.IsEnabled;
+        public bool GetCategoryEnabled(HighlightCategoryId categoryId) => _categoryStates[categoryId].Value.IsEnabled;
 
-        public static void SetCategoryEnabled(HighlightCategoryId categoryId, bool value)
+        public void SetCategoryEnabled(HighlightCategoryId categoryId, bool value)
         {
             Observable<HighlightCategorySetting> state = _categoryStates[categoryId];
             SetCategoryEnabledState(state, value);
         }
 
-        public static float GetCategoryHue(HighlightCategoryId categoryId) => _categoryStates[categoryId].Value.Hue;
+        public float GetCategoryHue(HighlightCategoryId categoryId) => _categoryStates[categoryId].Value.Hue;
 
-        public static void SetCategoryHue(HighlightCategoryId categoryId, float value)
+        public void SetCategoryHue(HighlightCategoryId categoryId, float value)
         {
             Observable<HighlightCategorySetting> state = _categoryStates[categoryId];
             SetCategoryHueState(state, value);
         }
 
-        public static Color GetCategoryColor(HighlightCategoryId categoryId) => ColorConversion.FromHue(GetCategoryHue(categoryId), HighlightStrength);
+        public Color GetCategoryColor(HighlightCategoryId categoryId) => ColorConversion.FromHue(GetCategoryHue(categoryId), HighlightStrength);
 
-        public static float PanelX
+        public float PanelX
         {
             get => _panelX.Value;
             set => _panelX.Value = value;
         }
 
-        public static float PanelY
+        public float PanelY
         {
             get => _panelY.Value;
             set => _panelY.Value = value;
         }
 
-        public static float HighlightStrength
+        public float HighlightStrength
         {
             get => _highlightStrength.Value;
             set => _highlightStrength.Value = value;
         }
 
-        public static float HighlightWidth
+        public float HighlightWidth
         {
             get => _highlightWidth.Value;
             set => _highlightWidth.Value = value;
         }
 
-        public static bool HighlightBridges
+        public bool HighlightBridges
         {
             get => _highlightBridges.Value;
             set => _highlightBridges.Value = value;
         }
 
-        public static bool HighlightTunnels
+        public bool HighlightTunnels
         {
             get => _highlightTunnels.Value;
             set => _highlightTunnels.Value = value;
         }
 
-        public static bool UseUuiButton
+        public bool UseUuiButton
         {
             get => _useUuiButton.Value;
             set => _useUuiButton.Value = value;
         }
 
-        public static void ResetToDefaults()
+        public void ResetToDefaults()
         {
             ApplyConfig(new Config());
         }
 
-        private static void ApplyConfig(Config source)
+        private void ApplyConfig(Config source)
         {
             _suppressSaveAndRaise = true;
             try
@@ -259,7 +258,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             SaveAndRaise(true);
         }
 
-        private static void ApplyAllCategoryStates(Config source)
+        private void ApplyAllCategoryStates(Config source)
         {
             HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
             int categoryCount = categoryDefinitions.Length;

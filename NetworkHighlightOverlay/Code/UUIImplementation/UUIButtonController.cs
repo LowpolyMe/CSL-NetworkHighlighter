@@ -5,15 +5,15 @@ using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
 {
-    public static class UuiButtonController
+    public sealed class UuiButtonController
     {
         private const string ButtonName = "NetworkHighlightOverlay.ToggleButton";
         private const string ToggleTooltip = "Toggle Network Highlight Overlay";
 
-        private static UUICustomButton _button;
-        private static Action<bool> _toggleRequested;
+        private UUICustomButton _button;
+        private Action<bool> _toggleRequested;
 
-        public static void RegisterUui(Action<bool> toggleRequested)
+        public void RegisterUui(Action<bool> toggleRequested)
         {
             _toggleRequested = toggleRequested;
 
@@ -29,7 +29,7 @@ namespace NetworkHighlightOverlay.Code.UI
                 onToolChanged: null);
         }
 
-        public static void UnregisterUui()
+        public void UnregisterUui()
         {
             if (_button != null && _button.Button != null)
             {
@@ -40,7 +40,7 @@ namespace NetworkHighlightOverlay.Code.UI
             _toggleRequested = null;
         }
 
-        private static void OnButtonToggled(bool isPressed)
+        private void OnButtonToggled(bool isPressed)
         {
             Action<bool> toggleRequested = _toggleRequested;
             if (toggleRequested == null) return;
@@ -48,7 +48,7 @@ namespace NetworkHighlightOverlay.Code.UI
             toggleRequested(isPressed);
         }
 
-        public static void SetPressed(bool isPressed)
+        public void SetPressed(bool isPressed)
         {
             if (_button == null || _button.IsPressed == isPressed) return;
 

@@ -18,8 +18,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private Texture2D _widthTexture;
         private readonly List<HueSliderBinding> _hueSliderBindings = new List<HueSliderBinding>();
         private readonly List<CheckboxBinding> _checkboxBindings = new List<CheckboxBinding>();
+        private readonly ModSettings _settings = ModCompositionRoot.Settings;
         private bool _isApplyingSettingsToUi;
-        private IDisposable _settingsSubscription;
 
         private enum SliderTextureKind
         {
@@ -60,19 +60,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private static readonly ScalarSliderDefinition[] _scalarSliderDefinitions = new[]
-        {
-            new ScalarSliderDefinition(
-                "Highlight Strength",
-                () => ModSettings.HighlightStrength,
-                value => ModSettings.HighlightStrength = value,
-                SliderTextureKind.Value),
-            new ScalarSliderDefinition(
-                "Highlight Thickness",
-                () => ModSettings.HighlightWidth,
-                value => ModSettings.HighlightWidth = value,
-                SliderTextureKind.Width)
-        };
+        private readonly ScalarSliderDefinition[] _scalarSliderDefinitions;
 
         private struct CheckboxBinding
         {
@@ -86,10 +74,26 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
+        public NetworkHighlighterMod()
+        {
+            _scalarSliderDefinitions = new[]
+            {
+                new ScalarSliderDefinition(
+                    "Highlight Strength",
+                    () => _settings.HighlightStrength,
+                    value => _settings.HighlightStrength = value,
+                    SliderTextureKind.Value),
+                new ScalarSliderDefinition(
+                    "Highlight Thickness",
+                    () => _settings.HighlightWidth,
+                    value => _settings.HighlightWidth = value,
+                    SliderTextureKind.Width)
+            };
+        }
+
         public void OnSettingsUI(UIHelperBase helper)
         {
             Debug.Log("[NetworkHighlightOverlay][Options] OnSettingsUI called");
-            EnsureSettingsSubscription();
             ClearUiBindings();
 
             EnsureTexturesLoaded();
@@ -143,6 +147,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
             // local container so we don't mess with Skyve/vanilla layout flags
             UIPanel tabRoot = CreateRootPanel(rootComponent);
+            AttachSettingsSubscription(tabRoot);
             UITabstrip tabStrip = CreateUITabstrip(tabRoot);
             UITabContainer tabContainer = CreateUITabContainer(tabRoot, tabStrip);
 
@@ -187,20 +192,20 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 AddBoundCheckbox(
                     filtersHelper,
                     "Highlight bridges",
-                    () => ModSettings.HighlightBridges,
-                    value => ModSettings.HighlightBridges = value);
+                    () => _settings.HighlightBridges,
+                    value => _settings.HighlightBridges = value);
 
                 AddBoundCheckbox(
                     filtersHelper,
                     "Highlight tunnels",
-                    () => ModSettings.HighlightTunnels,
-                    value => ModSettings.HighlightTunnels = value);
+                    () => _settings.HighlightTunnels,
+                    value => _settings.HighlightTunnels = value);
 
                 AddBoundCheckbox(
                     filtersHelper,
                     "Use UUI button",
-                    () => ModSettings.UseUuiButton,
-                    value => ModSettings.UseUuiButton = value);
+                    () => _settings.UseUuiButton,
+                    value => _settings.UseUuiButton = value);
             }
             #endregion
             
@@ -214,7 +219,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     "Reset ALL settings to defaults",
                     () =>
                     {
-                        ModSettings.ResetToDefaults();
+                        _settings.ResetToDefaults();
                         if (tabRoot != null && tabRoot.parent != null)
                         {
                             tabRoot.parent.RemoveUIComponent(tabRoot);
@@ -230,12 +235,19 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             
         }
 
-        private void EnsureSettingsSubscription()
+        private void AttachSettingsSubscription(UIPanel ownerPanel)
         {
-            if (_settingsSubscription != null)
+            if (ownerPanel == null)
                 return;
 
-            _settingsSubscription = ModSettings.ChangeVersion.Subscribe(OnModSettingsChanged);
+            IDisposable settingsSubscription = _settings.ChangeVersion.Subscribe(OnModSettingsChanged);
+            SubscriptionScope scope = ownerPanel.gameObject.GetComponent<SubscriptionScope>();
+            if (scope == null)
+            {
+                scope = ownerPanel.gameObject.AddComponent<SubscriptionScope>();
+            }
+
+            scope.Initialize(settingsSubscription);
         }
 
         private void OnModSettingsChanged(long previousVersion, long currentVersion)
@@ -318,8 +330,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 AddBoundHueSlider(
                     helper,
                     definition.ColorSliderLabel,
-                    () => ModSettings.GetCategoryHue(categoryId),
-                    value => ModSettings.SetCategoryHue(categoryId, value),
+                    () => _settings.GetCategoryHue(categoryId),
+                    value => _settings.SetCategoryHue(categoryId, value),
                     _hueTexture);
             }
         }
@@ -336,8 +348,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 AddBoundCheckbox(
                     filtersHelper,
                     definition.FilterLabel,
-                    () => ModSettings.GetCategoryEnabled(categoryId),
-                    value => ModSettings.SetCategoryEnabled(categoryId, value));
+                    () => _settings.GetCategoryEnabled(categoryId),
+                    value => _settings.SetCategoryEnabled(categoryId, value));
             }
         }
 
@@ -480,6 +492,30 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
             float columnsHeight = Mathf.Max(leftColumn.height, rightColumn.height);
             columnsRoot.height = columnsHeight;
+        }
+
+        private sealed class SubscriptionScope : MonoBehaviour
+        {
+            private IDisposable _subscription;
+
+            public void Initialize(IDisposable subscription)
+            {
+                if (_subscription != null)
+                {
+                    _subscription.Dispose();
+                }
+
+                _subscription = subscription;
+            }
+
+            private void OnDestroy()
+            {
+                if (_subscription != null)
+                {
+                    _subscription.Dispose();
+                    _subscription = null;
+                }
+            }
         }
 
     }

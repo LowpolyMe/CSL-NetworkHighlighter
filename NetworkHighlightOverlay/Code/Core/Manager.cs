@@ -1,28 +1,36 @@
 using System.Collections.Generic;
+using System;
+using NetworkHighlightOverlay.Code.ModOptions;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
 {
-    public class Manager
+    public sealed class Manager
     {
-        private readonly HighlightCache _cache = new HighlightCache();
-        private readonly OverlayRenderer _renderer = new OverlayRenderer();
+        private readonly HighlightCache _cache;
+        private readonly OverlayRenderer _renderer;
         private readonly List<KeyValuePair<ushort, Color>> _segmentSnapshot =
             new List<KeyValuePair<ushort, Color>>(1024);
         private bool _hasCacheSnapshot;
         private bool _isCacheDirty;
+        private bool _isActive;
 
-        private static readonly Manager _instance = new Manager();
-        public static Manager Instance => _instance;
-
-        private Manager()
+        public Manager(ModSettings settings)
         {
+            if (settings == null)
+                throw new ArgumentNullException("settings");
+
+            _cache = new HighlightCache(settings);
+            _renderer = new OverlayRenderer(settings);
             _hasCacheSnapshot = false;
             _isCacheDirty = false;
+            _isActive = false;
         }
 
         public void OnActivated()
         {
+            _isActive = true;
+
             if (!_hasCacheSnapshot || _isCacheDirty)
             {
                 _cache.RebuildCache();
@@ -33,6 +41,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public void OnDeactivated()
         {
+            _isActive = false;
         }
 
         public void ResetForLevelUnload()
@@ -40,11 +49,12 @@ namespace NetworkHighlightOverlay.Code.Core
             _cache.Clear();
             _hasCacheSnapshot = false;
             _isCacheDirty = false;
+            _isActive = false;
         }
 
         public void OnHighlightRulesChanged()
         {
-            if (!ActivationHandler.IsActive)
+            if (!_isActive)
             {
                 MarkCacheDirty();
                 return;
@@ -57,7 +67,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public void OnSegmentCreated(ushort segmentId)
         {
-            if (!ActivationHandler.IsActive)
+            if (!_isActive)
             {
                 MarkCacheDirty();
                 return;
@@ -68,7 +78,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public void OnSegmentReleased(ushort segmentId)
         {
-            if (!ActivationHandler.IsActive)
+            if (!_isActive)
             {
                 MarkCacheDirty();
                 return;
@@ -79,7 +89,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
         public void RenderIfActive(RenderManager.CameraInfo cameraInfo)
         {
-            if (!ActivationHandler.IsActive)
+            if (!_isActive)
                 return;
 
             _cache.CopySegmentsTo(_segmentSnapshot);

@@ -6,19 +6,19 @@ using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
 {
-    internal static class ToggleButtonAtlas
+    public sealed class ToggleButtonAtlas : IDisposable
     {
         private const string TextureFileName = "ToggleButton.png";
         private const string AtlasName = "NHO_ToggleButtonAtlas";
 
-        internal const string InactiveSpriteName = "NHO_ToggleInactive";
-        internal const string ActiveSpriteName = "NHO_ToggleActive";
-        internal const string HoveredSpriteName = "NHO_ToggleHovered";
-        internal const string PressedSpriteName = "NHO_TogglePressed";
+        public const string InactiveSpriteName = "NHO_ToggleInactive";
+        public const string ActiveSpriteName = "NHO_ToggleActive";
+        public const string HoveredSpriteName = "NHO_ToggleHovered";
+        public const string PressedSpriteName = "NHO_TogglePressed";
 
-        private static UITextureAtlas _atlas;
+        private UITextureAtlas _atlas;
 
-        internal static UITextureAtlas GetOrCreate()
+        public UITextureAtlas GetOrCreate()
         {
             if (_atlas != null)
                 return _atlas;
@@ -40,7 +40,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             return _atlas;
         }
 
-        internal static void Clear()
+        public void Dispose()
+        {
+            Clear();
+        }
+
+        private void Clear()
         {
             UITextureAtlas atlas = _atlas;
             _atlas = null;

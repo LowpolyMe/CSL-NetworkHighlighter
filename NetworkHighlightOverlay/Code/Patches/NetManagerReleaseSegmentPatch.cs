@@ -1,8 +1,6 @@
-using System;
 using System.Reflection;
 using HarmonyLib;
 using NetworkHighlightOverlay.Code.Core;
-using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Patches
 {
@@ -18,14 +16,11 @@ namespace NetworkHighlightOverlay.Code.Patches
 
         static void Prefix(ushort segment)
         {
-            try
-            {
-                Manager.Instance.OnSegmentReleased(segment);
-            }
-            catch (Exception exception)
-            {
-                Debug.LogError("[NetworkHighlightOverlay] Error in ReleaseSegment prefix: " + exception);
-            }
+            ActivationHandler activationHandler = ActivationHandler.GetInstance();
+            if (activationHandler == null)
+                return;
+
+            activationHandler.HandleSegmentReleased(segment);
         }
     }
 }

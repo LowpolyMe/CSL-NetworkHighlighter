@@ -8,7 +8,11 @@ namespace NetworkHighlightOverlay.Code.Patches
     {
         static void Postfix(RenderManager.CameraInfo cameraInfo)
         {
-            Manager.Instance.RenderIfActive(cameraInfo);
+            ActivationHandler activationHandler = ActivationHandler.GetInstance();
+            if (activationHandler == null)
+                return;
+
+            activationHandler.RenderOverlay(cameraInfo);
         }
     }
 }

@@ -10,9 +10,10 @@ namespace NetworkHighlightOverlay.Code.Core
         private const string TerraformingToken = "terraforming";
         private const string PedestrianStreetClassName = "Pedestrian Street";
 
-        public static bool TryGetHighlightColor(ref NetSegment segment, out Color color)
+        public static bool TryGetHighlightColor(ref NetSegment segment, ModSettings settings, out Color color)
         {
             color = default(Color);
+            if (settings == null) return false;
 
             NetInfo info = segment.Info;
             if (info == null) return false;
@@ -74,7 +75,7 @@ namespace NetworkHighlightOverlay.Code.Core
 
             bool didSelect = HighlightSelection.TrySelectCategory(
                 flags,
-                ModSettings.GetCategoryEnabled,
+                settings.GetCategoryEnabled,
                 out categoryId,
                 out isBridge,
                 out isTunnel);
@@ -85,13 +86,13 @@ namespace NetworkHighlightOverlay.Code.Core
                 categoryId,
                 isBridge,
                 isTunnel,
-                ModSettings.HighlightBridges,
-                ModSettings.HighlightTunnels,
-                ModSettings.GetCategoryEnabled);
+                settings.HighlightBridges,
+                settings.HighlightTunnels,
+                settings.GetCategoryEnabled);
 
             if (!isEnabled) return false;
 
-            color = ModSettings.GetCategoryColor(categoryId);
+            color = settings.GetCategoryColor(categoryId);
             return true;
         }
 
