@@ -18,7 +18,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private Texture2D _widthTexture;
         private readonly List<HueSliderBinding> _hueSliderBindings = new List<HueSliderBinding>();
         private readonly List<CheckboxBinding> _checkboxBindings = new List<CheckboxBinding>();
-        private readonly ModSettings _settings = ModCompositionRoot.Settings;
+        private readonly ModSettings _settings = ModSettings.Shared;
         private bool _isApplyingSettingsToUi;
 
         private enum SliderTextureKind

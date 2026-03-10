@@ -12,7 +12,7 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
 {
     public class Loading : LoadingExtensionBase
     {
-        private readonly ModSettings _settings = ModCompositionRoot.Settings;
+        private readonly ModSettings _settings = ModSettings.Shared;
         private Manager _manager;
         private UuiButtonController _uuiButtonController;
         private ToggleButtonAtlas _toggleButtonAtlas;

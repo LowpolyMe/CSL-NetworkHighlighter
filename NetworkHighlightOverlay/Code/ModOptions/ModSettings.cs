@@ -11,6 +11,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private const string KeybindingsFileName = "NetworkHighlightOverlay_Keybindings";
         private const string ToggleOverlayHotkeyName = "NetworkHighlightOverlay_ToggleOverlay";
 
+        public static readonly ModSettings Shared = new ModSettings();
+
         private readonly Config _config;
         private readonly SavedInputKey _toggleOverlayHotkey;
         private readonly Dictionary<HighlightCategoryId, HighlightCategorySetting> _categoryStates =
@@ -21,7 +23,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         public SavedInputKey ToggleOverlayHotkey => _toggleOverlayHotkey;
 
-        public ModSettings()
+        private ModSettings()
         {
             EnsureKeybindingsSettingsFile();
             _toggleOverlayHotkey = new SavedInputKey(
@@ -53,7 +55,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             for (int i = 0; i < categoryCount; i++)
             {
                 HighlightCategoryDefinition definition = categoryDefinitions[i];
-                HighlightCategorySetting initialState = definition.ReadState(_config);
+                HighlightCategorySetting initialState = ReadCategoryState(_config, definition.Id);
                 _categoryStates[definition.Id] = initialState;
             }
         }
@@ -90,7 +92,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             if (currentValue.Equals(value)) return;
 
             _categoryStates[categoryId] = value;
-            FindCategoryDefinition(categoryId).WriteState(_config, value);
+            WriteCategoryState(_config, categoryId, value);
             SaveAndRaise(true);
         }
 
@@ -246,23 +248,88 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             for (int i = 0; i < categoryCount; i++)
             {
                 HighlightCategoryDefinition definition = categoryDefinitions[i];
-                _categoryStates[definition.Id] = definition.ReadState(source);
-                definition.WriteState(_config, _categoryStates[definition.Id]);
+                HighlightCategorySetting state = ReadCategoryState(source, definition.Id);
+                _categoryStates[definition.Id] = state;
+                WriteCategoryState(_config, definition.Id, state);
             }
         }
 
-        private static HighlightCategoryDefinition FindCategoryDefinition(HighlightCategoryId categoryId)
+        private static HighlightCategorySetting ReadCategoryState(Config config, HighlightCategoryId categoryId)
         {
-            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
-            int categoryCount = categoryDefinitions.Length;
-            for (int i = 0; i < categoryCount; i++)
+            switch (categoryId)
             {
-                HighlightCategoryDefinition definition = categoryDefinitions[i];
-                if (definition.Id == categoryId)
-                    return definition;
+                case HighlightCategoryId.PedestrianPaths:
+                    return new HighlightCategorySetting(config.HighlightPedestrianPaths, config.PedestrianPathsHue);
+                case HighlightCategoryId.PinkPaths:
+                    return new HighlightCategorySetting(config.HighlightPinkPaths, config.PinkPathsHue);
+                case HighlightCategoryId.TerraformingNetworks:
+                    return new HighlightCategorySetting(config.HighlightTerraformingNetworks, config.TerraformingNetworksHue);
+                case HighlightCategoryId.Roads:
+                    return new HighlightCategorySetting(config.HighlightRoads, config.RoadsHue);
+                case HighlightCategoryId.Highways:
+                    return new HighlightCategorySetting(config.HighlightHighways, config.HighwaysHue);
+                case HighlightCategoryId.TrainTracks:
+                    return new HighlightCategorySetting(config.HighlightTrainTracks, config.TrainTracksHue);
+                case HighlightCategoryId.MetroTracks:
+                    return new HighlightCategorySetting(config.HighlightMetroTracks, config.MetroTracksHue);
+                case HighlightCategoryId.TramTracks:
+                    return new HighlightCategorySetting(config.HighlightTramTracks, config.TramTracksHue);
+                case HighlightCategoryId.MonorailTracks:
+                    return new HighlightCategorySetting(config.HighlightMonorailTracks, config.MonorailHue);
+                case HighlightCategoryId.CableCars:
+                    return new HighlightCategorySetting(config.HighlightCableCars, config.CableCarsHue);
+                default:
+                    throw new ArgumentOutOfRangeException("categoryId");
             }
+        }
 
-            throw new ArgumentOutOfRangeException("categoryId");
+        private static void WriteCategoryState(Config config, HighlightCategoryId categoryId, HighlightCategorySetting state)
+        {
+            switch (categoryId)
+            {
+                case HighlightCategoryId.PedestrianPaths:
+                    config.HighlightPedestrianPaths = state.IsEnabled;
+                    config.PedestrianPathsHue = state.Hue;
+                    return;
+                case HighlightCategoryId.PinkPaths:
+                    config.HighlightPinkPaths = state.IsEnabled;
+                    config.PinkPathsHue = state.Hue;
+                    return;
+                case HighlightCategoryId.TerraformingNetworks:
+                    config.HighlightTerraformingNetworks = state.IsEnabled;
+                    config.TerraformingNetworksHue = state.Hue;
+                    return;
+                case HighlightCategoryId.Roads:
+                    config.HighlightRoads = state.IsEnabled;
+                    config.RoadsHue = state.Hue;
+                    return;
+                case HighlightCategoryId.Highways:
+                    config.HighlightHighways = state.IsEnabled;
+                    config.HighwaysHue = state.Hue;
+                    return;
+                case HighlightCategoryId.TrainTracks:
+                    config.HighlightTrainTracks = state.IsEnabled;
+                    config.TrainTracksHue = state.Hue;
+                    return;
+                case HighlightCategoryId.MetroTracks:
+                    config.HighlightMetroTracks = state.IsEnabled;
+                    config.MetroTracksHue = state.Hue;
+                    return;
+                case HighlightCategoryId.TramTracks:
+                    config.HighlightTramTracks = state.IsEnabled;
+                    config.TramTracksHue = state.Hue;
+                    return;
+                case HighlightCategoryId.MonorailTracks:
+                    config.HighlightMonorailTracks = state.IsEnabled;
+                    config.MonorailHue = state.Hue;
+                    return;
+                case HighlightCategoryId.CableCars:
+                    config.HighlightCableCars = state.IsEnabled;
+                    config.CableCarsHue = state.Hue;
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException("categoryId");
+            }
         }
     }
 }
