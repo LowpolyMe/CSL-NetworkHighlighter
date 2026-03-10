@@ -198,7 +198,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             #region TAB CONTROLS
             UIPanel controlsPanel;
             UIHelper controlsHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Controls", Color.white, out controlsPanel);
-            UIUtility.AddKeymapping(controlsHelper, "Toggle overlay hotkey", _settings.ToggleOverlayHotkey);
+            UIKeymappingsPanel keymappingsPanel = UIUtility.AddKeymappingsPanel(controlsHelper);
+            keymappingsPanel.AddKeymapping("Toggle overlay hotkey", _settings.ToggleOverlayHotkey);
             #endregion
 
             #region TAB DANGERZONE

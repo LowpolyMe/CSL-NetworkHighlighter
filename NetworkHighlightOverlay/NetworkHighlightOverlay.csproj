@@ -101,6 +101,7 @@
         <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
         <Compile Include="Code\Utility\SpriteAtlasExtractor.cs" />
+        <Compile Include="Code\Utility\UIKeymappingsPanel.cs" />
         <Compile Include="Code\Utility\UIUtility.cs" />
         <Compile Include="Code\UUIImplementation\UUIButtonController.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>

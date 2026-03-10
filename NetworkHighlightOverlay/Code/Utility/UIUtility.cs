@@ -82,21 +82,13 @@ namespace NetworkHighlightOverlay.Code.Utility
             return new UIHelper(page);
         }
 
-        public static void AddKeymapping(UIHelperBase helper, string label, SavedInputKey savedInputKey)
+        public static UIKeymappingsPanel AddKeymappingsPanel(UIHelper helper)
         {
-            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            MethodInfo addKeymappingMethod = helper.GetType().GetMethod(
-                "AddKeymapping",
-                flags,
-                null,
-                new[] { typeof(string), typeof(SavedInputKey) },
-                null);
+            UIComponent component = helper.self as UIComponent;
+            if (component == null)
+                throw new InvalidOperationException("UIHelper.self must be a UIComponent for keymapping controls.");
 
-            if (addKeymappingMethod == null)
-                throw new InvalidOperationException(
-                    "Helper type '" + helper.GetType().FullName + "' must expose AddKeymapping.");
-
-            addKeymappingMethod.Invoke(helper, new object[] { label, savedInputKey });
+            return component.gameObject.AddComponent<UIKeymappingsPanel>();
         }
 
         public static UISlider CreateHueSlider(UIHelper group, string label, float initialHue, OnValueChanged onChanged,
