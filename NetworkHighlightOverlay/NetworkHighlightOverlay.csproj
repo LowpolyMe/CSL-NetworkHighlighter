@@ -108,9 +108,6 @@
     <ItemGroup>
       <None Include="packages.config" />
     </ItemGroup>
-    <ItemGroup>
-      <Content Include="Resources\HueGradient.png" />
-    </ItemGroup>
     <Import Project="Local.props" Condition="Exists('Local.props')" />
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <Target Name="DeployToModDirectory" AfterTargets="Build">
