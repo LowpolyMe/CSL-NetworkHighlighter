@@ -33,6 +33,9 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private bool _suppressSaveAndRaise;
 
+        public event Action SettingsChanged;
+        public event Action HighlightRulesChanged;
+
         public Observable<long> ChangeVersion => _changeVersion;
         public Observable<long> HighlightRulesVersion => _highlightRulesVersion;
         public Observable<float> HighlightStrengthState => _highlightStrength;
@@ -138,9 +141,29 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             {
                 _highlightRulesVersion.Update(IncrementVersion);
             }
+
+            RaiseChangedEvents(affectsHighlightRules);
         }
 
         private long IncrementVersion(long version) => version == long.MaxValue ? 0L : version + 1L;
+
+        private void RaiseChangedEvents(bool affectsHighlightRules)
+        {
+            Action settingsChanged = SettingsChanged;
+            if (settingsChanged != null)
+            {
+                settingsChanged();
+            }
+
+            if (!affectsHighlightRules)
+                return;
+
+            Action highlightRulesChanged = HighlightRulesChanged;
+            if (highlightRulesChanged != null)
+            {
+                highlightRulesChanged();
+            }
+        }
 
         private void SetCategory(
             Observable<HighlightCategorySetting> state,

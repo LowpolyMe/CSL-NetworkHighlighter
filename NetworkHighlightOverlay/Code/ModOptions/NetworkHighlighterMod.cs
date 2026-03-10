@@ -240,17 +240,18 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             if (ownerPanel == null)
                 return;
 
-            IDisposable settingsSubscription = _settings.ChangeVersion.Subscribe(OnModSettingsChanged);
+            Action settingsChangedHandler = OnModSettingsChanged;
+            _settings.SettingsChanged += settingsChangedHandler;
             SubscriptionScope scope = ownerPanel.gameObject.GetComponent<SubscriptionScope>();
             if (scope == null)
             {
                 scope = ownerPanel.gameObject.AddComponent<SubscriptionScope>();
             }
 
-            scope.Initialize(settingsSubscription);
+            scope.Initialize(() => _settings.SettingsChanged -= settingsChangedHandler);
         }
 
-        private void OnModSettingsChanged(long previousVersion, long currentVersion)
+        private void OnModSettingsChanged()
         {
             ApplySettingsToUi();
         }
@@ -496,25 +497,26 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private sealed class SubscriptionScope : MonoBehaviour
         {
-            private IDisposable _subscription;
+            private Action _dispose;
 
-            public void Initialize(IDisposable subscription)
+            public void Initialize(Action dispose)
             {
-                if (_subscription != null)
+                if (_dispose != null)
                 {
-                    _subscription.Dispose();
+                    _dispose();
                 }
 
-                _subscription = subscription;
+                _dispose = dispose;
             }
 
             private void OnDestroy()
             {
-                if (_subscription != null)
-                {
-                    _subscription.Dispose();
-                    _subscription = null;
-                }
+                if (_dispose == null)
+                    return;
+
+                Action dispose = _dispose;
+                _dispose = null;
+                dispose();
             }
         }
 
