@@ -28,7 +28,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
                 using (FileStream stream = File.OpenRead(ConfigPath))
                 {
-                    var serializer = new XmlSerializer(typeof(Config));
+                    XmlSerializer serializer = new XmlSerializer(typeof(Config));
                     return (Config)serializer.Deserialize(stream);
                 }
             }
@@ -43,7 +43,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         {
             try
             {
-                var serializer = new XmlSerializer(typeof(Config));
+                XmlSerializer serializer = new XmlSerializer(typeof(Config));
 
                 string directory = Path.GetDirectoryName(ConfigPath);
                 if (!Directory.Exists(directory))
@@ -57,16 +57,11 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 }
                 
             }
-            catch (IOException ex)
+            catch (System.Exception ex)
             {
                 Debug.LogError($"[NetworkHighlightOverlay] Failed to save config: {ex}");
             }
         }
 
-        public static void Reset()
-        {
-            var config = new Config();
-            Save(config);
-        }
     }
 }

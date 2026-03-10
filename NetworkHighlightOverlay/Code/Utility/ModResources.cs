@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using ColossalFramework.Plugins;
@@ -28,29 +29,26 @@ namespace NetworkHighlightOverlay.Code.Utility
         {
             try
             {
-                var pluginManager = PluginManager.instance;
-                var thisAssembly = typeof(ModResources).Assembly;
+                PluginManager pluginManager = PluginManager.instance;
+                Assembly thisAssembly = typeof(ModResources).Assembly;
 
                 if (pluginManager != null)
                 {
-                    foreach (var plugin in pluginManager.GetPluginsInfo())
+                    foreach (PluginManager.PluginInfo plugin in pluginManager.GetPluginsInfo())
                     {
                         if (plugin == null)
                             continue;
 
                         // ✔ THIS is the correct API:
-                        var assemblies = plugin.GetAssemblies();
+                        List<Assembly> assemblies = plugin.GetAssemblies();
                         if (assemblies == null)
                             continue;
 
-                        foreach (var asm in assemblies)
+                        foreach (Assembly asm in assemblies)
                         {
                             if (asm == thisAssembly)
                             {
-                                if (!string.IsNullOrEmpty(plugin.modPath))
-                                {
-                                    return plugin.modPath;
-                                }
+                                if (!string.IsNullOrEmpty(plugin.modPath)) return plugin.modPath;
                             }
                         }
                     }
@@ -63,10 +61,7 @@ namespace NetworkHighlightOverlay.Code.Utility
 
             // Fallback 1: assembly location
             string asmLocation = typeof(ModResources).Assembly.Location;
-            if (!string.IsNullOrEmpty(asmLocation))
-            {
-                return Path.GetDirectoryName(asmLocation);
-            }
+            if (!string.IsNullOrEmpty(asmLocation)) return Path.GetDirectoryName(asmLocation);
 
             // Fallback 2: current directory (last resort)
             Debug.LogWarning("[NetworkHighlightOverlay] Assembly location is empty, using Environment.CurrentDirectory as fallback.");
@@ -91,18 +86,6 @@ namespace NetworkHighlightOverlay.Code.Utility
             tex.LoadImage(data);
             tex.wrapMode = TextureWrapMode.Clamp;
             return tex;
-        }
-
-        public static string LoadTextFile(string fileName)
-        {
-            string fullPath = Path.Combine(ResourcesPath, fileName);
-            return File.Exists(fullPath) ? File.ReadAllText(fullPath) : null;
-        }
-
-        public static byte[] LoadRawFile(string fileName)
-        {
-            string fullPath = Path.Combine(ResourcesPath, fileName);
-            return File.Exists(fullPath) ? File.ReadAllBytes(fullPath) : null;
         }
     }
 }

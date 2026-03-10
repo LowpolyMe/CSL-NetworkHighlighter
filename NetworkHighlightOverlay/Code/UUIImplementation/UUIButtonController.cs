@@ -1,67 +1,115 @@
+using System;
+using NetworkHighlightOverlay.Code.Core;
+using NetworkHighlightOverlay.Code.ModOptions;
 using UnityEngine;
 using UnifiedUI.Helpers;
-using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.Utility;
 
 namespace NetworkHighlightOverlay.Code.UI
 {
-    public static class UuiButtonController
+    public sealed class UuiButtonController
     {
         private const string ButtonName = "NetworkHighlightOverlay.ToggleButton";
+        private const string ToggleTooltip = "Toggle Network Highlight Overlay";
 
-        private static UUICustomButton _button;
-        private static bool _syncing;
+        private UUICustomButton _button;
+        private Action<bool> _toggleRequested;
+        private ModSettings _settings;
+        private ActivationHandler _activationHandler;
+        private Action _settingsChangedHandler;
+        private Action<bool> _activationChangedHandler;
+        private bool _lastUseUuiButton;
 
-        public static void RegisterUui()
+        public void Initialize(ModSettings settings, ActivationHandler activationHandler)
         {
-            if (_button != null && _button.Button != null)
+            _settings = settings ?? throw new ArgumentNullException("settings");
+            _activationHandler = activationHandler ?? throw new ArgumentNullException("activationHandler");
+
+            _settingsChangedHandler = SyncRegistration;
+            _settings.SettingsChanged += _settingsChangedHandler;
+
+            _activationChangedHandler = SetPressed;
+            _activationHandler.ActivationChanged += _activationChangedHandler;
+
+            SyncRegistration();
+        }
+
+        public void Dispose()
+        {
+            if (_activationHandler != null && _activationChangedHandler != null)
             {
-                return;
+                _activationHandler.ActivationChanged -= _activationChangedHandler;
+                _activationChangedHandler = null;
             }
 
+            if (_settings != null && _settingsChangedHandler != null)
+            {
+                _settings.SettingsChanged -= _settingsChangedHandler;
+                _settingsChangedHandler = null;
+            }
+
+            UnregisterUui();
+            _activationHandler = null;
+            _settings = null;
+        }
+
+        public void RegisterUui(Action<bool> toggleRequested)
+        {
+            _toggleRequested = toggleRequested;
+
+            if (_button != null && _button.Button != null) return;
 
             Texture2D iconTexture = ModResources.LoadTexture("UUIIcon.png");
-
             _button = UUIHelpers.RegisterCustomButton(
                 name: ButtonName,
                 groupName: null,
-                tooltip: "Toggle Network Highlight Overlay",
+                tooltip: ToggleTooltip,
                 icon: iconTexture,
                 onToggle: OnButtonToggled,
-                onToolChanged: null,
-                hotkeys: null
-            );
-            
-            _syncing = true;
-            _button.IsPressed = Manager.Instance.IsEnabled;
-            _syncing = false;
+                onToolChanged: null);
         }
 
-        private static void OnButtonToggled(bool isPressed)
+        public void UnregisterUui()
         {
-            if (_syncing)
+            if (_button != null && _button.Button != null)
             {
-                return;
+                UUIHelpers.Destroy(_button.Button);
             }
-            Manager.Instance.IsEnabled = isPressed;
+
+            _button = null;
+            _toggleRequested = null;
         }
-        
-        public static void SyncFromManager()
+
+        private void OnButtonToggled(bool isPressed)
         {
-            if (_button == null)
+            Action<bool> toggleRequested = _toggleRequested;
+            if (toggleRequested == null) return;
+
+            toggleRequested(isPressed);
+        }
+
+        public void SetPressed(bool isPressed)
+        {
+            if (_button == null || _button.IsPressed == isPressed) return;
+
+            _button.IsPressed = isPressed;
+        }
+
+        private void SyncRegistration()
+        {
+            bool useUuiButton = _settings.UseUuiButton;
+            if (useUuiButton == _lastUseUuiButton)
+                return;
+
+            _lastUseUuiButton = useUuiButton;
+            if (useUuiButton)
             {
+                RegisterUui(_activationHandler.SetActive);
+                SetPressed(_activationHandler.IsActive);
                 return;
             }
 
-            bool desired = Manager.Instance.IsEnabled;
-            if (_button.IsPressed == desired)
-            {
-                return;
-            }
-
-            _syncing = true;
-            _button.IsPressed = desired;
-            _syncing = false;
+            UnregisterUui();
         }
     }
 }

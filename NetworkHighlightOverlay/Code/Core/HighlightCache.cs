@@ -1,13 +1,22 @@
 using System;
 using System.Collections.Generic;
-using ColossalFramework;
+using NetworkHighlightOverlay.Code.ModOptions;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
 {
     public sealed class HighlightCache
     {
+        private readonly ModSettings _settings;
         private readonly Dictionary<ushort, Color> _highlightedSegments = new Dictionary<ushort, Color>();
+
+        public HighlightCache(ModSettings settings)
+        {
+            if (settings == null)
+                throw new ArgumentNullException("settings");
+
+            _settings = settings;
+        }
 
         public void CopySegmentsTo(List<KeyValuePair<ushort, Color>> destination)
         {
@@ -44,7 +53,7 @@ namespace NetworkHighlightOverlay.Code.Core
                 _highlightedSegments.Clear();
 
                 NetManager netManager = NetManager.instance;
-                var segments = netManager.m_segments;
+                Array16<NetSegment> segments = netManager.m_segments;
 
                 for (ushort i = 1; i < segments.m_size; i++)
                 {
@@ -87,7 +96,7 @@ namespace NetworkHighlightOverlay.Code.Core
         private void TryAddSegmentInternal(ushort id, ref NetSegment segment)
         {
             Color color;
-            if (HighlightRules.TryGetHighlightColor(ref segment, out color))
+            if (HighlightRules.TryGetHighlightColor(ref segment, _settings, out color))
             {
                 _highlightedSegments[id] = color;
             }

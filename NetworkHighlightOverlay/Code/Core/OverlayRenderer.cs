@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using ColossalFramework;
 using ColossalFramework.Math;
 using NetworkHighlightOverlay.Code.ModOptions;
@@ -8,6 +9,16 @@ namespace NetworkHighlightOverlay.Code.Core
 {
     public sealed class OverlayRenderer
     {
+        private readonly ModSettings _settings;
+
+        public OverlayRenderer(ModSettings settings)
+        {
+            if (settings == null)
+                throw new ArgumentNullException("settings");
+
+            _settings = settings;
+        }
+
         public void Render(RenderManager.CameraInfo cameraInfo, List<KeyValuePair<ushort, Color>> highlightedSegments)
         {
             NetManager netManager = NetManager.instance;
@@ -28,7 +39,7 @@ namespace NetworkHighlightOverlay.Code.Core
             }
         }
 
-        private static void RenderSegmentOverlay(RenderManager.CameraInfo cameraInfo, ref NetSegment segment, Color color)
+        private void RenderSegmentOverlay(RenderManager.CameraInfo cameraInfo, ref NetSegment segment, Color color)
         {
             NetInfo info = segment.Info;
             if (info == null)
@@ -60,9 +71,9 @@ namespace NetworkHighlightOverlay.Code.Core
             return bezier;
         }
 
-        private static float GetHighlightWidth(NetInfo info)
+        private float GetHighlightWidth(NetInfo info)
         {
-            float widthFactor = ModSettings.HighlightWidth;
+            float widthFactor = _settings.HighlightWidth;
             float highlightWidth = info.m_halfWidth * 2f * widthFactor;
             return highlightWidth;
         }

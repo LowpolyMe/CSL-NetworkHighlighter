@@ -1,7 +1,5 @@
 using HarmonyLib;
-using ColossalFramework;
 using NetworkHighlightOverlay.Code.Core;
-using NetworkHighlightOverlay.Code;
 
 namespace NetworkHighlightOverlay.Code.Patches
 {
@@ -10,7 +8,7 @@ namespace NetworkHighlightOverlay.Code.Patches
     {
         static void Postfix(RenderManager.CameraInfo cameraInfo)
         {
-            Manager.Instance?.RenderIfActive(cameraInfo);
+            RuntimeHooks.RenderOverlay(cameraInfo);
         }
     }
 }

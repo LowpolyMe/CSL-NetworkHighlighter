@@ -7,16 +7,16 @@ namespace NetworkHighlightOverlay.Code.ModOptions
     {
         public float HighlightStrength  { get; set; }  = 1f;
         public float HighlightWidth  { get; set; }     = 1.0f;
-        public float PedestrianPathsHue { get; set; }  = 0.25f; 
-        public float PinkPathsHue { get; set; }        = 0.95f;
-        public float TerraformingNetworksHue { get; set; } = 0.3f;
+        public float PedestrianPathsHue { get; set; }  = 0.3f; 
+        public float PinkPathsHue { get; set; }        = 0.9f;
+        public float TerraformingNetworksHue { get; set; } = 0.2f;
         public float RoadsHue { get; set; }            = 0.5f; 
-        public float HighwaysHue { get; set; } = 0.65f; 
+        public float HighwaysHue { get; set; } = 0.6f; 
         public float TrainTracksHue  { get; set; } = 0.1f;
-        public float MetroTracksHue  { get; set; } = 0.01f;
-        public float TramTracksHue   { get; set; } = 0.85f;
-        public float MonorailHue     { get; set; } = 0.85f;
-        public float CableCarsHue  { get; set; } = 0.85f;        
+        public float MetroTracksHue  { get; set; } = 1f;
+        public float TramTracksHue   { get; set; } = 0.8f;
+        public float MonorailHue     { get; set; } = 0.7f;
+        public float CableCarsHue  { get; set; } = 0.4f;        
 
         
         public bool HighlightPedestrianPaths { get; set; } = true; 
@@ -32,5 +32,9 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         
         public bool HighlightBridges { get; set; } = true;
         public bool HighlightTunnels { get; set; } = true;
+        public bool UseUuiButton { get; set; } = true;
+        
+        public float PanelX { get; set; } = -1f;
+        public float PanelY { get; set; } = -1f;
     }
 }

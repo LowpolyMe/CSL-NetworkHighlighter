@@ -1,82 +1,104 @@
 using System.Collections.Generic;
-using ColossalFramework;
+using System;
 using NetworkHighlightOverlay.Code.ModOptions;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
 {
-    public class Manager
+    public sealed class Manager
     {
-        private bool _isEnabled;
-        private readonly HighlightCache _cache = new HighlightCache();
-        private readonly OverlayRenderer _renderer = new OverlayRenderer();
+        private readonly HighlightCache _cache;
+        private readonly OverlayRenderer _renderer;
         private readonly List<KeyValuePair<ushort, Color>> _segmentSnapshot =
             new List<KeyValuePair<ushort, Color>>(1024);
+        private bool _hasCacheSnapshot;
+        private bool _isCacheDirty;
+        private bool _isActive;
 
-        public bool IsEnabled
+        public Manager(ModSettings settings)
         {
-            get => _isEnabled;
-            set
+            if (settings == null)
+                throw new ArgumentNullException("settings");
+
+            _cache = new HighlightCache(settings);
+            _renderer = new OverlayRenderer(settings);
+            _hasCacheSnapshot = false;
+            _isCacheDirty = false;
+            _isActive = false;
+        }
+
+        public void OnActivated()
+        {
+            _isActive = true;
+
+            if (!_hasCacheSnapshot || _isCacheDirty)
             {
-                if (_isEnabled == value)
-                    return;
-
-                _isEnabled = value;
-
-                if (_isEnabled)
-                {
-                    _cache.RebuildCache();
-                }
-                else
-                {
-                    _cache.Clear();
-                }
+                _cache.RebuildCache();
+                _hasCacheSnapshot = true;
+                _isCacheDirty = false;
             }
         }
 
-        private static readonly Manager _instance = new Manager();
-        public static Manager Instance => _instance;
-
-        private Manager()
+        public void OnDeactivated()
         {
-            ModSettings.SettingsChanged += _ => OnSettingsChanged();
+            _isActive = false;
         }
 
-        private void OnSettingsChanged()
-        {
-            if (_isEnabled)
-                _cache.RebuildCache();
-            else
-                _cache.Clear();
-        }
-
-        public void Clear()
+        public void ResetForLevelUnload()
         {
             _cache.Clear();
+            _hasCacheSnapshot = false;
+            _isCacheDirty = false;
+            _isActive = false;
         }
 
-        public void RebuildCache()
+        public void OnHighlightRulesChanged()
         {
+            if (!_isActive)
+            {
+                MarkCacheDirty();
+                return;
+            }
+
             _cache.RebuildCache();
+            _hasCacheSnapshot = true;
+            _isCacheDirty = false;
         }
 
         public void OnSegmentCreated(ushort segmentId)
         {
+            if (!_isActive)
+            {
+                MarkCacheDirty();
+                return;
+            }
+
             _cache.OnSegmentCreated(segmentId);
         }
 
         public void OnSegmentReleased(ushort segmentId)
         {
+            if (!_isActive)
+            {
+                MarkCacheDirty();
+                return;
+            }
+
             _cache.OnSegmentReleased(segmentId);
         }
 
         public void RenderIfActive(RenderManager.CameraInfo cameraInfo)
         {
-            if (!_isEnabled)
+            if (!_isActive)
                 return;
 
             _cache.CopySegmentsTo(_segmentSnapshot);
             _renderer.Render(cameraInfo, _segmentSnapshot);
+        }
+
+        private void MarkCacheDirty()
+        {
+            _isCacheDirty = true;
         }
     }
 }

@@ -75,18 +75,33 @@
         <Compile Include="Code\Core\ActivationHandler.cs" />
         <Compile Include="Code\Core\HighlightCache.cs" />
         <Compile Include="Code\Core\HighlightRules.cs" />
+        <Compile Include="Code\Core\HighlightSelection.cs" />
         <Compile Include="Code\Core\Manager.cs" />
         <Compile Include="Code\Core\OverlayRenderer.cs" />
+        <Compile Include="Code\Core\RuntimeHooks.cs" />
+        <Compile Include="Code\GUI\DragHandle.cs" />
+        <Compile Include="Code\GUI\HuePopover.cs" />
+        <Compile Include="Code\GUI\ToggleButton.cs" />
+        <Compile Include="Code\GUI\ToggleButtonAtlas.cs" />
+        <Compile Include="Code\GUI\TogglePanel.cs" />
         <Compile Include="Code\Lifecycle\Loading.cs" />
+        <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\Patches\MoveItRenderOverlayPatch.cs" />
         <Compile Include="Code\Patches\NetManagerCreateSegmentPatch.cs" />
+        <Compile Include="Code\Patches\NetManagerReleaseSegmentPatch.cs" />
         <Compile Include="Code\Patches\ToolRenderOverlayPatch.cs" />
         <Compile Include="Code\ModOptions\Config.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategoryCatalog.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategoryDefinition.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategoryId.cs" />
+        <Compile Include="Code\ModOptions\HighlightCategorySetting.cs" />
         <Compile Include="Code\ModOptions\NetworkHighlighterMod.cs" />
-        <Compile Include="Code\ModOptions\ModSettings.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
+        <Compile Include="Code\Patches\PatchTargets.cs" />
         <Compile Include="Code\Utility\ColorConversion.cs" />
         <Compile Include="Code\Utility\ModResources.cs" />
+        <Compile Include="Code\Utility\SpriteAtlasExtractor.cs" />
+        <Compile Include="Code\Utility\UIKeymappingsPanel.cs" />
         <Compile Include="Code\Utility\UIUtility.cs" />
         <Compile Include="Code\UUIImplementation\UUIButtonController.cs" />
         <Compile Include="Properties\AssemblyInfo.cs"/>
@@ -94,15 +109,12 @@
     <ItemGroup>
       <None Include="packages.config" />
     </ItemGroup>
-    <ItemGroup>
-      <Content Include="Resources\HueGradient.png" />
-    </ItemGroup>
+    <Import Project="Local.props" Condition="Exists('Local.props')" />
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
-   
     <Target Name="DeployToModDirectory" AfterTargets="Build">
         <!-- Mod output path -->
         <PropertyGroup>
-            <DeployDir>$(LOCALAPPDATA)\Colossal Order\Cities_Skylines\Addons\Mods\NetworkHighlightOverlay</DeployDir>
+            <DeployDir>$(SteamRoot)\steamapps\workshop\content\255710\3614208002</DeployDir>
         </PropertyGroup>
 
         <!-- Ensure destination exists -->
@@ -110,16 +122,13 @@
 
         <!-- Copy the compiled DLL -->
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
-        
-        <ItemGroup>
-            <_DeployDeps Include="@(ReferenceCopyLocalPaths)"
-                         Exclude="$(TargetPath)" />
-        </ItemGroup>
 
-        <Copy SourceFiles="@(_DeployDeps)"
+        <!-- Copy required external dependency -->
+        <Copy SourceFiles="$(TargetDir)UnifiedUILib.dll"
               DestinationFolder="$(DeployDir)"
-              SkipUnchangedFiles="true" />
-        
+              SkipUnchangedFiles="true"
+              Condition="Exists('$(TargetDir)UnifiedUILib.dll')" />
+
         <!-- Copy resources (PNG, etc.) -->
         <ItemGroup>
             <ResourceFiles Include="Resources\**\*" />

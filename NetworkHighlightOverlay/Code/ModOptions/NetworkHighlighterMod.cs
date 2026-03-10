@@ -1,6 +1,8 @@
 using ColossalFramework.UI;
 using ICities;
 using NetworkHighlightOverlay.Code.Utility;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.ModOptions
@@ -14,39 +16,89 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private Texture2D _hueTexture;
         private Texture2D _valueTexture;
         private Texture2D _widthTexture;
+        private readonly List<HueSliderBinding> _hueSliderBindings = new List<HueSliderBinding>();
+        private readonly List<CheckboxBinding> _checkboxBindings = new List<CheckboxBinding>();
+        private readonly ModSettings _settings = ModSettings.Shared;
+        private bool _isApplyingSettingsToUi;
+
+        private enum SliderTextureKind
+        {
+            Hue,
+            Value,
+            Width
+        }
+
+        private struct HueSliderBinding
+        {
+            public readonly UISlider Slider;
+            public readonly Func<float> GetValue;
+
+            public HueSliderBinding(UISlider slider, Func<float> getValue)
+            {
+                Slider = slider;
+                GetValue = getValue;
+            }
+        }
+
+        private struct ScalarSliderDefinition
+        {
+            public readonly string Label;
+            public readonly Func<float> GetValue;
+            public readonly Action<float> SetValue;
+            public readonly SliderTextureKind TextureKind;
+
+            public ScalarSliderDefinition(
+                string label,
+                Func<float> getValue,
+                Action<float> setValue,
+                SliderTextureKind textureKind)
+            {
+                Label = label;
+                GetValue = getValue;
+                SetValue = setValue;
+                TextureKind = textureKind;
+            }
+        }
+
+        private readonly ScalarSliderDefinition[] _scalarSliderDefinitions;
+
+        private struct CheckboxBinding
+        {
+            public readonly UICheckBox Checkbox;
+            public readonly Func<bool> GetValue;
+
+            public CheckboxBinding(UICheckBox checkbox, Func<bool> getValue)
+            {
+                Checkbox = checkbox;
+                GetValue = getValue;
+            }
+        }
+
+        public NetworkHighlighterMod()
+        {
+            _scalarSliderDefinitions = new[]
+            {
+                new ScalarSliderDefinition(
+                    "Highlight Strength",
+                    () => _settings.HighlightStrength,
+                    value => _settings.HighlightStrength = value,
+                    SliderTextureKind.Value),
+                new ScalarSliderDefinition(
+                    "Highlight Thickness",
+                    () => _settings.HighlightWidth,
+                    value => _settings.HighlightWidth = value,
+                    SliderTextureKind.Width)
+            };
+        }
 
         public void OnSettingsUI(UIHelperBase helper)
         {
             Debug.Log("[NetworkHighlightOverlay][Options] OnSettingsUI called");
+            ClearUiBindings();
 
-            if (_hueTexture == null)
-            {
-                _hueTexture = ModResources.LoadTexture("HueGradient.png");
-            }
-            if (_valueTexture == null)
-            {
-                _valueTexture = ModResources.LoadTexture("ValueGradient.png");
-            }
-            if (_widthTexture == null)
-            {
-                _widthTexture = ModResources.LoadTexture("HighlightWidth.png");
-            }
-            
-            // Some mods (e.g. Skyve) seem to replace the vanilla UIHelper with their own UIHelperBase implementation,
-            // so we cannot rely on UIHelper.self always being available. I solved this by resolving the underlying UIComponent first
-            // then building our own tabbed UI on top of it. There's probably a more elegant solution out there, but this one works.
-            
-            UIComponent rootComponent = UIUtility.TryGetRootComponent(helper);
-            if (rootComponent == null)
-            {
-                Debug.LogWarning(
-                    "[NetworkHighlightOverlay][Options] Could not resolve root UIComponent for helper of type " +
-                    (helper != null ? helper.GetType().FullName : "null") +
-                    ". Falling back to simple (non-tabbed) settings UI.");
+            EnsureTexturesLoaded();
 
-                //BuildSimpleSettings(helper);   //todo fallback – no tabs, just groups
-                return;
-            }
+            UIComponent rootComponent = UIUtility.GetRootComponent(helper);
 
             Debug.Log(
                 "[NetworkHighlightOverlay][Options] Using root component '" + rootComponent.name +
@@ -56,11 +108,38 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             BuildTabbedSettingsUI(rootComponent);
         }
 
+        private void EnsureTexturesLoaded()
+        {
+            if (_hueTexture == null)
+            {
+                _hueTexture = ModResources.LoadTexture("HueGradient.png");
+                if (_hueTexture == null)
+                    throw new InvalidOperationException("Missing required texture: Resources/HueGradient.png");
+            }
+
+            if (_valueTexture == null)
+            {
+                _valueTexture = ModResources.LoadTexture("ValueGradient.png");
+                if (_valueTexture == null)
+                    throw new InvalidOperationException("Missing required texture: Resources/ValueGradient.png");
+            }
+
+            if (_widthTexture == null)
+            {
+                _widthTexture = ModResources.LoadTexture("HighlightWidth.png");
+                if (_widthTexture == null)
+                    throw new InvalidOperationException("Missing required texture: Resources/HighlightWidth.png");
+            }
+        }
+
 
         private void BuildTabbedSettingsUI(UIComponent rootComponent)
         {
+            ClearUiBindings();
+
             // local container so we don't mess with Skyve/vanilla layout flags
             UIPanel tabRoot = CreateRootPanel(rootComponent);
+            AttachSettingsSubscription(tabRoot);
             UITabstrip tabStrip = CreateUITabstrip(tabRoot);
             UITabContainer tabContainer = CreateUITabContainer(tabRoot, tabStrip);
 
@@ -75,199 +154,263 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 "Colors",
                 Color.white,
                 out colorsPanel);
-            if (colorsHelper != null && colorsPanel != null)
-            {
-                UIPanel columnsRoot;
-                UIPanel leftColumn;
-                UIPanel rightColumn;
-                CreateColorColumns(colorsPanel, out columnsRoot, out leftColumn, out rightColumn);
+            UIPanel columnsRoot;
+            UIPanel leftColumn;
+            UIPanel rightColumn;
+            CreateColorColumns(colorsPanel, out columnsRoot, out leftColumn, out rightColumn);
 
-                var leftHelper = new UIHelper(leftColumn);
-                var rightHelper = new UIHelper(rightColumn);
+            UIHelper leftHelper = new UIHelper(leftColumn);
+            UIHelper rightHelper = new UIHelper(rightColumn);
+            int sliderIndex = 0;
 
-                var colorRows = new System.Collections.Generic.List<System.Action<UIHelper>>
-                {
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Highlight Strength",
-                        ModSettings.HighlightStrength,
-                        v => ModSettings.HighlightStrength = v,
-                        _valueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Highlight Thickness",
-                        ModSettings.HighlightWidth,
-                        v => ModSettings.HighlightWidth = v,
-                        _widthTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Pedestrian paths",
-                        ModSettings.PedestrianPathsHue,
-                        v => ModSettings.PedestrianPathsHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Pink paths",
-                        ModSettings.PinkPathsHue,
-                        v => ModSettings.PinkPathsHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Terraforming networks",
-                        ModSettings.TerraformingNetworksHue,
-                        v => ModSettings.TerraformingNetworksHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Roads",
-                        ModSettings.RoadsHue,
-                        v => ModSettings.RoadsHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Highways",
-                        ModSettings.HighwaysHue,
-                        v => ModSettings.HighwaysHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Train tracks",
-                        ModSettings.TrainTracksHue,
-                        v => ModSettings.TrainTracksHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Metro tracks",
-                        ModSettings.MetroTracksHue,
-                        v => ModSettings.MetroTracksHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Tram and Trolley tracks",
-                        ModSettings.TramTracksHue,
-                        v => ModSettings.TramTracksHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Monorail tracks",
-                        ModSettings.MonorailTracksHue,
-                        v => ModSettings.MonorailTracksHue = v,
-                        _hueTexture),
-                    helper => UIUtility.CreateHueSlider(
-                        helper,
-                        "Cable car paths",
-                        ModSettings.CableCarsHue,
-                        v => ModSettings.CableCarsHue = v,
-                        _hueTexture)
-                };
+            AddScalarColorSliders(leftHelper, rightHelper, ref sliderIndex);
+            AddCategoryColorSliders(leftHelper, rightHelper, ref sliderIndex);
 
-                for (int i = 0; i < colorRows.Count; i++)
-                {
-                    var targetHelper = (i % 2 == 0) ? leftHelper : rightHelper;
-                    colorRows[i](targetHelper);
-                }
-
+            UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
+            colorsPanel.eventSizeChanged += (component, size) =>
                 UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
-                colorsPanel.eventSizeChanged += (component, size) =>
-                    UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
-            }
             #endregion
             
             #region TAB FILTERS
             UIPanel filtersPanel;
-            var filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white, out filtersPanel);
-            if (filtersHelper != null)
-            {
-                filtersHelper.AddCheckbox(
-                    "Highlight pedestrian paths",
-                    ModSettings.HighlightPedestrianPaths,
-                    v => ModSettings.HighlightPedestrianPaths = v);
+            UIHelper filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white, out filtersPanel);
+            AddCategoryFilterCheckboxes(filtersHelper);
 
-                filtersHelper.AddCheckbox(
-                    "Highlight pink paths",
-                    ModSettings.HighlightPinkPaths,
-                    v => ModSettings.HighlightPinkPaths = v);
+            AddBoundCheckbox(
+                filtersHelper,
+                "Highlight bridges",
+                () => _settings.HighlightBridges,
+                value => _settings.HighlightBridges = value);
 
-                filtersHelper.AddCheckbox(
-                    "Highlight terraforming networks",
-                    ModSettings.HighlightTerraformingNetworks,
-                    v => ModSettings.HighlightTerraformingNetworks = v);
+            AddBoundCheckbox(
+                filtersHelper,
+                "Highlight tunnels",
+                () => _settings.HighlightTunnels,
+                value => _settings.HighlightTunnels = value);
 
-                filtersHelper.AddCheckbox(
-                    "Highlight roads",
-                    ModSettings.HighlightRoads,
-                    v => ModSettings.HighlightRoads = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight highways",
-                    ModSettings.HighlightHighways,
-                    v => ModSettings.HighlightHighways = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight train tracks",
-                    ModSettings.HighlightTrainTracks,
-                    v => ModSettings.HighlightTrainTracks = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight metro tracks",
-                    ModSettings.HighlightMetroTracks,
-                    v => ModSettings.HighlightMetroTracks = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight tram tracks",
-                    ModSettings.HighlightTramTracks,
-                    v => ModSettings.HighlightTramTracks = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight monorail tracks",
-                    ModSettings.HighlightMonorailTracks,
-                    v => ModSettings.HighlightMonorailTracks = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight cable car paths",
-                    ModSettings.HighlightCableCars,
-                    v => ModSettings.HighlightCableCars = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight bridges",
-                    ModSettings.HighlightBridges,
-                    v => ModSettings.HighlightBridges = v);
-
-                filtersHelper.AddCheckbox(
-                    "Highlight tunnels",
-                    ModSettings.HighlightTunnels,
-                    v => ModSettings.HighlightTunnels = v);
-            }
+            AddBoundCheckbox(
+                filtersHelper,
+                "Use UUI button",
+                () => _settings.UseUuiButton,
+                value => _settings.UseUuiButton = value);
             #endregion
             
+            #region TAB CONTROLS
+            UIPanel controlsPanel;
+            UIHelper controlsHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Controls", Color.white, out controlsPanel);
+            UIKeymappingsPanel keymappingsPanel = UIUtility.AddKeymappingsPanel(controlsHelper);
+            keymappingsPanel.AddKeymapping("Toggle overlay hotkey", _settings.ToggleOverlayHotkey);
+            #endregion
+
             #region TAB DANGERZONE
             UIPanel dangerPanel;
             UIHelper dangerHelper = UIUtility.CreateTab(tabContainer, tabStrip, "DANGER ZONE", Color.red, out dangerPanel);
-            if (dangerHelper != null)
-            {
-                dangerHelper.AddSpace(20);
-                dangerHelper.AddButton(
-                    "Reset ALL settings to defaults",
-                    () =>
+            dangerHelper.AddSpace(20);
+            dangerHelper.AddButton(
+                "Reset ALL settings to defaults",
+                () =>
+                {
+                    _settings.ResetToDefaults();
+                    if (tabRoot != null && tabRoot.parent != null)
                     {
-                        ModSettings.ResetToDefaults();
-                        if (tabRoot != null && tabRoot.parent != null)
-                        {
-                            tabRoot.parent.RemoveUIComponent(tabRoot);
-                            UnityEngine.Object.Destroy(tabRoot.gameObject);
-                        }
-                        BuildTabbedSettingsUI(rootComponent);
-                    });
-            }
+                        tabRoot.parent.RemoveUIComponent(tabRoot);
+                        UnityEngine.Object.Destroy(tabRoot.gameObject);
+                    }
+                    BuildTabbedSettingsUI(rootComponent);
+                });
             #endregion
 
             tabStrip.selectedIndex = 0;
+            ApplySettingsToUi();
             
         }
 
+        private void AttachSettingsSubscription(UIPanel ownerPanel)
+        {
+            if (ownerPanel == null)
+                throw new ArgumentNullException("ownerPanel");
+
+            Action settingsChangedHandler = OnModSettingsChanged;
+            _settings.SettingsChanged += settingsChangedHandler;
+            SubscriptionScope scope = ownerPanel.gameObject.GetComponent<SubscriptionScope>();
+            if (scope == null)
+            {
+                scope = ownerPanel.gameObject.AddComponent<SubscriptionScope>();
+            }
+
+            scope.Initialize(() => _settings.SettingsChanged -= settingsChangedHandler);
+        }
+
+        private void OnModSettingsChanged()
+        {
+            ApplySettingsToUi();
+        }
+
+        private void ClearUiBindings()
+        {
+            _hueSliderBindings.Clear();
+            _checkboxBindings.Clear();
+        }
+
+        private void ApplySettingsToUi()
+        {
+            _isApplyingSettingsToUi = true;
+            try
+            {
+                int sliderCount = _hueSliderBindings.Count;
+                for (int i = 0; i < sliderCount; i++)
+                {
+                    HueSliderBinding binding = _hueSliderBindings[i];
+                    float targetValue = Mathf.Clamp01(binding.GetValue());
+                    if (Mathf.Abs(binding.Slider.value - targetValue) > 0.0001f)
+                    {
+                        binding.Slider.value = targetValue;
+                    }
+                }
+
+                int checkboxCount = _checkboxBindings.Count;
+                for (int i = 0; i < checkboxCount; i++)
+                {
+                    CheckboxBinding binding = _checkboxBindings[i];
+                    bool targetValue = binding.GetValue();
+                    if (binding.Checkbox.isChecked != targetValue)
+                    {
+                        binding.Checkbox.isChecked = targetValue;
+                    }
+                }
+            }
+            finally
+            {
+                _isApplyingSettingsToUi = false;
+            }
+        }
+
+        private void AddScalarColorSliders(UIHelper leftHelper, UIHelper rightHelper, ref int sliderIndex)
+        {
+            int definitionCount = _scalarSliderDefinitions.Length;
+            for (int i = 0; i < definitionCount; i++)
+            {
+                ScalarSliderDefinition definition = _scalarSliderDefinitions[i];
+                UIHelper helper = GetColumnHelper(sliderIndex++, leftHelper, rightHelper);
+
+                AddBoundHueSlider(
+                    helper,
+                    definition.Label,
+                    definition.GetValue,
+                    definition.SetValue,
+                    GetTextureForSlider(definition.TextureKind));
+            }
+        }
+
+        private void AddCategoryColorSliders(UIHelper leftHelper, UIHelper rightHelper, ref int sliderIndex)
+        {
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int i = 0; i < categoryCount; i++)
+            {
+                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                HighlightCategoryId categoryId = definition.Id;
+                UIHelper helper = GetColumnHelper(sliderIndex++, leftHelper, rightHelper);
+
+                AddBoundHueSlider(
+                    helper,
+                    definition.ColorSliderLabel,
+                    () => _settings.GetCategoryHue(categoryId),
+                    value => _settings.SetCategoryHue(categoryId, value),
+                    _hueTexture);
+            }
+        }
+
+        private void AddCategoryFilterCheckboxes(UIHelper filtersHelper)
+        {
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            int categoryCount = categoryDefinitions.Length;
+            for (int i = 0; i < categoryCount; i++)
+            {
+                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                HighlightCategoryId categoryId = definition.Id;
+
+                AddBoundCheckbox(
+                    filtersHelper,
+                    definition.FilterLabel,
+                    () => _settings.GetCategoryEnabled(categoryId),
+                    value => _settings.SetCategoryEnabled(categoryId, value));
+            }
+        }
+
+        private Texture2D GetTextureForSlider(SliderTextureKind textureKind)
+        {
+            if (textureKind == SliderTextureKind.Value) return _valueTexture;
+
+            if (textureKind == SliderTextureKind.Width) return _widthTexture;
+
+            return _hueTexture;
+        }
+
+        private void AddBoundHueSlider(
+            UIHelper helper,
+            string label,
+            Func<float> getValue,
+            Action<float> setValue,
+            Texture2D backgroundTexture)
+        {
+            if (helper == null)
+                throw new ArgumentNullException("helper");
+
+            if (getValue == null)
+                throw new ArgumentNullException("getValue");
+
+            if (setValue == null)
+                throw new ArgumentNullException("setValue");
+
+            OnValueChanged onChanged = value =>
+            {
+                if (_isApplyingSettingsToUi)
+                    return;
+
+                setValue(value);
+            };
+
+            UISlider slider = UIUtility.CreateHueSlider(helper, label, getValue(), onChanged, backgroundTexture);
+            _hueSliderBindings.Add(new HueSliderBinding(slider, getValue));
+        }
+
+        private void AddBoundCheckbox(
+            UIHelperBase helper,
+            string label,
+            Func<bool> getValue,
+            Action<bool> setValue)
+        {
+            if (helper == null)
+                throw new ArgumentNullException("helper");
+
+            if (getValue == null)
+                throw new ArgumentNullException("getValue");
+
+            if (setValue == null)
+                throw new ArgumentNullException("setValue");
+
+            OnCheckChanged onChanged = value =>
+            {
+                if (_isApplyingSettingsToUi)
+                    return;
+
+                setValue(value);
+            };
+
+            object checkboxObject = helper.AddCheckbox(label, getValue(), onChanged);
+            UICheckBox checkbox = checkboxObject as UICheckBox;
+            if (checkbox == null)
+                throw new InvalidOperationException("UIHelperBase.AddCheckbox must return a UICheckBox.");
+
+            _checkboxBindings.Add(new CheckboxBinding(checkbox, getValue));
+        }
+
+        private static UIHelper GetColumnHelper(int index, UIHelper leftHelper, UIHelper rightHelper) => (index % 2 == 0) ? leftHelper : rightHelper;
+
         private static UIPanel CreateRootPanel(UIComponent rootComponent)
         {
-            var tabRoot = rootComponent.AddUIComponent<UIPanel>();
+            UIPanel tabRoot = rootComponent.AddUIComponent<UIPanel>();
             tabRoot.name = "NHO_TabRoot";
             tabRoot.autoLayout = false;
             tabRoot.clipChildren = true;
@@ -280,7 +423,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static UITabContainer CreateUITabContainer(UIComponent parent, UITabstrip tabStrip)
         {
-            var tabContainer = parent.AddUIComponent<UITabContainer>();
+            UITabContainer tabContainer = parent.AddUIComponent<UITabContainer>();
             tabContainer.name = "NHO_TabContainer";
             tabContainer.relativePosition = new Vector3(0f, tabStrip.height + 5f);
             tabContainer.width  = parent.width;
@@ -290,7 +433,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         private static UITabstrip CreateUITabstrip(UIComponent parent)
         {
-            var tabStrip = parent.AddUIComponent<UITabstrip>();
+            UITabstrip tabStrip = parent.AddUIComponent<UITabstrip>();
             tabStrip.name = "NHO_TabStrip";
             tabStrip.width = parent.width;
             tabStrip.height = 30f;
@@ -326,11 +469,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static void UpdateColorColumnsLayout(UIPanel colorsPanel, UIPanel columnsRoot,
             UIPanel leftColumn, UIPanel rightColumn)
         {
-            if (colorsPanel == null || columnsRoot == null || leftColumn == null || rightColumn == null)
-            {
-                return;
-            }
-
             float availableWidth = Mathf.Max(0f, colorsPanel.width);
             float horizontalPadding = colorsPanel.autoLayoutPadding != null
                 ? colorsPanel.autoLayoutPadding.left
@@ -346,6 +484,31 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
             float columnsHeight = Mathf.Max(leftColumn.height, rightColumn.height);
             columnsRoot.height = columnsHeight;
+        }
+
+        private sealed class SubscriptionScope : MonoBehaviour
+        {
+            private Action _dispose;
+
+            public void Initialize(Action dispose)
+            {
+                if (_dispose != null)
+                {
+                    _dispose();
+                }
+
+                _dispose = dispose;
+            }
+
+            private void OnDestroy()
+            {
+                if (_dispose == null)
+                    return;
+
+                Action dispose = _dispose;
+                _dispose = null;
+                dispose();
+            }
         }
 
     }
