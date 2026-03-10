@@ -261,6 +261,11 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void OnSettingsChanged()
         {
+            if (_view != null)
+            {
+                RefreshPositionFromSettings();
+            }
+
             RefreshButtonsFromSettings();
             RefreshHuePopoverFromSettings();
         }
@@ -285,21 +290,20 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void ApplySavedPosition()
         {
-            Vector2 panelSize = size;
-            Vector2 target;
-            if (_settings.PanelX >= 0f && _settings.PanelY >= 0f)
-            {
-                target = new Vector2(_settings.PanelX, _settings.PanelY);
-            }
-            else
-            {
-                target = CenterPosition(_view, panelSize);
-            }
-
-            Vector2 clamped = ClampToScreen(_view, target, panelSize);
+            Vector2 clamped = GetPositionFromSettings();
             absolutePosition = new Vector3(clamped.x, clamped.y);
             _settings.PanelX = clamped.x;
             _settings.PanelY = clamped.y;
+        }
+
+        private void RefreshPositionFromSettings()
+        {
+            Vector2 clamped = GetPositionFromSettings();
+            Vector3 current = absolutePosition;
+            if (Mathf.Approximately(current.x, clamped.x) && Mathf.Approximately(current.y, clamped.y))
+                return;
+
+            absolutePosition = new Vector3(clamped.x, clamped.y);
         }
 
         private void OnDragHandleMouseDown(UIComponent component, UIMouseEventParameter eventParam)
@@ -328,6 +332,22 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             _settings.PanelX = clamped.x;
             _settings.PanelY = clamped.y;
+        }
+
+        private Vector2 GetPositionFromSettings()
+        {
+            Vector2 panelSize = size;
+            Vector2 target;
+            if (_settings.PanelX >= 0f && _settings.PanelY >= 0f)
+            {
+                target = new Vector2(_settings.PanelX, _settings.PanelY);
+            }
+            else
+            {
+                target = CenterPosition(_view, panelSize);
+            }
+
+            return ClampToScreen(_view, target, panelSize);
         }
 
         private static Vector2 CenterPosition(UIView view, Vector2 panelSize)
