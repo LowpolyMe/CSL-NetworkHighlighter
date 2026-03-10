@@ -78,7 +78,6 @@
         <Compile Include="Code\Core\HighlightSelection.cs" />
         <Compile Include="Code\Core\Manager.cs" />
         <Compile Include="Code\Core\OverlayRenderer.cs" />
-        <Compile Include="Code\GUI\Bindings.cs" />
         <Compile Include="Code\GUI\DragHandle.cs" />
         <Compile Include="Code\GUI\HuePopover.cs" />
         <Compile Include="Code\GUI\ToggleButton.cs" />

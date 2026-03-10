@@ -1,4 +1,5 @@
 using ColossalFramework.UI;
+using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.Utility;
 using UnityEngine;
 
@@ -18,14 +19,16 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         #region Fields
         private ToggleButton _anchor;
-        private ToggleBinding _binding;
+        private ModSettings _settings;
+        private HighlightCategoryId _categoryId;
+        private bool _hasCategorySelection;
         private UIView _view;
         private UISlider _hueSlider;
         private bool _isApplyingHueValue;
         private bool _waitForMouseReleaseAfterOpen;
         #endregion
 
-        public bool IsOpen => isVisible && _anchor != null && _binding != null;
+        public bool IsOpen => isVisible && _anchor != null && _settings != null && _hasCategorySelection;
 
         public override void Awake()
         {
@@ -65,27 +68,36 @@ namespace NetworkHighlightOverlay.Code.GUI
             base.OnDestroy();
         }
 
-        public void Open(ToggleButton toggleButton, ToggleBinding binding)
+        public void Open(ToggleButton toggleButton, ModSettings settings, HighlightCategoryId categoryId)
         {
-            if (toggleButton == null || binding == null)
+            if (toggleButton == null || settings == null)
                 return;
 
             _anchor = toggleButton;
-            _binding = binding;
+            _settings = settings;
+            _categoryId = categoryId;
+            _hasCategorySelection = true;
             _waitForMouseReleaseAfterOpen = IsAnyMouseButtonHeld();
             isVisible = true;
             BringToFront();
             UpdatePosition();
-            SyncSliderFromBinding();
+            RefreshFromSettings();
         }
 
         public void Close()
         {
             _anchor = null;
-            _binding = null;
+            _settings = null;
+            _hasCategorySelection = false;
             _isApplyingHueValue = false;
             _waitForMouseReleaseAfterOpen = false;
             isVisible = false;
+        }
+
+        public void RefreshFromSettings()
+        {
+            UpdatePosition();
+            SyncSliderFromSettings();
         }
 
         private void CreateSlider()
@@ -169,12 +181,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             absolutePosition = new Vector3(x, y);
         }
 
-        private void SyncSliderFromBinding()
+        private void SyncSliderFromSettings()
         {
-            if (_hueSlider == null || _binding == null)
+            if (_hueSlider == null || _settings == null || !_hasCategorySelection)
                 return;
 
-            float hue = Mathf.Clamp01(_binding.HueValue);
+            float hue = Mathf.Clamp01(_settings.GetCategoryHue(_categoryId));
             if (Mathf.Abs(_hueSlider.value - hue) <= 0.0001f)
                 return;
 
@@ -185,10 +197,10 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void OnHueSliderValueChanged(UIComponent component, float value)
         {
-            if (_isApplyingHueValue || _binding == null)
+            if (_isApplyingHueValue || _settings == null || !_hasCategorySelection)
                 return;
 
-            _binding.HueValue = Mathf.Clamp01(value);
+            _settings.SetCategoryHue(_categoryId, Mathf.Clamp01(value));
         }
 
         private Texture2D GetHueGradientTexture()

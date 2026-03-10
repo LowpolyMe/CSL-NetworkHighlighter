@@ -1,4 +1,5 @@
 using ColossalFramework.UI;
+using NetworkHighlightOverlay.Code.ModOptions;
 using System;
 using UnityEngine;
 
@@ -8,30 +9,36 @@ namespace NetworkHighlightOverlay.Code.GUI
     {
         #region Fields
         private UIView _view;
-        private ToggleBinding _binding;
+        private ModSettings _settings;
+        private HighlightCategoryId _categoryId;
         private ToggleButtonAtlas _toggleButtonAtlas;
         private string _spriteName;
-        private IDisposable _bindingSubscription;
-        private Action<ToggleButton, ToggleBinding> _onHueEditRequested;
+        private Action<ToggleButton, HighlightCategoryId> _onHueEditRequested;
         private UISprite _icon;
         #endregion
 
         public void Initialize(
-            string spriteName,
-            ToggleBinding binding,
-            string toggleTooltip,
+            HighlightCategoryDefinition categoryDefinition,
+            ModSettings settings,
             ToggleButtonAtlas toggleButtonAtlas,
-            Action<ToggleButton, ToggleBinding> onHueEditRequested)
+            Action<ToggleButton, HighlightCategoryId> onHueEditRequested)
         {
-            name = "NHO_ToggleButton_" + toggleTooltip.Replace(' ', '_');
+            if (categoryDefinition == null)
+                throw new ArgumentNullException("categoryDefinition");
+
+            if (settings == null)
+                throw new ArgumentNullException("settings");
+
+            name = "NHO_ToggleButton_" + categoryDefinition.ToggleLabel.Replace(' ', '_');
             text = string.Empty;
-            this.tooltip = toggleTooltip;
-            _binding = binding;
+            this.tooltip = categoryDefinition.ToggleLabel;
+            _settings = settings;
+            _categoryId = categoryDefinition.Id;
             if (toggleButtonAtlas == null)
                 throw new ArgumentNullException("toggleButtonAtlas");
 
             _toggleButtonAtlas = toggleButtonAtlas;
-            _spriteName = spriteName;
+            _spriteName = categoryDefinition.SpriteName;
             _onHueEditRequested = onHueEditRequested;
             playAudioEvents = true;
 
@@ -40,9 +47,8 @@ namespace NetworkHighlightOverlay.Code.GUI
             eventSizeChanged -= OnButtonSizeChanged;
             eventSizeChanged += OnButtonSizeChanged;
 
-            SubscribeToBindingChanges();
             SetupVisuals();
-            ApplyVisualState();
+            RefreshFromSettings();
         }
 
         protected override void OnClick(UIMouseEventParameter p)
@@ -51,10 +57,10 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             base.OnClick(p);
-            if (_binding == null)
+            if (_settings == null)
                 return;
 
-            _binding.Value = !_binding.Value;
+            _settings.SetCategoryEnabled(_categoryId, !_settings.GetCategoryEnabled(_categoryId));
         }
 
         protected override void OnMouseDown(UIMouseEventParameter p)
@@ -67,9 +73,13 @@ namespace NetworkHighlightOverlay.Code.GUI
         public override void OnDestroy()
         {
             _onHueEditRequested = null;
-            UnsubscribeFromBindingChanges();
             eventSizeChanged -= OnButtonSizeChanged;
             base.OnDestroy();
+        }
+
+        public void RefreshFromSettings()
+        {
+            ApplyVisualState();
         }
 
         private void SetupVisuals()
@@ -89,38 +99,16 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void ApplyVisualState()
         {
-            if (_binding == null)
+            if (_settings == null)
                 return;
 
             opacity = 1f;
             isInteractive = true;
-            normalBgSprite = _binding.Value
+            normalBgSprite = _settings.GetCategoryEnabled(_categoryId)
                 ? ToggleButtonAtlas.ActiveSpriteName
                 : ToggleButtonAtlas.InactiveSpriteName;
             focusedBgSprite = normalBgSprite;
             ToggleButtonVisual.ApplyBackgroundColors(this, GetConfiguredColor());
-        }
-
-        private void SubscribeToBindingChanges()
-        {
-            if (_bindingSubscription != null || _binding == null)
-                return;
-
-            _bindingSubscription = _binding.Subscribe(OnBindingChanged, false);
-        }
-
-        private void UnsubscribeFromBindingChanges()
-        {
-            if (_bindingSubscription == null)
-                return;
-
-            _bindingSubscription.Dispose();
-            _bindingSubscription = null;
-        }
-
-        private void OnBindingChanged()
-        {
-            ApplyVisualState();
         }
 
         private static bool IsRightMouseClick(UIMouseEventParameter p)
@@ -136,10 +124,10 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (!IsRightMouseClick(p))
                 return false;
 
-            if (_binding == null)
+            if (_settings == null)
                 return false;
 
-            _onHueEditRequested?.Invoke(this, _binding);
+            _onHueEditRequested?.Invoke(this, _categoryId);
 
             p?.Use();
 
@@ -148,10 +136,10 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private Color GetConfiguredColor()
         {
-            if (_binding == null)
+            if (_settings == null)
                 return Color.white;
 
-            Color colorFromConfig = _binding.ColorValue;
+            Color colorFromConfig = _settings.GetCategoryColor(_categoryId);
             colorFromConfig.a = 1f;
             return colorFromConfig;
         }

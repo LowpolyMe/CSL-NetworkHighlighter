@@ -2,6 +2,7 @@ using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.ModOptions;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
@@ -19,9 +20,11 @@ namespace NetworkHighlightOverlay.Code.GUI
         private ActivationHandler _activationHandler;
         private ToggleButtonAtlas _toggleButtonAtlas;
         private IDisposable _enabledStateSubscription;
+        private Action _settingsChangedHandler;
         private UIView _view;
         private DragHandle _dragHandle;
         private HuePopover _huePopover;
+        private readonly List<ToggleButton> _buttons = new List<ToggleButton>();
 
         public void Initialize(ModSettings settings, ActivationHandler activationHandler, ToggleButtonAtlas toggleButtonAtlas)
         {
@@ -40,6 +43,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             DisposeEnabledStateSubscription();
             _enabledStateSubscription = _activationHandler.Subscribe(OnEnabledStateChanged);
+            SubscribeToSettingsChanged();
             isVisible = _activationHandler.IsActive;
         }
 
@@ -83,9 +87,11 @@ namespace NetworkHighlightOverlay.Code.GUI
         public override void OnDestroy()
         {
             DisposeEnabledStateSubscription();
+            UnsubscribeFromSettingsChanged();
 
             UnsubscribeFromDragHandleEvents();
             _dragHandle = null;
+            _buttons.Clear();
 
             DestroyHuePopover();
             base.OnDestroy();
@@ -116,6 +122,24 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             _enabledStateSubscription.Dispose();
             _enabledStateSubscription = null;
+        }
+
+        private void SubscribeToSettingsChanged()
+        {
+            if (_settings == null || _settingsChangedHandler != null)
+                return;
+
+            _settingsChangedHandler = OnSettingsChanged;
+            _settings.SettingsChanged += _settingsChangedHandler;
+        }
+
+        private void UnsubscribeFromSettingsChanged()
+        {
+            if (_settings == null || _settingsChangedHandler == null)
+                return;
+
+            _settings.SettingsChanged -= _settingsChangedHandler;
+            _settingsChangedHandler = null;
         }
 
         private void CreateDragHandle()
@@ -200,10 +224,6 @@ namespace NetworkHighlightOverlay.Code.GUI
                 int column = index % Columns;
 
                 HighlightCategoryDefinition categoryDefinition = categoryDefinitions[index];
-                ToggleBinding binding = new ToggleBinding(
-                    _settings.GetCategoryState(categoryDefinition.Id),
-                    _settings.HighlightStrengthState);
-
                 ToggleButton button = AddUIComponent<ToggleButton>();
                 button.width = ButtonSize;
                 button.height = ButtonSize;
@@ -211,17 +231,17 @@ namespace NetworkHighlightOverlay.Code.GUI
                     Padding + column * (ButtonSize + Spacing),
                     DragHandleHeight + Padding + row * (ButtonSize + Spacing));
                 button.Initialize(
-                    categoryDefinition.SpriteName,
-                    binding,
-                    categoryDefinition.ToggleLabel,
+                    categoryDefinition,
+                    _settings,
                     _toggleButtonAtlas,
                     OnButtonHueEditRequested);
+                _buttons.Add(button);
             }
         }
 
-        private void OnButtonHueEditRequested(ToggleButton button, ToggleBinding binding)
+        private void OnButtonHueEditRequested(ToggleButton button, HighlightCategoryId categoryId)
         {
-            if (_huePopover == null || button == null || binding == null)
+            if (_huePopover == null || button == null)
                 return;
 
             if (_huePopover.IsAnchoredTo(button))
@@ -230,7 +250,34 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
             }
 
-            _huePopover.Open(button, binding);
+            _huePopover.Open(button, _settings, categoryId);
+        }
+
+        private void OnSettingsChanged()
+        {
+            RefreshButtonsFromSettings();
+            RefreshHuePopoverFromSettings();
+        }
+
+        private void RefreshButtonsFromSettings()
+        {
+            int buttonCount = _buttons.Count;
+            for (int i = 0; i < buttonCount; i++)
+            {
+                ToggleButton button = _buttons[i];
+                if (button == null)
+                    continue;
+
+                button.RefreshFromSettings();
+            }
+        }
+
+        private void RefreshHuePopoverFromSettings()
+        {
+            if (_huePopover == null || !_huePopover.IsOpen)
+                return;
+
+            _huePopover.RefreshFromSettings();
         }
 
         private void ApplySavedPosition()
