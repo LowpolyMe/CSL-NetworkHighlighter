@@ -31,7 +31,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
             name = "NHO_ToggleButton_" + categoryDefinition.ToggleLabel.Replace(' ', '_');
             text = string.Empty;
-            this.tooltip = categoryDefinition.ToggleLabel;
+            this.tooltip = categoryDefinition.ToggleLabel + "\nRight-click to change color";
             _settings = settings;
             _categoryId = categoryDefinition.Id;
             if (toggleButtonAtlas == null)
