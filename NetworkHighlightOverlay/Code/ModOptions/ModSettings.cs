@@ -10,6 +10,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
     {
         private const string KeybindingsFileName = "NetworkHighlightOverlay_Keybindings";
         private const string ToggleOverlayHotkeyName = "NetworkHighlightOverlay_ToggleOverlay";
+        private static readonly InputKey DefaultToggleOverlayHotkey = SavedInputKey.Encode(KeyCode.F9, false, false, false);
 
         public static readonly ModSettings Shared = new ModSettings();
 
@@ -221,6 +222,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
 
         public void ResetToDefaults()
         {
+            _toggleOverlayHotkey.value = DefaultToggleOverlayHotkey;
             ApplyConfig(new Config());
         }
 
