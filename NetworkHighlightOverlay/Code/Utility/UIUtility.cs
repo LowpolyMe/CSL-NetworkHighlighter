@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using ColossalFramework;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
@@ -77,6 +78,23 @@ namespace NetworkHighlightOverlay.Code.Utility
             tabStrip.AddTab(title, tabButton.gameObject, page.gameObject);
             
             return new UIHelper(page);
+        }
+
+        public static void AddKeymapping(UIHelperBase helper, string label, SavedInputKey savedInputKey)
+        {
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            MethodInfo addKeymappingMethod = helper.GetType().GetMethod(
+                "AddKeymapping",
+                flags,
+                null,
+                new[] { typeof(string), typeof(SavedInputKey) },
+                null);
+
+            if (addKeymappingMethod == null)
+                throw new InvalidOperationException(
+                    "Helper type '" + helper.GetType().FullName + "' must expose AddKeymapping.");
+
+            addKeymappingMethod.Invoke(helper, new object[] { label, savedInputKey });
         }
 
         public static UISlider CreateHueSlider(UIHelper group, string label, float initialHue, OnValueChanged onChanged,

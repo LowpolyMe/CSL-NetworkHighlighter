@@ -162,72 +162,69 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 "Colors",
                 Color.white,
                 out colorsPanel);
-            if (colorsHelper != null && colorsPanel != null)
-            {
-                UIPanel columnsRoot;
-                UIPanel leftColumn;
-                UIPanel rightColumn;
-                CreateColorColumns(colorsPanel, out columnsRoot, out leftColumn, out rightColumn);
+            UIPanel columnsRoot;
+            UIPanel leftColumn;
+            UIPanel rightColumn;
+            CreateColorColumns(colorsPanel, out columnsRoot, out leftColumn, out rightColumn);
 
-                UIHelper leftHelper = new UIHelper(leftColumn);
-                UIHelper rightHelper = new UIHelper(rightColumn);
-                int sliderIndex = 0;
+            UIHelper leftHelper = new UIHelper(leftColumn);
+            UIHelper rightHelper = new UIHelper(rightColumn);
+            int sliderIndex = 0;
 
-                AddScalarColorSliders(leftHelper, rightHelper, ref sliderIndex);
-                AddCategoryColorSliders(leftHelper, rightHelper, ref sliderIndex);
+            AddScalarColorSliders(leftHelper, rightHelper, ref sliderIndex);
+            AddCategoryColorSliders(leftHelper, rightHelper, ref sliderIndex);
 
+            UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
+            colorsPanel.eventSizeChanged += (component, size) =>
                 UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
-                colorsPanel.eventSizeChanged += (component, size) =>
-                    UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
-            }
             #endregion
             
             #region TAB FILTERS
             UIPanel filtersPanel;
             UIHelper filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white, out filtersPanel);
-            if (filtersHelper != null)
-            {
-                AddCategoryFilterCheckboxes(filtersHelper);
+            AddCategoryFilterCheckboxes(filtersHelper);
 
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight bridges",
-                    () => _settings.HighlightBridges,
-                    value => _settings.HighlightBridges = value);
+            AddBoundCheckbox(
+                filtersHelper,
+                "Highlight bridges",
+                () => _settings.HighlightBridges,
+                value => _settings.HighlightBridges = value);
 
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Highlight tunnels",
-                    () => _settings.HighlightTunnels,
-                    value => _settings.HighlightTunnels = value);
+            AddBoundCheckbox(
+                filtersHelper,
+                "Highlight tunnels",
+                () => _settings.HighlightTunnels,
+                value => _settings.HighlightTunnels = value);
 
-                AddBoundCheckbox(
-                    filtersHelper,
-                    "Use UUI button",
-                    () => _settings.UseUuiButton,
-                    value => _settings.UseUuiButton = value);
-            }
+            AddBoundCheckbox(
+                filtersHelper,
+                "Use UUI button",
+                () => _settings.UseUuiButton,
+                value => _settings.UseUuiButton = value);
             #endregion
             
+            #region TAB CONTROLS
+            UIPanel controlsPanel;
+            UIHelper controlsHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Controls", Color.white, out controlsPanel);
+            UIUtility.AddKeymapping(controlsHelper, "Toggle overlay hotkey", _settings.ToggleOverlayHotkey);
+            #endregion
+
             #region TAB DANGERZONE
             UIPanel dangerPanel;
             UIHelper dangerHelper = UIUtility.CreateTab(tabContainer, tabStrip, "DANGER ZONE", Color.red, out dangerPanel);
-            if (dangerHelper != null)
-            {
-                dangerHelper.AddSpace(20);
-                dangerHelper.AddButton(
-                    "Reset ALL settings to defaults",
-                    () =>
+            dangerHelper.AddSpace(20);
+            dangerHelper.AddButton(
+                "Reset ALL settings to defaults",
+                () =>
+                {
+                    _settings.ResetToDefaults();
+                    if (tabRoot != null && tabRoot.parent != null)
                     {
-                        _settings.ResetToDefaults();
-                        if (tabRoot != null && tabRoot.parent != null)
-                        {
-                            tabRoot.parent.RemoveUIComponent(tabRoot);
-                            UnityEngine.Object.Destroy(tabRoot.gameObject);
-                        }
-                        BuildTabbedSettingsUI(rootComponent);
-                    });
-            }
+                        tabRoot.parent.RemoveUIComponent(tabRoot);
+                        UnityEngine.Object.Destroy(tabRoot.gameObject);
+                    }
+                    BuildTabbedSettingsUI(rootComponent);
+                });
             #endregion
 
             tabStrip.selectedIndex = 0;
