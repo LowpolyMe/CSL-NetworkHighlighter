@@ -19,7 +19,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         private ModSettings _settings;
         private ActivationHandler _activationHandler;
         private ToggleButtonAtlas _toggleButtonAtlas;
-        private IDisposable _enabledStateSubscription;
+        private Action<bool> _activationChangedHandler;
         private Action _settingsChangedHandler;
         private UIView _view;
         private DragHandle _dragHandle;
@@ -41,8 +41,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             _activationHandler = activationHandler;
             _toggleButtonAtlas = toggleButtonAtlas;
 
-            DisposeEnabledStateSubscription();
-            _enabledStateSubscription = _activationHandler.Subscribe(OnEnabledStateChanged);
+            SubscribeToActivationChanged();
             SubscribeToSettingsChanged();
             isVisible = _activationHandler.IsActive;
         }
@@ -86,7 +85,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         public override void OnDestroy()
         {
-            DisposeEnabledStateSubscription();
+            UnsubscribeFromActivationChanged();
             UnsubscribeFromSettingsChanged();
 
             UnsubscribeFromDragHandleEvents();
@@ -105,7 +104,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             }
         }
 
-        private void OnEnabledStateChanged(bool previousState, bool isEnabled)
+        private void OnEnabledStateChanged(bool isEnabled)
         {
             if (!isEnabled)
             {
@@ -115,13 +114,22 @@ namespace NetworkHighlightOverlay.Code.GUI
             isVisible = isEnabled;
         }
 
-        private void DisposeEnabledStateSubscription()
+        private void SubscribeToActivationChanged()
         {
-            if (_enabledStateSubscription == null)
+            if (_activationHandler == null || _activationChangedHandler != null)
                 return;
 
-            _enabledStateSubscription.Dispose();
-            _enabledStateSubscription = null;
+            _activationChangedHandler = OnEnabledStateChanged;
+            _activationHandler.ActivationChanged += _activationChangedHandler;
+        }
+
+        private void UnsubscribeFromActivationChanged()
+        {
+            if (_activationHandler == null || _activationChangedHandler == null)
+                return;
+
+            _activationHandler.ActivationChanged -= _activationChangedHandler;
+            _activationChangedHandler = null;
         }
 
         private void SubscribeToSettingsChanged()

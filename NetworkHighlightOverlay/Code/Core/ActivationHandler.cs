@@ -1,8 +1,6 @@
 using System;
 using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.UI;
-using NetworkHighlightOverlay.Utility;
-using UnifiedUI.Util;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.Core
@@ -10,15 +8,18 @@ namespace NetworkHighlightOverlay.Code.Core
     public sealed class ActivationHandler : MonoBehaviour
     {
         private static ActivationHandler _instance;
-        private readonly Observable<bool> _isActive = new Observable<bool>(false);
 
         private Manager _manager;
         private ModSettings _settings;
         private UuiButtonController _uuiButtonController;
-        private IDisposable _highlightRulesSubscription;
-        private IDisposable _useUuiButtonSubscription;
+        private Action _highlightRulesChangedHandler;
+        private Action _settingsChangedHandler;
+        private bool _isActive;
+        private bool _lastUseUuiButton;
 
-        public bool IsActive => _isActive.Value;
+        public event Action<bool> ActivationChanged;
+
+        public bool IsActive => _isActive;
 
         public static ActivationHandler GetInstance() => _instance;
 
@@ -29,22 +30,19 @@ namespace NetworkHighlightOverlay.Code.Core
             _uuiButtonController = uuiButtonController ?? throw new ArgumentNullException("uuiButtonController");
         }
 
-        public IDisposable Subscribe(Action<bool, bool> callback)
-        {
-            if (callback == null)
-                throw new ArgumentNullException("callback");
-
-            return _isActive.Subscribe(callback, true);
-        }
-
         public void SetActive(bool isActive)
         {
-            if (_isActive.SetValue(isActive))
+            if (_isActive == isActive)
             {
-                if (isActive) _manager.OnActivated();
-                else _manager.OnDeactivated();
+                SyncUuiPressedState(isActive);
+                return;
             }
 
+            _isActive = isActive;
+            if (isActive) _manager.OnActivated();
+            else _manager.OnDeactivated();
+
+            RaiseActivationChanged(isActive);
             SyncUuiPressedState(isActive);
         }
 
@@ -77,8 +75,13 @@ namespace NetworkHighlightOverlay.Code.Core
         private void Start()
         {
             EnsureInitialized();
-            _highlightRulesSubscription = _settings.HighlightRulesVersion.Subscribe(OnHighlightRulesChanged);
-            _useUuiButtonSubscription = _settings.UseUuiButtonState.Subscribe(OnUseUuiButtonChanged, true);
+            _highlightRulesChangedHandler = OnHighlightRulesChanged;
+            _settings.HighlightRulesChanged += _highlightRulesChangedHandler;
+
+            _settingsChangedHandler = OnSettingsChanged;
+            _settings.SettingsChanged += _settingsChangedHandler;
+
+            UpdateUuiRegistration(true);
         }
 
         private void Update()
@@ -95,18 +98,35 @@ namespace NetworkHighlightOverlay.Code.Core
                 _instance = null;
             }
 
-            DisposeSubscriptions();
-            _uuiButtonController?.UnregisterUui();
             SetActive(false);
+            UnsubscribeFromSettingsEvents();
+            _uuiButtonController?.UnregisterUui();
         }
 
-        private void OnHighlightRulesChanged(long previousVersion, long currentVersion)
+        private void OnHighlightRulesChanged()
         {
             _manager.OnHighlightRulesChanged();
         }
 
-        private void OnUseUuiButtonChanged(bool previousValue, bool useUuiButton)
+        private void OnSettingsChanged()
         {
+            UpdateUuiRegistration(false);
+        }
+
+        private void SyncUuiPressedState(bool isActive)
+        {
+            if (!_settings.UseUuiButton) return;
+
+            _uuiButtonController.SetPressed(isActive);
+        }
+
+        private void UpdateUuiRegistration(bool forceSync)
+        {
+            bool useUuiButton = _settings.UseUuiButton;
+            if (!forceSync && useUuiButton == _lastUseUuiButton)
+                return;
+
+            _lastUseUuiButton = useUuiButton;
             if (useUuiButton)
             {
                 _uuiButtonController.RegisterUui(SetActive);
@@ -117,26 +137,28 @@ namespace NetworkHighlightOverlay.Code.Core
             _uuiButtonController.UnregisterUui();
         }
 
-        private void SyncUuiPressedState(bool isActive)
+        private void UnsubscribeFromSettingsEvents()
         {
-            if (!_settings.UseUuiButton) return;
+            if (_settings != null && _highlightRulesChangedHandler != null)
+            {
+                _settings.HighlightRulesChanged -= _highlightRulesChangedHandler;
+                _highlightRulesChangedHandler = null;
+            }
 
-            _uuiButtonController.SetPressed(isActive);
+            if (_settings != null && _settingsChangedHandler != null)
+            {
+                _settings.SettingsChanged -= _settingsChangedHandler;
+                _settingsChangedHandler = null;
+            }
         }
 
-        private void DisposeSubscriptions()
+        private void RaiseActivationChanged(bool isActive)
         {
-            DisposeSubscription(ref _highlightRulesSubscription);
-            DisposeSubscription(ref _useUuiButtonSubscription);
-        }
-
-        private static void DisposeSubscription(ref IDisposable subscription)
-        {
-            if (subscription == null)
-                return;
-
-            subscription.Dispose();
-            subscription = null;
+            Action<bool> activationChanged = ActivationChanged;
+            if (activationChanged != null)
+            {
+                activationChanged(isActive);
+            }
         }
 
         private void EnsureInitialized()
