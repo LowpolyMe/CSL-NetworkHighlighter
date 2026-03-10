@@ -19,11 +19,7 @@ namespace NetworkHighlightOverlay.Code.Patches
 
         static void Prefix(RenderManager.CameraInfo cameraInfo)
         {
-            ActivationHandler activationHandler = ActivationHandler.GetInstance();
-            if (activationHandler == null)
-                return;
-
-            activationHandler.RenderOverlay(cameraInfo);
+            RuntimeHooks.RenderOverlay(cameraInfo);
         }
     }
 }

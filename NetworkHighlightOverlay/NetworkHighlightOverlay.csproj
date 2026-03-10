@@ -78,6 +78,7 @@
         <Compile Include="Code\Core\HighlightSelection.cs" />
         <Compile Include="Code\Core\Manager.cs" />
         <Compile Include="Code\Core\OverlayRenderer.cs" />
+        <Compile Include="Code\Core\RuntimeHooks.cs" />
         <Compile Include="Code\GUI\DragHandle.cs" />
         <Compile Include="Code\GUI\HuePopover.cs" />
         <Compile Include="Code\GUI\ToggleButton.cs" />
@@ -94,7 +95,6 @@
         <Compile Include="Code\ModOptions\HighlightCategoryDefinition.cs" />
         <Compile Include="Code\ModOptions\HighlightCategoryId.cs" />
         <Compile Include="Code\ModOptions\HighlightCategorySetting.cs" />
-        <Compile Include="Code\ModOptions\ModCompositionRoot.cs" />
         <Compile Include="Code\ModOptions\NetworkHighlighterMod.cs" />
         <Compile Include="Code\ModOptions\SettingsLoader.cs" />
         <Compile Include="Code\Patches\PatchTargets.cs" />

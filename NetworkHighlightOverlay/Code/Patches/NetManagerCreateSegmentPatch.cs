@@ -11,11 +11,7 @@ namespace NetworkHighlightOverlay.Code.Patches
         
         static void Postfix(ref ushort segment, NetInfo info, bool __result)
         {
-            ActivationHandler activationHandler = ActivationHandler.GetInstance();
-            if (activationHandler == null)
-                return;
-
-            activationHandler.HandleSegmentCreated(segment, info, __result);
+            RuntimeHooks.HandleSegmentCreated(segment, info, __result);
         }
     }
 }

@@ -16,11 +16,7 @@ namespace NetworkHighlightOverlay.Code.Patches
 
         static void Prefix(ushort segment)
         {
-            ActivationHandler activationHandler = ActivationHandler.GetInstance();
-            if (activationHandler == null)
-                return;
-
-            activationHandler.HandleSegmentReleased(segment);
+            RuntimeHooks.HandleSegmentReleased(segment);
         }
     }
 }

@@ -71,6 +71,7 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
             ReleaseRuntime();
 
             _manager = new Manager(_settings);
+            RuntimeHooks.Attach(_manager);
             _uuiButtonController = new UuiButtonController();
             _toggleButtonAtlas = new ToggleButtonAtlas();
 
@@ -82,6 +83,7 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
         {
             DestroyTogglePanel();
             DestroyControllerObject();
+            RuntimeHooks.Detach();
 
             ToggleButtonAtlas atlas = _toggleButtonAtlas;
             _toggleButtonAtlas = null;
@@ -104,7 +106,8 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
         {
             _controllerObject = new GameObject("PathHighlightRenderer");
             _activationHandler = _controllerObject.AddComponent<ActivationHandler>();
-            _activationHandler.Initialize(_manager, _settings, _uuiButtonController);
+            _activationHandler.Initialize(_manager, _settings);
+            _uuiButtonController.Initialize(_settings, _activationHandler);
             GameObject.DontDestroyOnLoad(_controllerObject);
         }
 
@@ -116,6 +119,7 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
                 return;
             }
 
+            _uuiButtonController.Dispose();
             UnityEngine.Object.Destroy(_controllerObject);
             _controllerObject = null;
             _activationHandler = null;
