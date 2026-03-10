@@ -4,6 +4,7 @@ using NetworkHighlightOverlay.Code.Core;
 using NetworkHighlightOverlay.Code.GUI;
 using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.UI;
+using System;
 using ColossalFramework.UI;
 using UnityEngine;
 
@@ -123,12 +124,15 @@ namespace NetworkHighlightOverlay.Code.Lifecycle
         private void CreateTogglePanel()
         {
             UIView view = UIView.GetAView();
-            if (view == null || _activationHandler == null || _toggleButtonAtlas == null)
-                return;
+            if (view == null)
+                throw new InvalidOperationException("Loading requires an active UIView before creating the toggle panel.");
+
+            if (_activationHandler == null || _toggleButtonAtlas == null)
+                throw new InvalidOperationException("Loading must initialize runtime dependencies before creating the toggle panel.");
 
             TogglePanel panel = view.AddUIComponent(typeof(TogglePanel)) as TogglePanel;
             if (panel == null)
-                return;
+                throw new InvalidOperationException("Failed to create the toggle panel.");
 
             panel.isVisible = false;
             panel.Initialize(_settings, _activationHandler, _toggleButtonAtlas);

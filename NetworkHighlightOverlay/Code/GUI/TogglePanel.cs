@@ -67,6 +67,8 @@ namespace NetworkHighlightOverlay.Code.GUI
             base.Start();
             EnsureInitialized();
             _view = UIView.GetAView();
+            if (_view == null)
+                throw new InvalidOperationException("TogglePanel requires an active UIView.");
             CreateDragHandle();
             CreateHuePopover();
             CreateButtons();
@@ -116,8 +118,8 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void SubscribeToActivationChanged()
         {
-            if (_activationHandler == null || _activationChangedHandler != null)
-                return;
+            if (_activationChangedHandler != null)
+                throw new InvalidOperationException("TogglePanel has already subscribed to ActivationChanged.");
 
             _activationChangedHandler = OnEnabledStateChanged;
             _activationHandler.ActivationChanged += _activationChangedHandler;
@@ -134,8 +136,8 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void SubscribeToSettingsChanged()
         {
-            if (_settings == null || _settingsChangedHandler != null)
-                return;
+            if (_settingsChangedHandler != null)
+                throw new InvalidOperationException("TogglePanel has already subscribed to SettingsChanged.");
 
             _settingsChangedHandler = OnSettingsChanged;
             _settings.SettingsChanged += _settingsChangedHandler;
@@ -167,9 +169,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void CreateHeaderLabel()
         {
-            if (_dragHandle == null)
-                return;
-
             UILabel headerLabel = _dragHandle.AddUIComponent<UILabel>();
             headerLabel.name = "NHO_TogglePanelHeaderLabel";
             headerLabel.anchor = UIAnchorStyle.CenterHorizontal | UIAnchorStyle.CenterVertical;
@@ -206,10 +205,9 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void CreateHuePopover()
         {
-            if (_view == null)
-                return;
-
             _huePopover = _view.AddUIComponent(typeof(HuePopover)) as HuePopover;
+            if (_huePopover == null)
+                throw new InvalidOperationException("TogglePanel failed to create the hue popover.");
         }
 
         private void DestroyHuePopover()
@@ -249,8 +247,8 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void OnButtonHueEditRequested(ToggleButton button, HighlightCategoryId categoryId)
         {
-            if (_huePopover == null || button == null)
-                return;
+            if (button == null)
+                throw new ArgumentNullException("button");
 
             if (_huePopover.IsAnchoredTo(button))
             {
@@ -273,9 +271,6 @@ namespace NetworkHighlightOverlay.Code.GUI
             for (int i = 0; i < buttonCount; i++)
             {
                 ToggleButton button = _buttons[i];
-                if (button == null)
-                    continue;
-
                 button.RefreshFromSettings();
             }
         }
@@ -290,9 +285,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void ApplySavedPosition()
         {
-            if (_view == null)
-                return;
-
             Vector2 panelSize = size;
             Vector2 target;
             if (_settings.PanelX >= 0f && _settings.PanelY >= 0f)
@@ -325,9 +317,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void SaveCurrentPosition()
         {
-            if (_view == null)
-                return;
-
             Vector2 currentPosition = new Vector2(absolutePosition.x, absolutePosition.y);
             Vector2 clamped = ClampToScreen(_view, currentPosition, size);
 

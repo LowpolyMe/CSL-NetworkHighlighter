@@ -97,22 +97,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             ClearUiBindings();
 
             EnsureTexturesLoaded();
-            
-            // Some mods (e.g. Skyve) seem to replace the vanilla UIHelper with their own UIHelperBase implementation,
-            // so we cannot rely on UIHelper.self always being available. I solved this by resolving the underlying UIComponent first
-            // then building our own tabbed UI on top of it. There's probably a more elegant solution out there, but this one works.
-            
-            UIComponent rootComponent = UIUtility.TryGetRootComponent(helper);
-            if (rootComponent == null)
-            {
-                Debug.LogWarning(
-                    "[NetworkHighlightOverlay][Options] Could not resolve root UIComponent for helper of type " +
-                    (helper != null ? helper.GetType().FullName : "null") +
-                    ". Falling back to simple (non-tabbed) settings UI.");
 
-                // BuildSimpleSettings(helper); // fallback: no tabs, just groups
-                return;
-            }
+            UIComponent rootComponent = UIUtility.GetRootComponent(helper);
 
             Debug.Log(
                 "[NetworkHighlightOverlay][Options] Using root component '" + rootComponent.name +
@@ -127,16 +113,22 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             if (_hueTexture == null)
             {
                 _hueTexture = ModResources.LoadTexture("HueGradient.png");
+                if (_hueTexture == null)
+                    throw new InvalidOperationException("Missing required texture: Resources/HueGradient.png");
             }
 
             if (_valueTexture == null)
             {
                 _valueTexture = ModResources.LoadTexture("ValueGradient.png");
+                if (_valueTexture == null)
+                    throw new InvalidOperationException("Missing required texture: Resources/ValueGradient.png");
             }
 
             if (_widthTexture == null)
             {
                 _widthTexture = ModResources.LoadTexture("HighlightWidth.png");
+                if (_widthTexture == null)
+                    throw new InvalidOperationException("Missing required texture: Resources/HighlightWidth.png");
             }
         }
 
@@ -235,7 +227,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private void AttachSettingsSubscription(UIPanel ownerPanel)
         {
             if (ownerPanel == null)
-                return;
+                throw new ArgumentNullException("ownerPanel");
 
             Action settingsChangedHandler = OnModSettingsChanged;
             _settings.SettingsChanged += settingsChangedHandler;
@@ -268,9 +260,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 for (int i = 0; i < sliderCount; i++)
                 {
                     HueSliderBinding binding = _hueSliderBindings[i];
-                    if (binding.Slider == null || binding.GetValue == null)
-                        continue;
-
                     float targetValue = Mathf.Clamp01(binding.GetValue());
                     if (Mathf.Abs(binding.Slider.value - targetValue) > 0.0001f)
                     {
@@ -282,9 +271,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 for (int i = 0; i < checkboxCount; i++)
                 {
                     CheckboxBinding binding = _checkboxBindings[i];
-                    if (binding.Checkbox == null || binding.GetValue == null)
-                        continue;
-
                     bool targetValue = binding.GetValue();
                     if (binding.Checkbox.isChecked != targetValue)
                     {
@@ -367,8 +353,14 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             Action<float> setValue,
             Texture2D backgroundTexture)
         {
-            if (helper == null || getValue == null || setValue == null)
-                return;
+            if (helper == null)
+                throw new ArgumentNullException("helper");
+
+            if (getValue == null)
+                throw new ArgumentNullException("getValue");
+
+            if (setValue == null)
+                throw new ArgumentNullException("setValue");
 
             OnValueChanged onChanged = value =>
             {
@@ -379,9 +371,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             };
 
             UISlider slider = UIUtility.CreateHueSlider(helper, label, getValue(), onChanged, backgroundTexture);
-            if (slider == null)
-                return;
-
             _hueSliderBindings.Add(new HueSliderBinding(slider, getValue));
         }
 
@@ -391,8 +380,14 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             Func<bool> getValue,
             Action<bool> setValue)
         {
-            if (helper == null || getValue == null || setValue == null)
-                return;
+            if (helper == null)
+                throw new ArgumentNullException("helper");
+
+            if (getValue == null)
+                throw new ArgumentNullException("getValue");
+
+            if (setValue == null)
+                throw new ArgumentNullException("setValue");
 
             OnCheckChanged onChanged = value =>
             {
@@ -405,7 +400,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             object checkboxObject = helper.AddCheckbox(label, getValue(), onChanged);
             UICheckBox checkbox = checkboxObject as UICheckBox;
             if (checkbox == null)
-                return;
+                throw new InvalidOperationException("UIHelperBase.AddCheckbox must return a UICheckBox.");
 
             _checkboxBindings.Add(new CheckboxBinding(checkbox, getValue));
         }
@@ -473,8 +468,6 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private static void UpdateColorColumnsLayout(UIPanel colorsPanel, UIPanel columnsRoot,
             UIPanel leftColumn, UIPanel rightColumn)
         {
-            if (colorsPanel == null || columnsRoot == null || leftColumn == null || rightColumn == null) return;
-
             float availableWidth = Mathf.Max(0f, colorsPanel.width);
             float horizontalPadding = colorsPanel.autoLayoutPadding != null
                 ? colorsPanel.autoLayoutPadding.left

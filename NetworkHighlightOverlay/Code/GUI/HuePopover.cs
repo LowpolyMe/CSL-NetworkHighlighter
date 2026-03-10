@@ -1,6 +1,7 @@
 using ColossalFramework.UI;
 using NetworkHighlightOverlay.Code.ModOptions;
 using NetworkHighlightOverlay.Code.Utility;
+using System;
 using UnityEngine;
 
 namespace NetworkHighlightOverlay.Code.GUI
@@ -70,8 +71,11 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         public void Open(ToggleButton toggleButton, ModSettings settings, HighlightCategoryId categoryId)
         {
-            if (toggleButton == null || settings == null)
-                return;
+            if (toggleButton == null)
+                throw new ArgumentNullException("toggleButton");
+
+            if (settings == null)
+                throw new ArgumentNullException("settings");
 
             _anchor = toggleButton;
             _settings = settings;
@@ -125,18 +129,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             _hueSlider.thumbObject = thumb;
 
             Texture2D texture = GetHueGradientTexture();
-            if (texture != null)
-            {
-                UITextureSprite hueBar = _hueSlider.AddUIComponent<UITextureSprite>();
-                hueBar.texture = texture;
-                hueBar.size = _hueSlider.size;
-                hueBar.relativePosition = Vector3.zero;
-                hueBar.zOrder = 0;
-                if (_hueSlider.thumbObject != null)
-                {
-                    _hueSlider.thumbObject.zOrder = hueBar.zOrder + 1;
-                }
-            }
+            UITextureSprite hueBar = _hueSlider.AddUIComponent<UITextureSprite>();
+            hueBar.texture = texture;
+            hueBar.size = _hueSlider.size;
+            hueBar.relativePosition = Vector3.zero;
+            hueBar.zOrder = 0;
+            _hueSlider.thumbObject.zOrder = hueBar.zOrder + 1;
 
             _hueSlider.eventValueChanged += OnHueSliderValueChanged;
         }
@@ -164,9 +162,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void UpdatePosition()
         {
-            if (_anchor == null || _view == null)
-                return;
-
             Vector2 resolution = _view.GetScreenResolution();
             float x = _anchor.absolutePosition.x + _anchor.width + PopoverOffset;
             float y = _anchor.absolutePosition.y + (_anchor.height - PopoverHeight) * 0.5f;
@@ -183,7 +178,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void SyncSliderFromSettings()
         {
-            if (_hueSlider == null || _settings == null || !_hasCategorySelection)
+            if (!_hasCategorySelection)
                 return;
 
             float hue = Mathf.Clamp01(_settings.GetCategoryHue(_categoryId));
@@ -197,7 +192,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void OnHueSliderValueChanged(UIComponent component, float value)
         {
-            if (_isApplyingHueValue || _settings == null || !_hasCategorySelection)
+            if (_isApplyingHueValue || !_hasCategorySelection)
                 return;
 
             _settings.SetCategoryHue(_categoryId, Mathf.Clamp01(value));
@@ -208,6 +203,8 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (_hueGradientTexture == null)
             {
                 _hueGradientTexture = ModResources.LoadTexture("HueGradient.png");
+                if (_hueGradientTexture == null)
+                    throw new InvalidOperationException("Missing required texture: Resources/HueGradient.png");
             }
 
             return _hueGradientTexture;
@@ -227,6 +224,8 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             _view = UIView.GetAView();
+            if (_view == null)
+                throw new InvalidOperationException("HuePopover requires an active UIView.");
         }
     }
 }

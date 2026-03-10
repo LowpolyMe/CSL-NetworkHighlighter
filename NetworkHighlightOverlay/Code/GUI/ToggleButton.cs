@@ -37,6 +37,9 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (toggleButtonAtlas == null)
                 throw new ArgumentNullException("toggleButtonAtlas");
 
+            if (onHueEditRequested == null)
+                throw new ArgumentNullException("onHueEditRequested");
+
             _toggleButtonAtlas = toggleButtonAtlas;
             _spriteName = categoryDefinition.SpriteName;
             _onHueEditRequested = onHueEditRequested;
@@ -57,9 +60,6 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             base.OnClick(p);
-            if (_settings == null)
-                return;
-
             _settings.SetCategoryEnabled(_categoryId, !_settings.GetCategoryEnabled(_categoryId));
         }
 
@@ -84,9 +84,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void SetupVisuals()
         {
-            if (_view == null)
-                return;
-
             atlas = _toggleButtonAtlas.GetOrCreate();
             ToggleButtonVisual.ApplyBackgroundSprites(this);
             _icon = ToggleButtonVisual.EnsureIcon(this, _icon, _view.defaultAtlas, _spriteName);
@@ -99,9 +96,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void ApplyVisualState()
         {
-            if (_settings == null)
-                return;
-
             opacity = 1f;
             isInteractive = true;
             normalBgSprite = _settings.GetCategoryEnabled(_categoryId)
@@ -124,10 +118,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             if (!IsRightMouseClick(p))
                 return false;
 
-            if (_settings == null)
-                return false;
-
-            _onHueEditRequested?.Invoke(this, _categoryId);
+            _onHueEditRequested(this, _categoryId);
 
             p?.Use();
 
@@ -136,9 +127,6 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private Color GetConfiguredColor()
         {
-            if (_settings == null)
-                return Color.white;
-
             Color colorFromConfig = _settings.GetCategoryColor(_categoryId);
             colorFromConfig.a = 1f;
             return colorFromConfig;
@@ -150,6 +138,8 @@ namespace NetworkHighlightOverlay.Code.GUI
                 return;
 
             _view = UIView.GetAView();
+            if (_view == null)
+                throw new InvalidOperationException("ToggleButton requires an active UIView.");
         }
 
         private static class ToggleButtonVisual
@@ -182,11 +172,11 @@ namespace NetworkHighlightOverlay.Code.GUI
                     return existingIcon;
 
                 if (iconAtlas == null)
-                    return null;
+                    throw new InvalidOperationException("ToggleButton requires a default icon atlas.");
 
                 UISprite icon = button.AddUIComponent<UISprite>();
                 if (icon == null)
-                    return null;
+                    throw new InvalidOperationException("ToggleButton failed to create its icon sprite.");
 
                 icon.name = button.name + "_Icon";
                 icon.atlas = iconAtlas;
@@ -203,11 +193,12 @@ namespace NetworkHighlightOverlay.Code.GUI
             public static void UpdateIconLayout(ToggleButton button, UISprite icon)
             {
                 if (icon == null)
-                    return;
+                    throw new ArgumentNullException("icon");
 
                 UITextureAtlas.SpriteInfo spriteInfo = icon.spriteInfo;
                 if (spriteInfo == null)
-                    return;
+                    throw new InvalidOperationException(
+                        "ToggleButton icon sprite '" + icon.spriteName + "' was not found in the atlas.");
 
                 Vector2 targetSize = ComputeTargetSizeWithAspectRatioIntact(spriteInfo.pixelSize);
                 icon.size = new Vector2(targetSize.x, targetSize.y);
