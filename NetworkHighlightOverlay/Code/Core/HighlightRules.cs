@@ -37,6 +37,11 @@ namespace NetworkHighlightOverlay.Code.Core
             bool hasTramOrTrolleyLanes = false;
             bool hasMonorailLanes = false;
             bool hasCarLanes = false;
+            bool isRaceRoad = false;
+            bool isEventRoad = false;
+            bool isPitLane = false;
+            bool isAirportTaxiway = ai is AirportAreaTaxiwayAI;
+            bool isAirportRunway = ai is AirportAreaRunwayAI;
 
             if (isRoadFamily)
             {
@@ -46,6 +51,9 @@ namespace NetworkHighlightOverlay.Code.Core
                 hasTramOrTrolleyLanes = (laneVehicleTypes & TramLikeMask) != 0;
                 hasMonorailLanes = (laneVehicleTypes & VehicleInfo.VehicleType.Monorail) != 0;
                 hasCarLanes = (laneVehicleTypes & VehicleInfo.VehicleType.Car) != 0;
+                isRaceRoad = IsRaceRoad(info);
+                isEventRoad = IsEventRoad(info);
+                isPitLane = IsPitLane(info);
             }
 
             HighlightSelection.SegmentFlags flags = new HighlightSelection.SegmentFlags
@@ -63,6 +71,11 @@ namespace NetworkHighlightOverlay.Code.Core
                 IsMetroTunnel = ai is MetroTrackTunnelAI,
                 IsMonorailTrack = ai is MonorailTrackAI,
                 IsCableCarPath = ai is CableCarPathAI,
+                IsRaceRoad = isRaceRoad,
+                IsEventRoad = isEventRoad,
+                IsPitLane = isPitLane,
+                IsAirportTaxiway = isAirportTaxiway,
+                IsAirportRunway = isAirportRunway,
                 IsRoadFamily = isRoadFamily,
                 IsRoadBridge = isRoadBridge,
                 IsRoadTunnel = isRoadTunnel,
@@ -125,6 +138,33 @@ namespace NetworkHighlightOverlay.Code.Core
             if (string.IsNullOrEmpty(className)) return false;
 
             return string.Equals(className, PedestrianStreetClassName, StringComparison.Ordinal);
+        }
+
+        private static bool IsRaceRoad(NetInfo netInfo)
+        {
+            if (netInfo == null) return false;
+
+            return netInfo.GetService() == ItemClass.Service.Race &&
+                   netInfo.GetClassLevel() == ItemClass.Level.Level4;
+        }
+
+        private static bool IsEventRoad(NetInfo netInfo)
+        {
+            if (netInfo == null) return false;
+
+            return netInfo.GetService() == ItemClass.Service.Race &&
+                   netInfo.GetClassLevel() == ItemClass.Level.Level3;
+        }
+
+        private static bool IsPitLane(NetInfo netInfo)
+        {
+            if (netInfo == null) return false;
+
+            if (netInfo.GetService() != ItemClass.Service.Race) return false;
+
+            ItemClass.Level classLevel = netInfo.GetClassLevel();
+            return classLevel == ItemClass.Level.Level2 ||
+                   classLevel == ItemClass.Level.Level1;
         }
 
         private static bool IsHighway(NetInfo info)

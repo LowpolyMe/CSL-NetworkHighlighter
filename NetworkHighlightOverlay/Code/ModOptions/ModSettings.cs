@@ -270,6 +270,10 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                     return new HighlightCategorySetting(config.HighlightRoads, config.RoadsHue);
                 case HighlightCategoryId.Highways:
                     return new HighlightCategorySetting(config.HighlightHighways, config.HighwaysHue);
+                case HighlightCategoryId.RaceRoads:
+                    return new HighlightCategorySetting(config.HighlightRaceRoads, config.RaceRoadsHue);
+                case HighlightCategoryId.AirportRoads:
+                    return new HighlightCategorySetting(config.HighlightAirportRoads, config.AirportRoadsHue);
                 case HighlightCategoryId.TrainTracks:
                     return new HighlightCategorySetting(config.HighlightTrainTracks, config.TrainTracksHue);
                 case HighlightCategoryId.MetroTracks:
@@ -308,6 +312,14 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 case HighlightCategoryId.Highways:
                     config.HighlightHighways = state.IsEnabled;
                     config.HighwaysHue = state.Hue;
+                    return;
+                case HighlightCategoryId.RaceRoads:
+                    config.HighlightRaceRoads = state.IsEnabled;
+                    config.RaceRoadsHue = state.Hue;
+                    return;
+                case HighlightCategoryId.AirportRoads:
+                    config.HighlightAirportRoads = state.IsEnabled;
+                    config.AirportRoadsHue = state.Hue;
                     return;
                 case HighlightCategoryId.TrainTracks:
                     config.HighlightTrainTracks = state.IsEnabled;
