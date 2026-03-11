@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace NetworkHighlightOverlay.Code.ModOptions
 {
     public static class HighlightCategoryCatalog
@@ -89,5 +91,13 @@ namespace NetworkHighlightOverlay.Code.ModOptions
                 "SubBarPublicTransportCableCar",
                 SteamHelper.DLC.None)
         };
+
+        public static HighlightCategoryDefinition[] GetEligible()
+        {
+            return All
+                .Where(definition => definition.RequiredDlc == SteamHelper.DLC.None || SteamHelper.IsDLCOwned(definition.RequiredDlc))
+                .ToArray();
+        }
+
     }
 }

@@ -24,6 +24,7 @@ namespace NetworkHighlightOverlay.Code.GUI
         private UIView _view;
         private DragHandle _dragHandle;
         private HuePopover _huePopover;
+        
         private readonly List<ToggleButton> _buttons = new List<ToggleButton>();
 
         public void Initialize(ModSettings settings, ActivationHandler activationHandler, ToggleButtonAtlas toggleButtonAtlas)
@@ -55,7 +56,7 @@ namespace NetworkHighlightOverlay.Code.GUI
             clipChildren = true;
             isVisible = false;
 
-            int rowCount = GetRowCount(HighlightCategoryCatalog.All.Length);
+            int rowCount = GetRowCount(HighlightCategoryCatalog.GetEligible().Length);
             Vector2 panelSize = new Vector2(
                 Padding * 2f + Columns * ButtonSize + (Columns - 1) * Spacing,
                 DragHandleHeight + Padding * 2f + rowCount * ButtonSize + Mathf.Max(0, rowCount - 1) * Spacing);
@@ -222,7 +223,7 @@ namespace NetworkHighlightOverlay.Code.GUI
 
         private void CreateButtons()
         {
-            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
+            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.GetEligible();
             int categoryCount = categoryDefinitions.Length;
             for (int index = 0; index < categoryCount; index++)
             {
