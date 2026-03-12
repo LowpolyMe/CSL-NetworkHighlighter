@@ -136,6 +136,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         private void BuildTabbedSettingsUI(UIComponent rootComponent)
         {
             ClearUiBindings();
+            HighlightCategoryDefinition[] eligibleCategoryDefinitions = HighlightCategoryCatalog.GetEligible();
 
             // local container so we don't mess with Skyve/vanilla layout flags
             UIPanel tabRoot = CreateRootPanel(rootComponent);
@@ -164,7 +165,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             int sliderIndex = 0;
 
             AddScalarColorSliders(leftHelper, rightHelper, ref sliderIndex);
-            AddCategoryColorSliders(leftHelper, rightHelper, ref sliderIndex);
+            AddCategoryColorSliders(leftHelper, rightHelper, ref sliderIndex, eligibleCategoryDefinitions);
 
             UpdateColorColumnsLayout(colorsPanel, columnsRoot, leftColumn, rightColumn);
             colorsPanel.eventSizeChanged += (component, size) =>
@@ -174,7 +175,7 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             #region TAB FILTERS
             UIPanel filtersPanel;
             UIHelper filtersHelper = UIUtility.CreateTab(tabContainer, tabStrip, "Filters", Color.white, out filtersPanel);
-            AddCategoryFilterCheckboxes(filtersHelper);
+            AddCategoryFilterCheckboxes(filtersHelper, eligibleCategoryDefinitions);
 
             AddBoundCheckbox(
                 filtersHelper,
@@ -302,13 +303,12 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private void AddCategoryColorSliders(UIHelper leftHelper, UIHelper rightHelper, ref int sliderIndex)
+        private void AddCategoryColorSliders(UIHelper leftHelper, UIHelper rightHelper, ref int sliderIndex, HighlightCategoryDefinition[] eligibleCategoryDefinitions)
         {
-            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
-            int categoryCount = categoryDefinitions.Length;
+            int categoryCount = eligibleCategoryDefinitions.Length;
             for (int i = 0; i < categoryCount; i++)
             {
-                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                HighlightCategoryDefinition definition = eligibleCategoryDefinitions[i];
                 HighlightCategoryId categoryId = definition.Id;
                 UIHelper helper = GetColumnHelper(sliderIndex++, leftHelper, rightHelper);
 
@@ -321,13 +321,12 @@ namespace NetworkHighlightOverlay.Code.ModOptions
             }
         }
 
-        private void AddCategoryFilterCheckboxes(UIHelper filtersHelper)
+        private void AddCategoryFilterCheckboxes(UIHelper filtersHelper, HighlightCategoryDefinition[] eligibleCategoryDefinitions)
         {
-            HighlightCategoryDefinition[] categoryDefinitions = HighlightCategoryCatalog.All;
-            int categoryCount = categoryDefinitions.Length;
+            int categoryCount = eligibleCategoryDefinitions.Length;
             for (int i = 0; i < categoryCount; i++)
             {
-                HighlightCategoryDefinition definition = categoryDefinitions[i];
+                HighlightCategoryDefinition definition = eligibleCategoryDefinitions[i];
                 HighlightCategoryId categoryId = definition.Id;
 
                 AddBoundCheckbox(

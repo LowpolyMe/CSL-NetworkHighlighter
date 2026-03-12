@@ -20,6 +20,11 @@ namespace NetworkHighlightOverlay.Code.Core
             public bool IsMetroTunnel;
             public bool IsMonorailTrack;
             public bool IsCableCarPath;
+            public bool IsRaceRoad;
+            public bool IsEventRoad;
+            public bool IsPitLane;
+            public bool IsAirportTaxiway;
+            public bool IsAirportRunway;
             public bool IsRoadFamily;
             public bool IsRoadBridge;
             public bool IsRoadTunnel;
@@ -98,6 +103,20 @@ namespace NetworkHighlightOverlay.Code.Core
             if (flags.IsCableCarPath)
             {
                 categoryId = HighlightCategoryId.CableCars;
+                return true;
+            }
+
+            if (flags.IsRaceRoad || flags.IsEventRoad || flags.IsPitLane)
+            {
+                categoryId = HighlightCategoryId.RaceRoads;
+                isBridge = flags.IsRoadBridge;
+                isTunnel = flags.IsRoadTunnel;
+                return true;
+            }
+
+            if (flags.IsAirportTaxiway || flags.IsAirportRunway)
+            {
+                categoryId = HighlightCategoryId.AirportRoads;
                 return true;
             }
 

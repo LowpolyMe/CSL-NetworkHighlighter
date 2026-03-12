@@ -7,6 +7,8 @@ namespace NetworkHighlightOverlay.Code.ModOptions
         TerraformingNetworks,
         Roads,
         Highways,
+        RaceRoads,
+        AirportRoads,
         TrainTracks,
         MetroTracks,
         TramTracks,
